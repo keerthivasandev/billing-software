@@ -1,7 +1,7 @@
 """Reports — Ledger Statement, Sales/Purchase Registers, Export Tools."""
 
-from PyQt5.QtCore import Qt, QDate
-from PyQt5.QtWidgets import (
+from PySide6.QtCore import Qt, QDate
+from PySide6.QtWidgets import (
     QAbstractItemView, QComboBox, QDateEdit, QFrame, QHBoxLayout, QHeaderView,
     QLabel, QTabWidget, QTableWidget, QTableWidgetItem, QVBoxLayout, QWidget,
 )

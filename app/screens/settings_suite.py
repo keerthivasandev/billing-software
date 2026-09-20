@@ -1,7 +1,7 @@
 """Settings — Audit Trail, Users, Fiscal Year & Rollover."""
 
-from PyQt5.QtCore import Qt
-from PyQt5.QtWidgets import (
+from PySide6.QtCore import Qt
+from PySide6.QtWidgets import (
     QAbstractItemView, QCheckBox, QComboBox, QFormLayout, QFrame, QHBoxLayout,
     QHeaderView, QLabel, QLineEdit, QListWidget, QListWidgetItem, QTableWidget,
     QTableWidgetItem, QVBoxLayout, QWidget,

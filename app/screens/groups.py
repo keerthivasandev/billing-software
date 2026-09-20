@@ -1,6 +1,6 @@
 """Master — Group Classifications (Product / Ledger / Godown)."""
 
-from PyQt5.QtWidgets import (
+from PySide6.QtWidgets import (
     QHBoxLayout, QInputDialog, QListWidget, QListWidgetItem, QTabWidget,
     QVBoxLayout, QWidget,
 )

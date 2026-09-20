@@ -1,8 +1,8 @@
 """Operations — Cash Flow register (In / Out) with live drawer balance."""
 
-from PyQt5.QtCore import Qt, QDate
-from PyQt5.QtGui import QBrush, QColor
-from PyQt5.QtWidgets import (
+from PySide6.QtCore import Qt, QDate
+from PySide6.QtGui import QBrush, QColor
+from PySide6.QtWidgets import (
     QAbstractItemView, QComboBox, QDateEdit, QDoubleSpinBox, QFormLayout,
     QHBoxLayout, QHeaderView, QLabel, QLineEdit, QTableWidget, QTableWidgetItem,
     QVBoxLayout, QWidget,

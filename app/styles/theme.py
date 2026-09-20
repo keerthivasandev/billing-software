@@ -1,13 +1,14 @@
 """Zoho Inventory QSS — flat, lightweight, token-driven."""
 
 from app.styles import tokens as T
+from app.widgets.icons import icon_url as _icon_url
 
 
 def build_qss() -> str:
     ui = getattr(T, "FONT_UI_RESOLVED", T.FONT_UI)
     return f"""
 * {{
-    font-family: "{ui}", "{T.FONT_UI_FALLBACK}", -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
+    font-family: "{ui}", "{T.FONT_UI_FALLBACK}", -apple-system, BlinkMacSystemFont, sans-serif;
     font-size: {T.FONT_SIZE_UI}pt;
     color: {T.TEXT_PRIMARY};
 }}
@@ -43,11 +44,11 @@ QPushButton#navToggle {{
     color: {T.NAV_TEXT_ACTIVE};
     border: 1px solid #374151;
     border-radius: {T.RADIUS}px;
-    min-width: 28px;
-    max-width: 28px;
-    min-height: 26px;
-    max-height: 26px;
-    padding: 0;
+    min-width: 32px;
+    max-width: 32px;
+    min-height: 30px;
+    max-height: 30px;
+    padding: 4px;
 }}
 
 QPushButton#navToggle:hover {{
@@ -126,13 +127,6 @@ QDoubleSpinBox:focus, QDateEdit:focus {{
     background-color: #fafcff;
 }}
 
-QComboBox::drop-down {{
-    border: none;
-    border-left: 1px solid {T.BORDER};
-    width: 20px;
-    background: {T.HEADER_BAND};
-}}
-
 QComboBox QAbstractItemView {{
     background-color: {T.SURFACE};
     border: 1px solid {T.BORDER};
@@ -146,10 +140,8 @@ QPushButton {{
     background-color: {T.SURFACE};
     border: 1px solid {T.BORDER_STRONG};
     border-radius: {T.RADIUS}px;
-    padding: 2px 10px;
+    padding: 4px 14px;
     min-height: {T.BUTTON_H}px;
-    max-height: {T.BUTTON_H}px;
-    min-width: 72px;
     font-size: {T.FONT_SIZE_UI}pt;
     color: {T.TEXT_PRIMARY};
 }}
@@ -173,11 +165,11 @@ QToolButton {{
     color: white;
     border: 1px solid {T.ACCENT};
     border-radius: {T.RADIUS}px;
-    padding: 2px 12px;
+    padding: 4px 16px;
     font-weight: bold;
     font-size: {T.FONT_SIZE_UI}pt;
     min-height: {T.BUTTON_H}px;
-    max-height: {T.BUTTON_H}px;
+    min-width: 148px;
 }}
 
 QToolButton:hover {{
@@ -186,7 +178,54 @@ QToolButton:hover {{
 
 QToolButton::menu-button {{
     border-left: 1px solid rgba(255,255,255,0.45);
-    width: 18px;
+    width: 22px;
+}}
+
+QComboBox::drop-down, QDateEdit::drop-down {{
+    border: none;
+    border-left: 1px solid {T.BORDER};
+    width: 22px;
+    background: {T.HEADER_BAND};
+    subcontrol-origin: padding;
+    subcontrol-position: top right;
+}}
+
+QDateEdit {{
+    padding-right: 4px;
+}}
+
+/* Larger, readable spin / date stepper arrows (Ant-style SVG) */
+QAbstractSpinBox::up-button, QAbstractSpinBox::down-button {{
+    subcontrol-origin: border;
+    width: 22px;
+    border-left: 1px solid {T.BORDER};
+    background: {T.HEADER_BAND};
+}}
+
+QAbstractSpinBox::up-button {{
+    subcontrol-position: top right;
+    border-top-right-radius: {T.RADIUS}px;
+}}
+
+QAbstractSpinBox::down-button {{
+    subcontrol-position: bottom right;
+    border-bottom-right-radius: {T.RADIUS}px;
+}}
+
+QAbstractSpinBox::up-button:hover, QAbstractSpinBox::down-button:hover {{
+    background: {T.ACCENT_SOFT};
+}}
+
+QAbstractSpinBox::up-arrow {{
+    image: url({_icon_url("caret-up-dark")});
+    width: 12px;
+    height: 12px;
+}}
+
+QAbstractSpinBox::down-arrow {{
+    image: url({_icon_url("caret-down-dark")});
+    width: 12px;
+    height: 12px;
 }}
 
 QTableWidget, QTreeWidget, QListWidget {{

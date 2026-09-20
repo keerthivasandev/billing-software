@@ -4,12 +4,13 @@ Native Python desktop ERP for wholesale electrical-goods distribution — purcha
 
 ## Stack
 
-- **Primary:** PyQt5 + QSS (Zoho Inventory palette)
+- **Primary:** PySide6 + QSS (professional ERP palette)
 - **Style:** Qt **Fusion** (same look on Mac preview and Windows `.exe`)
 - **Nav:** Collapsible accordion (Master / Operations / Reports / Settings)
+- **Screens:** Lazy-loaded via `QStackedWidget` (fast startup on low-spec PCs)
 - **Grids:** `QTableWidget` (no heavy chart libs)
 - **Target resolution:** 1366×768 (primary), 1920×1080 (secondary)
-- **Target OS:** Windows 7/10 shop PCs (2–4 GB RAM)
+- **Target OS:** Windows 10/11 shop PCs (~4 GB RAM)
 
 ## Run
 
@@ -18,6 +19,10 @@ conda activate billing-software
 pip install -r requirements.txt
 python main.py
 ```
+
+## Package (.exe)
+
+See [PACKAGING.md](PACKAGING.md).
 
 ## Keyboard shortcuts
 

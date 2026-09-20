@@ -1,33 +1,16 @@
 """Application shell — Zoho Inventory layout: accordion nav, top bar, stack."""
 
-from PyQt5.QtCore import Qt
-from PyQt5.QtGui import QKeySequence
-from PyQt5.QtWidgets import (
+from PySide6.QtCore import Qt
+from PySide6.QtGui import QKeySequence, QShortcut
+from PySide6.QtWidgets import (
     QFrame, QHBoxLayout, QLabel, QLineEdit, QMainWindow, QMenu, QPushButton,
-    QScrollArea, QShortcut, QStackedWidget, QToolButton, QVBoxLayout, QWidget,
+    QScrollArea, QStackedWidget, QToolButton, QVBoxLayout, QWidget,
 )
 
 from app.data import sample_data as D
-from app.screens.billwise import BillwiseScreen
-from app.screens.cash_flow import CashFlowScreen
-from app.screens.company_details import CompanyDetailsScreen
-from app.screens.dashboard import DashboardScreen
-from app.screens.estimate import EstimateScreen
-from app.screens.godowns import GodownsScreen
-from app.screens.groups import GroupsScreen
-from app.screens.license_dialog import LicenseActivationDialog
-from app.screens.party_master import PartyMasterScreen
-from app.screens.product_master import ProductMasterScreen
-from app.screens.reports import ReportsScreen
-from app.screens.reports_suite import (
-    ExportToolsScreen, LedgerStatementScreen, RegistersScreen,
-)
-from app.screens.settings_suite import (
-    AuditTrailScreen, FiscalYearScreen, RolloverScreen, UsersScreen,
-)
-from app.screens.transaction_entry import TransactionEntryScreen
 from app.styles import tokens as T
 from app.widgets.helpers import toast
+from app.widgets.icons import icon_size, nav_icon, qicon
 
 
 # Accordion groups: (group_key, title, [(nav_key, label, crumb), ...])
@@ -62,7 +45,7 @@ NAV_GROUPS = [
 ]
 
 NAV_SHORT = {
-    "dashboard": "⌂",
+    "dashboard": "Home",
     "company": "Co",
     "parties": "Pt",
     "groups": "Gr",
@@ -133,7 +116,17 @@ class MainWindow(QMainWindow):
             f"Ctrl+K Search   Alt+1 Masters   Alt+2 Sales   Alt+3 Purchase   Alt+4 Cash   Esc Close"
         )
 
-    def _nav_btn_style(self, child=False) -> str:
+    def _nav_btn_style(self, child=False, collapsed=False) -> str:
+        if collapsed:
+            return (
+                f"QPushButton {{ background: transparent; border: none; "
+                f"border-left: 3px solid transparent; text-align: center; "
+                f"padding: 12px 2px; color: {T.NAV_TEXT_ACTIVE}; min-height: 36px; "
+                f"font-size: 10pt; font-weight: bold; }}"
+                f"QPushButton:hover {{ background-color: {T.NAV_HOVER}; color: {T.NAV_TEXT_ACTIVE}; }}"
+                f"QPushButton:checked {{ background-color: {T.NAV_ACTIVE}; color: {T.NAV_TEXT_ACTIVE}; "
+                f"border-left: 3px solid #93c5fd; }}"
+            )
         pad = "5px 8px 5px 18px" if child else "6px 8px"
         return (
             f"QPushButton {{ background: transparent; border: none; "
@@ -160,8 +153,10 @@ class MainWindow(QMainWindow):
         hl.setContentsMargins(10, 12, 10, 4)
         hl.setSpacing(2)
         top = QHBoxLayout()
-        self.btn_toggle = QPushButton("☰")
+        self.btn_toggle = QPushButton()
         self.btn_toggle.setObjectName("navToggle")
+        self.btn_toggle.setIcon(qicon("menu", size=18))
+        self.btn_toggle.setIconSize(icon_size(18))
         self.btn_toggle.setToolTip("Collapse / Expand menu")
         self.btn_toggle.clicked.connect(self._toggle_nav)
         brand = QLabel("Wholesale ERP")
@@ -189,9 +184,11 @@ class MainWindow(QMainWindow):
         lay.setSpacing(2)
 
         # Dashboard direct
-        dash = QPushButton("Dashboard / Home")
+        dash = QPushButton("  Dashboard / Home")
         dash.setCheckable(True)
         dash.setCursor(Qt.PointingHandCursor)
+        dash.setIcon(nav_icon("dashboard", 18))
+        dash.setIconSize(icon_size(18))
         dash.setStyleSheet(self._nav_btn_style(False))
         dash.clicked.connect(lambda: self.navigate("dashboard"))
         self._nav_buttons["dashboard"] = dash
@@ -199,8 +196,10 @@ class MainWindow(QMainWindow):
         lay.addWidget(dash)
 
         for gkey, gtitle, items in NAV_GROUPS:
-            header_btn = QPushButton(f"▾  {gtitle}")
+            header_btn = QPushButton(f"  {gtitle}")
             header_btn.setCursor(Qt.PointingHandCursor)
+            header_btn.setIcon(qicon("caret-down", 14))
+            header_btn.setIconSize(icon_size(14))
             header_btn.setStyleSheet(
                 f"QPushButton {{ background: {T.NAV_HOVER}; border: none; text-align: left; "
                 f"padding: 8px 10px; color: {T.NAV_TEXT_ACTIVE}; font-weight: bold; "
@@ -209,6 +208,7 @@ class MainWindow(QMainWindow):
             )
             header_btn.clicked.connect(lambda checked=False, k=gkey: self._toggle_group(k))
             self._group_headers[gkey] = header_btn
+            self._group_open[gkey] = True
             lay.addWidget(header_btn)
 
             children = QWidget()
@@ -216,9 +216,11 @@ class MainWindow(QMainWindow):
             cl.setContentsMargins(0, 0, 0, 4)
             cl.setSpacing(1)
             for key, label, _crumb in items:
-                btn = QPushButton(label)
+                btn = QPushButton(f"  {label}")
                 btn.setCheckable(True)
                 btn.setCursor(Qt.PointingHandCursor)
+                btn.setIcon(nav_icon(key, 16))
+                btn.setIconSize(icon_size(16))
                 btn.setStyleSheet(self._nav_btn_style(True))
                 btn.clicked.connect(lambda checked=False, k=key: self.navigate(k))
                 self._nav_buttons[key] = btn
@@ -238,8 +240,10 @@ class MainWindow(QMainWindow):
         body = self._group_bodies[gkey]
         body.setVisible(open_ and self.nav_expanded)
         title = next(t for k, t, _ in NAV_GROUPS if k == gkey)
-        arrow = "▾" if open_ else "▸"
-        self._group_headers[gkey].setText(f"{arrow}  {title}")
+        header = self._group_headers[gkey]
+        header.setText(f"  {title}")
+        header.setIcon(qicon("caret-down" if open_ else "caret-right", 14))
+        header.setIconSize(icon_size(14))
 
     def _build_top_bar(self) -> QFrame:
         bar = QFrame()
@@ -271,7 +275,10 @@ class MainWindow(QMainWindow):
 
         self.btn_new = QToolButton()
         self.btn_new.setText("+ New Transaction")
+        self.btn_new.setToolButtonStyle(Qt.ToolButtonStyle.ToolButtonTextOnly)
         self.btn_new.setPopupMode(QToolButton.MenuButtonPopup)
+        self.btn_new.setMinimumWidth(160)
+        self.btn_new.setMinimumHeight(T.BUTTON_H)
         menu = QMenu(self)
         menu.addAction("Sales Invoice", lambda: self.navigate("sales"))
         menu.addAction("Purchase", lambda: self.navigate("purchase"))
@@ -284,7 +291,9 @@ class MainWindow(QMainWindow):
         lay.addWidget(self.fy_badge)
         lay.addStretch()
         lay.addWidget(self.search)
+        lay.addSpacing(8)
         lay.addWidget(user)
+        lay.addSpacing(10)
         lay.addWidget(self.btn_new)
         return bar
 
@@ -303,35 +312,81 @@ class MainWindow(QMainWindow):
         return bar
 
     def _register_screens(self):
-        screens = {
-            "dashboard": DashboardScreen(),
-            "company": CompanyDetailsScreen(),
-            "parties": PartyMasterScreen(),
-            "groups": GroupsScreen(),
-            "products": ProductMasterScreen(),
-            "godowns": GodownsScreen(),
-            "purchase": TransactionEntryScreen(mode="purchase"),
-            "sales": TransactionEntryScreen(mode="sales"),
-            "cash_flow": CashFlowScreen(),
-            "billwise": BillwiseScreen(mode="receipt"),
-            "estimate": EstimateScreen(navigate_cb=self.navigate),
-            "ledger_stmt": LedgerStatementScreen(),
-            "registers": RegistersScreen(),
-            "reports_ar_ap": ReportsScreen(),
-            "export_tools": ExportToolsScreen(),
-            "audit_trail": AuditTrailScreen(),
-            "users": UsersScreen(),
-            "change_fy": FiscalYearScreen(on_fy_change=self._on_fy_change),
-            "rollover": RolloverScreen(),
-        }
-        for key, widget in screens.items():
-            idx = self.stack.addWidget(widget)
-            self._screen_keys[key] = idx
+        # Lazy init: only dashboard at startup (potato-PC friendly).
+        self._ensure_screen("dashboard")
+
+    def _create_screen(self, key: str) -> QWidget:
+        if key == "dashboard":
+            from app.screens.dashboard import DashboardScreen
+            return DashboardScreen()
+        if key == "company":
+            from app.screens.company_details import CompanyDetailsScreen
+            return CompanyDetailsScreen()
+        if key == "parties":
+            from app.screens.party_master import PartyMasterScreen
+            return PartyMasterScreen()
+        if key == "groups":
+            from app.screens.groups import GroupsScreen
+            return GroupsScreen()
+        if key == "products":
+            from app.screens.product_master import ProductMasterScreen
+            return ProductMasterScreen()
+        if key == "godowns":
+            from app.screens.godowns import GodownsScreen
+            return GodownsScreen()
+        if key == "purchase":
+            from app.screens.transaction_entry import TransactionEntryScreen
+            return TransactionEntryScreen(mode="purchase")
+        if key == "sales":
+            from app.screens.transaction_entry import TransactionEntryScreen
+            return TransactionEntryScreen(mode="sales")
+        if key == "cash_flow":
+            from app.screens.cash_flow import CashFlowScreen
+            return CashFlowScreen()
+        if key == "billwise":
+            from app.screens.billwise import BillwiseScreen
+            return BillwiseScreen(mode="receipt")
+        if key == "estimate":
+            from app.screens.estimate import EstimateScreen
+            return EstimateScreen(navigate_cb=self.navigate)
+        if key == "ledger_stmt":
+            from app.screens.reports_suite import LedgerStatementScreen
+            return LedgerStatementScreen()
+        if key == "registers":
+            from app.screens.reports_suite import RegistersScreen
+            return RegistersScreen()
+        if key == "reports_ar_ap":
+            from app.screens.reports import ReportsScreen
+            return ReportsScreen()
+        if key == "export_tools":
+            from app.screens.reports_suite import ExportToolsScreen
+            return ExportToolsScreen()
+        if key == "audit_trail":
+            from app.screens.settings_suite import AuditTrailScreen
+            return AuditTrailScreen()
+        if key == "users":
+            from app.screens.settings_suite import UsersScreen
+            return UsersScreen()
+        if key == "change_fy":
+            from app.screens.settings_suite import FiscalYearScreen
+            return FiscalYearScreen(on_fy_change=self._on_fy_change)
+        if key == "rollover":
+            from app.screens.settings_suite import RolloverScreen
+            return RolloverScreen()
+        raise KeyError(f"Unknown screen: {key}")
+
+    def _ensure_screen(self, key: str):
+        if key in self._screen_keys:
+            return
+        widget = self._create_screen(key)
+        idx = self.stack.addWidget(widget)
+        self._screen_keys[key] = idx
 
     def navigate(self, key: str):
         if key == "license":
+            from app.screens.license_dialog import LicenseActivationDialog
             dlg = LicenseActivationDialog(self)
-            dlg.exec_()
+            dlg.exec()
             return
 
         for k, btn in self._nav_buttons.items():
@@ -345,11 +400,11 @@ class MainWindow(QMainWindow):
                 break
 
         self.breadcrumb.setText(self._crumb_map.get(key, key))
-        if key in self._screen_keys:
-            self.stack.setCurrentIndex(self._screen_keys[key])
-            widget = self.stack.currentWidget()
-            if hasattr(widget, "focus_entry"):
-                widget.focus_entry()
+        self._ensure_screen(key)
+        self.stack.setCurrentIndex(self._screen_keys[key])
+        widget = self.stack.currentWidget()
+        if hasattr(widget, "focus_entry"):
+            widget.focus_entry()
 
     def _on_fy_change(self, year: str):
         self.fy_badge.setText(year)
@@ -370,12 +425,18 @@ class MainWindow(QMainWindow):
             )
         for key, btn in self._nav_buttons.items():
             label = self._nav_labels[key]
+            child = key != "dashboard"
+            btn.setIcon(nav_icon(key, 20 if not self.nav_expanded else 16))
+            btn.setIconSize(icon_size(20 if not self.nav_expanded else 16))
             if self.nav_expanded:
-                btn.setText(label)
+                btn.setText(f"  {label}")
                 btn.setToolTip("")
+                btn.setStyleSheet(self._nav_btn_style(child=child, collapsed=False))
             else:
-                btn.setText(NAV_SHORT.get(key, label[:2]))
+                # Icon-only rail — Ant SVG, no tiny Unicode glyphs
+                btn.setText("")
                 btn.setToolTip(label)
+                btn.setStyleSheet(self._nav_btn_style(child=False, collapsed=True))
 
     def _live_search(self, text: str):
         q = text.strip().lower()

@@ -48,7 +48,6 @@ ehthumbs.db
 
 # PyInstaller / packaging
 *.manifest
-*.spec
 *.exe
 *.dll
 *.so
@@ -56,6 +55,8 @@ ehthumbs.db
 build/
 dist/
 *.app
+# Keep project packaging specs tracked (do not ignore *.spec globally)
+!sri_lakshmi_erp.spec
 
 # Qt / PyQt
 *.qmlc

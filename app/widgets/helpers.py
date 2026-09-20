@@ -1,8 +1,8 @@
 """Shared UI helpers — Zoho-style compact controls + lightweight toast."""
 
-from PyQt5.QtCore import Qt, QTimer
-from PyQt5.QtGui import QFont, QColor
-from PyQt5.QtWidgets import (
+from PySide6.QtCore import Qt, QTimer
+from PySide6.QtGui import QFont, QColor
+from PySide6.QtWidgets import (
     QFrame, QHBoxLayout, QLabel, QPushButton, QVBoxLayout, QWidget,
 )
 
@@ -20,7 +20,7 @@ def amount_font(size_pt=None, bold=False):
     face = getattr(T, "FONT_UI_RESOLVED", T.FONT_UI)
     f = QFont(face, size_pt or T.FONT_SIZE_GRID)
     f.setBold(bold)
-    f.setStyleHint(QFont.SansSerif)
+    f.setStyleHint(QFont.StyleHint.SansSerif)
     f.setFixedPitch(False)
     f.setKerning(True)
     return f
@@ -66,12 +66,16 @@ def labeled_field(label: str, widget: QWidget, shortcut: str = None) -> QWidget:
 
 
 def make_button(text: str, kind: str = "secondary", shortcut: str = None) -> QPushButton:
-    label = f"{text}  {shortcut}" if shortcut else text
+    # Qt treats single "&" as mnemonic (underline) — "Save & Print" becomes Save_Print.
+    safe = text.replace("&", "&&")
+    label = f"{safe}  {shortcut}" if shortcut else safe
     btn = QPushButton(label)
+    btn.setAutoDefault(False)
+    btn.setDefault(False)
     base = (
-        f"min-height: {T.BUTTON_H}px; max-height: {T.BUTTON_H}px; "
-        f"padding: 1px 10px; border-radius: {T.RADIUS}px; "
-        f"font-size: {T.FONT_SIZE_UI}pt; min-width: 72px;"
+        f"min-height: {T.BUTTON_H}px; "
+        f"padding: 4px 14px; border-radius: {T.RADIUS}px; "
+        f"font-size: {T.FONT_SIZE_UI}pt;"
     )
     if kind == "primary":
         btn.setStyleSheet(
@@ -87,10 +91,10 @@ def make_button(text: str, kind: str = "secondary", shortcut: str = None) -> QPu
         )
     elif kind == "ghost":
         btn.setStyleSheet(
-            f"QPushButton {{ background: transparent; border: none; "
-            f"color: {T.TEXT_SECONDARY}; {base} min-width: 56px; }}"
+            f"QPushButton {{ background: transparent; border: 1px solid transparent; "
+            f"color: {T.TEXT_SECONDARY}; {base} }}"
             f"QPushButton:hover {{ color: {T.TEXT_PRIMARY}; "
-            f"background-color: {T.HEADER_BAND}; }}"
+            f"background-color: {T.HEADER_BAND}; border-color: {T.BORDER}; }}"
         )
     else:
         btn.setStyleSheet(
@@ -99,7 +103,7 @@ def make_button(text: str, kind: str = "secondary", shortcut: str = None) -> QPu
             f"QPushButton:hover {{ background-color: {T.HEADER_BAND}; "
             f"border-color: {T.ACCENT}; }}"
         )
-    btn.setFixedHeight(T.BUTTON_H)
+    btn.setMinimumHeight(T.BUTTON_H)
     return btn
 
 
@@ -197,7 +201,7 @@ class ToastHost(QWidget):
 
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.setAttribute(Qt.WA_TransparentForMouseEvents, False)
+        self.setAttribute(Qt.WidgetAttribute.WA_TransparentForMouseEvents, False)
         self.hide()
         self._banner = QFrame(self)
         self._banner.setObjectName("toastBanner")

@@ -38,16 +38,16 @@ DANGER_BG = "#fef2f2"
 DOC_PILL_BG = "#e0e7ff"
 DOC_PILL_FG = "#3730a3"
 
-# Sizing — compact for 1366×768 / potato PCs
-INPUT_H = 28
-BUTTON_H = 28
+# Sizing — readable controls (avoid clipped footer / buttons)
+INPUT_H = 30
+BUTTON_H = 30
 GRID_ROW_H = 28
-NAV_COLLAPSED = 56
+NAV_COLLAPSED = 72
 NAV_EXPANDED = 248
 LIST_PANEL_W = 260
-HEADER_ZONE_H = 78
-FAST_STRIP_H = 48
-FOOTER_ZONE_H = 118
+HEADER_ZONE_H = 100
+FAST_STRIP_H = 56
+FOOTER_ZONE_H = 210
 RADIUS = 4
 EMPTY_GRID_ROWS = 12
 CARD_RADIUS = 6
@@ -61,8 +61,9 @@ FONT_SIZE_TITLE = 11
 FONT_SIZE_GRAND = 13
 FONT_SIZE_SHORTCUT = 8
 
-FONT_UI = "Inter"
-FONT_UI_FALLBACK = "Segoe UI"
+# Prefer Segoe UI on Windows for packaging / low-spec PCs (no custom font install).
+FONT_UI = "Segoe UI"
+FONT_UI_FALLBACK = "Arial"
 FONT_MONO = "Consolas"
 FONT_MONO_FALLBACK = "Courier New"
 
@@ -71,8 +72,8 @@ FONT_MONO_RESOLVED = FONT_MONO
 
 
 def _pick_font(preferred, fallback):
-    from PyQt5.QtGui import QFontDatabase
-    families = set(QFontDatabase().families())
+    from PySide6.QtGui import QFontDatabase
+    families = set(QFontDatabase.families())
     if preferred in families:
         return preferred
     if fallback in families:
@@ -83,13 +84,13 @@ def _pick_font(preferred, fallback):
 
 
 def resolve_fonts():
-    """Call after QApplication exists. Prefer Inter → Segoe UI → system."""
+    """Call after QApplication exists. Prefer Segoe UI on Windows."""
     global FONT_UI_RESOLVED, FONT_MONO_RESOLVED
     if sys.platform == "darwin":
-        FONT_UI_RESOLVED = _pick_font("Inter", "Helvetica Neue")
+        FONT_UI_RESOLVED = _pick_font("Helvetica Neue", "Arial")
     elif sys.platform == "win32":
-        FONT_UI_RESOLVED = _pick_font("Inter", "Segoe UI")
+        FONT_UI_RESOLVED = _pick_font("Segoe UI", "Arial")
     else:
-        FONT_UI_RESOLVED = _pick_font("Inter", "Ubuntu")
+        FONT_UI_RESOLVED = _pick_font("Ubuntu", "DejaVu Sans")
     FONT_MONO_RESOLVED = FONT_UI_RESOLVED
     return FONT_UI_RESOLVED, FONT_MONO_RESOLVED

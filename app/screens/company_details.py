@@ -1,7 +1,7 @@
 """Master — Company Details."""
 
-from PyQt5.QtCore import Qt, QDate
-from PyQt5.QtWidgets import (
+from PySide6.QtCore import Qt, QDate
+from PySide6.QtWidgets import (
     QDateEdit, QFormLayout, QHBoxLayout, QLineEdit, QVBoxLayout, QWidget,
 )
 

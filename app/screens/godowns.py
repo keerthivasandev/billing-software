@@ -1,7 +1,7 @@
 """Master — Godowns / Warehouses."""
 
-from PyQt5.QtCore import Qt
-from PyQt5.QtWidgets import (
+from PySide6.QtCore import Qt
+from PySide6.QtWidgets import (
     QCheckBox, QFormLayout, QFrame, QHBoxLayout, QLabel, QLineEdit,
     QListWidget, QListWidgetItem, QSplitter, QVBoxLayout, QWidget,
 )

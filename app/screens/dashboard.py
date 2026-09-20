@@ -1,8 +1,8 @@
 """Dashboard — Zoho Inventory split-grid (KPI + panels, no heavy charts)."""
 
-from PyQt5.QtCore import Qt
-from PyQt5.QtGui import QBrush, QColor
-from PyQt5.QtWidgets import (
+from PySide6.QtCore import Qt
+from PySide6.QtGui import QBrush, QColor
+from PySide6.QtWidgets import (
     QAbstractItemView, QFrame, QGridLayout, QHBoxLayout, QHeaderView,
     QLabel, QProgressBar, QScrollArea, QTabWidget, QTableWidget,
     QTableWidgetItem, QVBoxLayout, QWidget,
