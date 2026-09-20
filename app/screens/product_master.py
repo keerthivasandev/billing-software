@@ -2,13 +2,14 @@
 
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import (
-    QComboBox, QDoubleSpinBox, QFormLayout, QHBoxLayout, QLabel, QLineEdit,
+    QComboBox, QDoubleSpinBox, QHBoxLayout, QLabel, QLineEdit,
     QListWidget, QListWidgetItem, QSplitter, QVBoxLayout, QWidget,
 )
 
 from app.data import sample_data as D
 from app.styles import tokens as T
-from app.widgets.helpers import card_frame, field_label, make_button, page_title, toast
+from app.widgets.fields import field_row, icon_field
+from app.widgets.helpers import card_frame, make_button, page_title, toast
 
 
 class ProductMasterScreen(QWidget):
@@ -59,9 +60,7 @@ class ProductMasterScreen(QWidget):
         right = card_frame()
         rl = QVBoxLayout(right)
         rl.setContentsMargins(16, 12, 16, 12)
-        form = QFormLayout()
-        form.setSpacing(8)
-        form.setLabelAlignment(Qt.AlignRight)
+        rl.setSpacing(8)
 
         self.sku = QLineEdit()
         self.name = QLineEdit()
@@ -95,19 +94,38 @@ class ProductMasterScreen(QWidget):
         self.err = QLabel("")
         self.err.setStyleSheet(f"color: {T.DANGER}; font-size: {T.FONT_SIZE_SHORTCUT}pt;")
 
-        form.addRow(field_label("Item Name"), self.name)
-        form.addRow(field_label("SKU / Barcode"), self.sku)
-        form.addRow(field_label("HSN Code"), self.hsn)
-        form.addRow(field_label("Product Group"), self.group)
-        form.addRow(field_label("Unit of Sale"), self.unit)
-        form.addRow(field_label("Sale Rate"), self.sale_rate)
-        form.addRow(field_label("Purchase Rate"), self.purchase_rate)
-        form.addRow(field_label("Tax Rate (GST %)"), self.gst)
-        form.addRow(field_label("Minimum Alert Level"), self.min_stock)
-        form.addRow(field_label("Opening Quantity"), self.opening_qty)
-        form.addRow(field_label("Current Stock"), self.stock)
-        form.addRow(field_label("Godown"), self.warehouse)
-        rl.addLayout(form)
+        rl.addWidget(icon_field("Item Name", self.name, icon="inbox", show_edit=True))
+        rl.addWidget(
+            field_row(
+                icon_field("SKU / Barcode", self.sku, icon="file-text"),
+                icon_field("HSN Code", self.hsn, icon="safety"),
+            )
+        )
+        rl.addWidget(
+            field_row(
+                icon_field("Product Group", self.group, icon="appstore"),
+                icon_field("Unit of Sale", self.unit, icon="shopping"),
+            )
+        )
+        rl.addWidget(
+            field_row(
+                icon_field("Sale Rate", self.sale_rate, icon="wallet"),
+                icon_field("Purchase Rate", self.purchase_rate, icon="wallet"),
+            )
+        )
+        rl.addWidget(
+            field_row(
+                icon_field("Tax Rate (GST %)", self.gst, icon="file-text"),
+                icon_field("Minimum Alert Level", self.min_stock, icon="history"),
+            )
+        )
+        rl.addWidget(
+            field_row(
+                icon_field("Opening Quantity", self.opening_qty, icon="inbox"),
+                icon_field("Current Stock", self.stock, icon="inbox"),
+            )
+        )
+        rl.addWidget(icon_field("Godown", self.warehouse, icon="folder"))
         rl.addWidget(self.err)
         rl.addStretch()
         split.addWidget(right)

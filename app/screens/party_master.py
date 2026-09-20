@@ -2,14 +2,15 @@
 
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import (
-    QComboBox, QDoubleSpinBox, QFormLayout, QHBoxLayout, QLabel, QLineEdit,
+    QComboBox, QDoubleSpinBox, QHBoxLayout, QLabel, QLineEdit,
     QListWidget, QListWidgetItem, QSpinBox, QSplitter, QVBoxLayout, QWidget,
 )
 
 from app.data import sample_data as D
 from app.styles import tokens as T
+from app.widgets.fields import field_row, icon_field
 from app.widgets.helpers import (
-    balance_label, card_frame, field_label, make_button, page_title, toast,
+    balance_label, card_frame, make_button, page_title, toast,
 )
 
 
@@ -62,9 +63,7 @@ class PartyMasterScreen(QWidget):
         right = card_frame()
         self._right_lay = QVBoxLayout(right)
         self._right_lay.setContentsMargins(16, 12, 16, 12)
-        form = QFormLayout()
-        form.setSpacing(8)
-        form.setLabelAlignment(Qt.AlignRight)
+        self._right_lay.setSpacing(8)
 
         self.name = QLineEdit()
         self.ptype = QComboBox()
@@ -88,17 +87,34 @@ class PartyMasterScreen(QWidget):
         self.err = QLabel("")
         self.err.setStyleSheet(f"color: {T.DANGER}; font-size: {T.FONT_SIZE_SHORTCUT}pt;")
 
-        form.addRow(field_label("Party Name"), self.name)
-        form.addRow(field_label("Customer / Supplier"), self.ptype)
-        form.addRow(field_label("Contact"), self.phone)
-        form.addRow(field_label("Address"), self.address)
-        form.addRow(field_label("City"), self.city)
-        form.addRow(field_label("GSTIN"), self.gstin)
-        form.addRow(field_label("Opening Balance"), self.balance)
-        form.addRow(field_label("Debit / Credit"), self.balance_type)
-        form.addRow(field_label("Credit Limit"), self.credit_limit)
-        form.addRow(field_label("Credit Days"), self.credit_days)
-        self._right_lay.addLayout(form)
+        self._right_lay.addWidget(
+            icon_field("Party Name", self.name, icon="team", show_edit=True)
+        )
+        self._right_lay.addWidget(
+            field_row(
+                icon_field("Customer / Supplier", self.ptype, icon="appstore"),
+                icon_field("Contact", self.phone, icon="phone"),
+            )
+        )
+        self._right_lay.addWidget(
+            field_row(
+                icon_field("Address", self.address, icon="map-pin"),
+                icon_field("City", self.city, icon="home"),
+            )
+        )
+        self._right_lay.addWidget(icon_field("GSTIN", self.gstin, icon="file-text"))
+        self._right_lay.addWidget(
+            field_row(
+                icon_field("Opening Balance", self.balance, icon="wallet"),
+                icon_field("Debit / Credit", self.balance_type, icon="book"),
+            )
+        )
+        self._right_lay.addWidget(
+            field_row(
+                icon_field("Credit Limit", self.credit_limit, icon="wallet"),
+                icon_field("Credit Days", self.credit_days, icon="calendar"),
+            )
+        )
         self._right_lay.addWidget(self.err)
         self.bal_preview = balance_label(0)
         self._right_lay.addWidget(self.bal_preview, alignment=Qt.AlignLeft)
@@ -121,7 +137,9 @@ class PartyMasterScreen(QWidget):
         self._right_lay.removeWidget(self.bal_preview)
         self.bal_preview.deleteLater()
         self.bal_preview = balance_label(amount)
-        self._right_lay.insertWidget(2, self.bal_preview, alignment=Qt.AlignLeft)
+        # Keep preview just after the error label (before stretch).
+        idx = self._right_lay.indexOf(self.err)
+        self._right_lay.insertWidget(idx + 1, self.bal_preview, alignment=Qt.AlignLeft)
 
     def _load_detail(self, row: int):
         if row < 0 or row >= len(self._index_map):

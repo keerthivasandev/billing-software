@@ -3,15 +3,16 @@
 from PySide6.QtCore import Qt, QDate
 from PySide6.QtGui import QBrush, QColor
 from PySide6.QtWidgets import (
-    QAbstractItemView, QComboBox, QDateEdit, QDoubleSpinBox, QFormLayout,
+    QAbstractItemView, QComboBox, QDateEdit, QDoubleSpinBox,
     QHBoxLayout, QHeaderView, QLabel, QLineEdit, QTableWidget, QTableWidgetItem,
     QVBoxLayout, QWidget,
 )
 
 from app.data import sample_data as D
 from app.styles import tokens as T
+from app.widgets.fields import field_row, icon_field
 from app.widgets.helpers import (
-    card_frame, field_label, format_inr, make_button, page_title, toast, ui_font,
+    card_frame, format_inr, make_button, page_title, toast, ui_font,
 )
 
 
@@ -33,9 +34,9 @@ class CashFlowScreen(QWidget):
         root.addLayout(bar)
 
         entry = card_frame()
-        fl = QFormLayout(entry)
-        fl.setContentsMargins(12, 12, 12, 12)
-        fl.setSpacing(8)
+        el = QVBoxLayout(entry)
+        el.setContentsMargins(12, 12, 12, 12)
+        el.setSpacing(8)
         self.kind = QComboBox()
         self.kind.addItems(["In", "Out"])
         self.mode = QComboBox()
@@ -49,18 +50,26 @@ class CashFlowScreen(QWidget):
         self.date = QDateEdit(QDate.currentDate())
         self.date.setCalendarPopup(True)
         self.date.setDisplayFormat("dd-MM-yyyy")
-        fl.addRow(field_label("Type"), self.kind)
-        fl.addRow(field_label("Mode"), self.mode)
-        fl.addRow(field_label("Reference No"), self.ref)
-        fl.addRow(field_label("Purpose / Category"), self.purpose)
-        fl.addRow(field_label("Amount"), self.amount)
-        fl.addRow(field_label("Date"), self.date)
+        el.addWidget(
+            field_row(
+                icon_field("Type", self.kind, icon="wallet"),
+                icon_field("Mode", self.mode, icon="book"),
+                icon_field("Date", self.date, icon="calendar"),
+            )
+        )
+        el.addWidget(
+            field_row(
+                icon_field("Reference No", self.ref, icon="file-text"),
+                icon_field("Purpose / Category", self.purpose, icon="inbox"),
+                icon_field("Amount", self.amount, icon="wallet"),
+            )
+        )
         btn_row = QHBoxLayout()
         add = make_button("Post Entry", "primary")
         add.clicked.connect(self._post)
         btn_row.addWidget(add)
         btn_row.addStretch()
-        fl.addRow(QLabel(""), btn_row)
+        el.addLayout(btn_row)
         root.addWidget(entry)
 
         self.table = QTableWidget(0, 6)
