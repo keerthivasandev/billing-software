@@ -1,11 +1,10 @@
 #!/usr/bin/env python3
-"""Entry point — Wholesale Billing & Inventory desktop ERP."""
+"""Entry point — Wholesale Billing & Inventory desktop ERP (PySide6)."""
 
 import sys
 
-from PyQt5.QtCore import Qt
-from PyQt5.QtGui import QFont, QPalette, QColor
-from PyQt5.QtWidgets import QApplication, QStyleFactory
+from PySide6.QtGui import QFont, QPalette, QColor
+from PySide6.QtWidgets import QApplication, QStyleFactory
 
 from app.main_window import MainWindow
 from app.styles import tokens as T
@@ -14,27 +13,24 @@ from app.styles import tokens as T
 def _apply_windows_like_palette(app: QApplication):
     """Neutral Fusion palette so Mac preview matches Windows .exe look."""
     pal = QPalette()
-    pal.setColor(QPalette.Window, QColor(T.BG_CANVAS))
-    pal.setColor(QPalette.WindowText, QColor(T.TEXT_PRIMARY))
-    pal.setColor(QPalette.Base, QColor(T.SURFACE))
-    pal.setColor(QPalette.AlternateBase, QColor(T.ALT_ROW))
-    pal.setColor(QPalette.Text, QColor(T.TEXT_PRIMARY))
-    pal.setColor(QPalette.Button, QColor(T.SURFACE))
-    pal.setColor(QPalette.ButtonText, QColor(T.TEXT_PRIMARY))
-    pal.setColor(QPalette.Highlight, QColor(T.ACCENT))
-    pal.setColor(QPalette.HighlightedText, QColor("#FFFFFF"))
-    pal.setColor(QPalette.ToolTipBase, QColor(T.SURFACE))
-    pal.setColor(QPalette.ToolTipText, QColor(T.TEXT_PRIMARY))
-    pal.setColor(QPalette.Link, QColor(T.ACCENT))
+    pal.setColor(QPalette.ColorRole.Window, QColor(T.BG_CANVAS))
+    pal.setColor(QPalette.ColorRole.WindowText, QColor(T.TEXT_PRIMARY))
+    pal.setColor(QPalette.ColorRole.Base, QColor(T.SURFACE))
+    pal.setColor(QPalette.ColorRole.AlternateBase, QColor(T.ALT_ROW))
+    pal.setColor(QPalette.ColorRole.Text, QColor(T.TEXT_PRIMARY))
+    pal.setColor(QPalette.ColorRole.Button, QColor(T.SURFACE))
+    pal.setColor(QPalette.ColorRole.ButtonText, QColor(T.TEXT_PRIMARY))
+    pal.setColor(QPalette.ColorRole.Highlight, QColor(T.ACCENT))
+    pal.setColor(QPalette.ColorRole.HighlightedText, QColor("#FFFFFF"))
+    pal.setColor(QPalette.ColorRole.ToolTipBase, QColor(T.SURFACE))
+    pal.setColor(QPalette.ColorRole.ToolTipText, QColor(T.TEXT_PRIMARY))
+    pal.setColor(QPalette.ColorRole.Link, QColor(T.ACCENT))
     app.setPalette(pal)
 
 
 def main():
-    QApplication.setAttribute(Qt.AA_EnableHighDpiScaling, True)
-    QApplication.setAttribute(Qt.AA_UseHighDpiPixmaps, True)
-
+    # Qt6 handles High-DPI scaling natively.
     app = QApplication(sys.argv)
-    # Fusion = same widget chrome on Mac and Windows (critical for preview parity)
     app.setStyle(QStyleFactory.create("Fusion"))
     _apply_windows_like_palette(app)
 
@@ -48,7 +44,7 @@ def main():
 
     window = MainWindow()
     window.show()
-    sys.exit(app.exec_())
+    sys.exit(app.exec())
 
 
 if __name__ == "__main__":

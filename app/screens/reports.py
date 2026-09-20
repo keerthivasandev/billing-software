@@ -1,15 +1,15 @@
 """Payables & Receivables Summary report."""
 
-from PyQt5.QtCore import Qt, QDate
-from PyQt5.QtWidgets import (
+from PySide6.QtCore import Qt, QDate
+from PySide6.QtWidgets import (
     QAbstractItemView, QComboBox, QDateEdit, QFrame, QHBoxLayout,
-    QHeaderView, QLabel, QMessageBox, QPushButton, QTabWidget,
+    QHeaderView, QLabel, QTabWidget,
     QTableWidget, QTableWidgetItem, QVBoxLayout, QWidget,
 )
 
 from app.data import sample_data as D
 from app.styles import tokens as T
-from app.widgets.helpers import field_label, format_inr, make_button, mono_font
+from app.widgets.helpers import field_label, format_inr, make_button, mono_font, toast
 
 
 COLS = ["Party Name", "Bill No.", "Bill Date", "Due Date", "Amount", "Balance", "Days"]
@@ -23,7 +23,7 @@ class ReportsScreen(QWidget):
         root.setSpacing(6)
 
         title = QLabel("Payables & Receivables Summary")
-        title.setStyleSheet("font-size: 14pt; font-weight: bold;")
+        title.setStyleSheet(f"font-size: {T.FONT_SIZE_TITLE}pt; font-weight: bold;")
         root.addWidget(title)
 
         # Filter bar
@@ -57,9 +57,9 @@ class ReportsScreen(QWidget):
         btn_pdf = make_button("Export PDF")
         btn_print = make_button("Print", shortcut="[Ctrl+P]")
         btn_run.clicked.connect(self._run)
-        btn_csv.clicked.connect(lambda: QMessageBox.information(self, "Export", "CSV export (stub)."))
-        btn_pdf.clicked.connect(lambda: QMessageBox.information(self, "Export", "PDF export (stub)."))
-        btn_print.clicked.connect(lambda: QMessageBox.information(self, "Print", "Print (stub)."))
+        btn_csv.clicked.connect(lambda: toast(self, "CSV export ready (demo)."))
+        btn_pdf.clicked.connect(lambda: toast(self, "PDF export ready (demo)."))
+        btn_print.clicked.connect(lambda: toast(self, "Print view ready (demo)."))
 
         for w in (
             self._wrap("From", self.from_date),
@@ -97,7 +97,7 @@ class ReportsScreen(QWidget):
         t.setEditTriggers(QAbstractItemView.NoEditTriggers)
         t.setSelectionBehavior(QAbstractItemView.SelectRows)
         t.setSortingEnabled(True)
-        t.setFont(mono_font(9))
+        t.setFont(mono_font(T.FONT_SIZE_GRID))
         t.verticalHeader().setDefaultSectionSize(T.GRID_ROW_H)
         t.horizontalHeader().setSectionResizeMode(0, QHeaderView.Stretch)
         return t
@@ -116,7 +116,7 @@ class ReportsScreen(QWidget):
         sl = QHBoxLayout(summary)
         sl.setContentsMargins(10, 6, 10, 6)
         lbl = QLabel("Total Qty / Total Value: —")
-        lbl.setFont(mono_font(10, bold=True))
+        lbl.setFont(mono_font(T.FONT_SIZE_LABEL, bold=True))
         if kind == "recv":
             self.recv_summary = lbl
         else:
@@ -140,7 +140,7 @@ class ReportsScreen(QWidget):
                 it = QTableWidgetItem(v)
                 if c in (4, 5, 6):
                     it.setTextAlignment(Qt.AlignRight | Qt.AlignVCenter)
-                    it.setFont(mono_font(9))
+                    it.setFont(mono_font(T.FONT_SIZE_GRID))
                 if c == 5 and row["balance"] > 0 and row["days"] > 7:
                     it.setForeground(Qt.red)
                 table.setItem(r, c, it)

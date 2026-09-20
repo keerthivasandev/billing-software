@@ -1,20 +1,19 @@
 """Shared 4-zone transaction entry — dense layout matching Windows ERP target."""
 
-from PyQt5.QtCore import Qt, QDate
-from PyQt5.QtGui import QColor, QBrush
-from PyQt5.QtWidgets import (
+from PySide6.QtCore import Qt, QDate
+from PySide6.QtGui import QColor, QBrush, QKeySequence, QShortcut
+from PySide6.QtWidgets import (
     QAbstractItemView, QComboBox, QDateEdit, QDoubleSpinBox, QFrame,
-    QGridLayout, QHBoxLayout, QHeaderView, QLabel, QLineEdit, QMessageBox,
+    QGridLayout, QHBoxLayout, QHeaderView, QLabel, QLineEdit,
     QRadioButton, QButtonGroup, QSizePolicy, QTableWidget, QTableWidgetItem,
-    QVBoxLayout, QWidget, QShortcut,
+    QVBoxLayout, QWidget,
 )
-from PyQt5.QtGui import QKeySequence
 
 from app.data import sample_data as D
 from app.styles import tokens as T
 from app.widgets.helpers import (
     balance_label, field_label, format_inr, labeled_field, make_button,
-    mono_font,
+    mono_font, toast,
 )
 
 GRID_COLS = [
@@ -65,7 +64,10 @@ class TransactionEntryScreen(QWidget):
             f"QFrame#zoneA {{ background-color: {T.SURFACE}; "
             f"border: 1px solid {T.BORDER}; }}"
         )
-        zone.setFixedHeight(T.HEADER_ZONE_H)
+        zone.setMinimumHeight(T.HEADER_ZONE_H)
+        # Prefer grow over clip when DPI / long labels need space
+        zone.setMaximumHeight(120)
+
 
         lay = QVBoxLayout(zone)
         lay.setContentsMargins(8, 6, 8, 6)
@@ -80,7 +82,7 @@ class TransactionEntryScreen(QWidget):
         self.doc_date = QDateEdit(QDate.currentDate())
         self.doc_date.setCalendarPopup(True)
         self.doc_date.setDisplayFormat("dd-MM-yyyy")
-        self.doc_date.setFixedWidth(120)
+        self.doc_date.setMinimumWidth(130)
 
         self.party = QComboBox()
         self.party.setEditable(True)
@@ -109,7 +111,7 @@ class TransactionEntryScreen(QWidget):
         row2 = QHBoxLayout()
         row2.setSpacing(8)
         self.pay_mode = QComboBox()
-        self.pay_mode.addItems(["Cash", "Credit", "UPI", "Bank"])
+        self.pay_mode.addItems(["Credit", "Counter Cash", "UPI", "Bank"])
         self.pay_mode.setFixedWidth(110)
         self.vehicle = QLineEdit()
         self.vehicle.setPlaceholderText("Vehicle No.")
@@ -155,7 +157,9 @@ class TransactionEntryScreen(QWidget):
             f"QFrame#zoneB {{ background-color: {T.HEADER_BAND}; "
             f"border: 1px solid {T.BORDER}; border-left: 3px solid {T.ACCENT}; }}"
         )
-        zone.setFixedHeight(T.FAST_STRIP_H)
+        zone.setMinimumHeight(T.FAST_STRIP_H)
+        zone.setMaximumHeight(70)
+
 
         lay = QHBoxLayout(zone)
         lay.setContentsMargins(8, 4, 8, 4)
@@ -206,7 +210,7 @@ class TransactionEntryScreen(QWidget):
     def _on_item_picked(self, idx):
         data = self.item_search.itemData(idx)
         if data:
-            self.rate.setValue(float(data["rate"]))
+            self.rate.setValue(float(data.get("sale_rate", data.get("rate", 0))))
             self.qty.setFocus()
             self.qty.selectAll()
 
@@ -293,9 +297,7 @@ class TransactionEntryScreen(QWidget):
         idx = self.item_search.currentIndex()
         data = self.item_search.itemData(idx)
         if not data:
-            QMessageBox.information(
-                self, "Item required", "Select a Product / Item first. [F2]"
-            )
+            toast(self, "Select a Product / Item first. [F2]")
             self.item_search.setFocus()
             return
 
@@ -383,7 +385,7 @@ class TransactionEntryScreen(QWidget):
             it.setFlags(Qt.ItemIsEnabled | Qt.ItemIsSelectable)
         self.grid.blockSignals(False)
 
-    # ---- ZONE D: compact footer ----
+    # ---- ZONE D: totals + settlement + actions ----
     def _build_zone_d(self) -> QFrame:
         zone = QFrame()
         zone.setObjectName("zoneD")
@@ -391,19 +393,20 @@ class TransactionEntryScreen(QWidget):
             f"QFrame#zoneD {{ background-color: {T.HEADER_BAND}; "
             f"border: 1px solid {T.BORDER}; border-top: 2px solid {T.BORDER_STRONG}; }}"
         )
-        zone.setFixedHeight(T.FOOTER_ZONE_H)
+        zone.setMinimumHeight(T.FOOTER_ZONE_H)
 
         outer = QVBoxLayout(zone)
-        outer.setContentsMargins(8, 6, 8, 6)
-        outer.setSpacing(4)
+        outer.setContentsMargins(12, 10, 12, 10)
+        outer.setSpacing(10)
 
         top = QHBoxLayout()
-        top.setSpacing(20)
+        top.setSpacing(28)
 
-        # Left summary — compact 2-col grid
         summary = QGridLayout()
-        summary.setHorizontalSpacing(10)
-        summary.setVerticalSpacing(2)
+        summary.setHorizontalSpacing(16)
+        summary.setVerticalSpacing(6)
+        summary.setColumnMinimumWidth(0, 120)
+        summary.setColumnMinimumWidth(1, 130)
 
         self.lbl_subtotal = QLabel("Rs. 0.00")
         self.lbl_discount = QLabel("Rs. 0.00")
@@ -412,28 +415,30 @@ class TransactionEntryScreen(QWidget):
         self.charges.setRange(0, 999999)
         self.charges.setDecimals(2)
         self.charges.setPrefix("Rs. ")
-        self.charges.setFixedWidth(100)
+        self.charges.setMinimumWidth(120)
         self.charges.valueChanged.connect(self._recalc)
         self.round_off = QDoubleSpinBox()
         self.round_off.setRange(-10, 10)
         self.round_off.setDecimals(2)
         self.round_off.setSingleStep(0.5)
-        self.round_off.setFixedWidth(80)
+        self.round_off.setMinimumWidth(120)
         self.round_off.valueChanged.connect(self._recalc)
 
         self.lbl_grand = QLabel("Rs. 0.00")
         self.lbl_grand.setFont(mono_font(T.FONT_SIZE_GRAND, bold=True))
         self.lbl_grand.setStyleSheet(
             f"color: white; background: {T.GRAND_TOTAL_BG}; "
-            f"padding: 4px 10px; border: 1px solid {T.GRAND_TOTAL_BG};"
+            f"padding: 6px 12px; border-radius: {T.RADIUS}px; "
+            f"border: 1px solid {T.GRAND_TOTAL_BG};"
         )
         self.lbl_grand.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
         self.lbl_grand.setMinimumWidth(140)
+        self.lbl_grand.setMinimumHeight(32)
 
         for lbl in (self.lbl_subtotal, self.lbl_discount, self.lbl_tax):
             lbl.setFont(mono_font(T.FONT_SIZE_GRID))
             lbl.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
-            lbl.setMinimumWidth(100)
+            lbl.setMinimumWidth(120)
 
         rows = [
             ("Subtotal", self.lbl_subtotal),
@@ -443,25 +448,23 @@ class TransactionEntryScreen(QWidget):
             ("Round Off", self.round_off),
         ]
         for i, (label, w) in enumerate(rows):
-            summary.addWidget(field_label(label), i, 0)
-            summary.addWidget(w, i, 1)
+            summary.addWidget(field_label(label), i, 0, Qt.AlignVCenter)
+            summary.addWidget(w, i, 1, Qt.AlignVCenter)
 
-        gt_row = QHBoxLayout()
         gt_lbl = QLabel("Grand Total")
         gt_lbl.setStyleSheet(
             f"font-size: {T.FONT_SIZE_UI}pt; font-weight: bold; color: {T.TEXT_PRIMARY};"
         )
-        gt_row.addWidget(gt_lbl)
-        gt_row.addWidget(self.lbl_grand)
-        summary.addLayout(gt_row, len(rows), 0, 1, 2)
+        summary.addWidget(gt_lbl, len(rows), 0, Qt.AlignVCenter)
+        summary.addWidget(self.lbl_grand, len(rows), 1, Qt.AlignVCenter)
         top.addLayout(summary)
 
         top.addStretch(1)
 
-        # Settlement cluster
         pay = QGridLayout()
-        pay.setHorizontalSpacing(8)
-        pay.setVerticalSpacing(3)
+        pay.setHorizontalSpacing(12)
+        pay.setVerticalSpacing(8)
+        pay.setColumnMinimumWidth(0, 110)
 
         settle_title = QLabel("Settlement")
         settle_title.setStyleSheet(
@@ -473,15 +476,16 @@ class TransactionEntryScreen(QWidget):
         self.amount_recv.setRange(0, 99999999)
         self.amount_recv.setDecimals(2)
         self.amount_recv.setPrefix("Rs. ")
-        self.amount_recv.setFixedWidth(120)
+        self.amount_recv.setMinimumWidth(130)
         self.amount_recv.valueChanged.connect(self._recalc)
 
         self.lbl_due = QLabel("Rs. 0.00")
         self.lbl_due.setFont(mono_font(T.FONT_SIZE_UI, bold=True))
+        self.lbl_due.setMinimumWidth(130)
 
         self.mode_group = QButtonGroup(self)
         mode_row = QHBoxLayout()
-        mode_row.setSpacing(10)
+        mode_row.setSpacing(14)
         for i, m in enumerate(["Cash", "Credit", "UPI", "Bank"]):
             rb = QRadioButton(m)
             if i == 0:
@@ -494,24 +498,23 @@ class TransactionEntryScreen(QWidget):
         self.due_date = QDateEdit(QDate.currentDate().addDays(30))
         self.due_date.setCalendarPopup(True)
         self.due_date.setDisplayFormat("dd-MM-yyyy")
-        self.due_date.setFixedWidth(120)
+        self.due_date.setMinimumWidth(130)
         self.due_date_wrap = labeled_field("Due Date", self.due_date)
         self.due_date_wrap.setVisible(False)
 
-        pay.addWidget(field_label(self.amount_label), 1, 0)
-        pay.addWidget(self.amount_recv, 1, 1)
-        pay.addWidget(field_label("Balance Due"), 2, 0)
-        pay.addWidget(self.lbl_due, 2, 1)
-        pay.addWidget(field_label("Payment Mode"), 3, 0)
+        pay.addWidget(field_label(self.amount_label), 1, 0, Qt.AlignVCenter)
+        pay.addWidget(self.amount_recv, 1, 1, Qt.AlignVCenter)
+        pay.addWidget(field_label("Balance Due"), 2, 0, Qt.AlignVCenter)
+        pay.addWidget(self.lbl_due, 2, 1, Qt.AlignVCenter)
+        pay.addWidget(field_label("Payment Mode"), 3, 0, Qt.AlignVCenter)
         pay.addLayout(mode_row, 3, 1)
         pay.addWidget(self.due_date_wrap, 4, 0, 1, 2)
         top.addLayout(pay)
 
         outer.addLayout(top)
 
-        # Action row — compact equal-height buttons
         actions = QHBoxLayout()
-        actions.setSpacing(6)
+        actions.setSpacing(10)
         actions.addStretch()
         self.btn_draft = make_button("Save as Draft")
         self.btn_preview = make_button("Print Preview", shortcut="[Ctrl+P]")
@@ -583,25 +586,16 @@ class TransactionEntryScreen(QWidget):
         )
 
     def _save(self, kind):
-        QMessageBox.information(
+        toast(
             self,
-            "Saved",
-            f"Document {self.doc_no.text()} saved ({kind}).\n"
-            f"Grand Total: {self.lbl_grand.text()}",
+            f"Saved {self.doc_no.text()} ({kind}) · {self.lbl_grand.text()}",
         )
         if kind == "new":
             self._clear_form()
 
     def _cancel(self):
-        reply = QMessageBox.question(
-            self,
-            "Cancel",
-            "Discard changes?",
-            QMessageBox.Yes | QMessageBox.No,
-            QMessageBox.No,
-        )
-        if reply == QMessageBox.Yes:
-            self._clear_form()
+        self._clear_form()
+        toast(self, "Entry cleared.")
 
     def _clear_form(self):
         for r in range(self.grid.rowCount()):
@@ -619,9 +613,7 @@ class TransactionEntryScreen(QWidget):
         QShortcut(
             QKeySequence("Ctrl+P"),
             self,
-            activated=lambda: QMessageBox.information(
-                self, "Print Preview", "Print preview (stub)."
-            ),
+            activated=lambda: toast(self, "Print preview ready (thermal / tax)."),
         )
         QShortcut(QKeySequence("Esc"), self, activated=self._cancel)
         QShortcut(QKeySequence("Return"), self.btn_add, activated=self._add_line)
