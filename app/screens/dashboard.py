@@ -20,9 +20,11 @@ class DashboardScreen(QWidget):
 
         head = QHBoxLayout()
         title = QLabel("Dashboard")
-        title.setStyleSheet(f"font-size: 14pt; font-weight: bold; color: {T.TEXT_PRIMARY};")
+        title.setStyleSheet(
+            f"font-size: {T.FONT_SIZE_TITLE}pt; font-weight: bold; color: {T.TEXT_PRIMARY};"
+        )
         sub = QLabel("Today's overview — sales, stock & collections")
-        sub.setStyleSheet(f"color: {T.TEXT_SECONDARY}; font-size: 9pt;")
+        sub.setStyleSheet(f"color: {T.TEXT_SECONDARY}; font-size: {T.FONT_SIZE_SHORTCUT}pt;")
         head.addWidget(title)
         head.addStretch()
         head.addWidget(sub)
@@ -58,7 +60,9 @@ class DashboardScreen(QWidget):
         sbl = QHBoxLayout(section_bar)
         sbl.setContentsMargins(12, 8, 12, 8)
         section = QLabel("Recent Transactions")
-        section.setStyleSheet(f"font-size: 11pt; font-weight: bold; color: {T.TEXT_PRIMARY};")
+        section.setStyleSheet(
+            f"font-size: {T.FONT_SIZE_UI}pt; font-weight: bold; color: {T.TEXT_PRIMARY};"
+        )
         sbl.addWidget(section)
         sbl.addStretch()
         pl.addWidget(section_bar)
@@ -118,7 +122,9 @@ class DashboardScreen(QWidget):
                 "Low Stock Alert: "
                 + "  ·  ".join(f"{p['name']} ({p['stock']})" for p in low)
             )
-            hint.setStyleSheet(f"color: {T.WARNING}; font-size: 9pt; font-weight: bold;")
+            hint.setStyleSheet(
+                f"color: {T.WARNING}; font-size: {T.FONT_SIZE_SHORTCUT}pt; font-weight: bold;"
+            )
             wl.addWidget(hint)
             root.addWidget(warn)
 
@@ -132,7 +138,9 @@ class DashboardScreen(QWidget):
         lay.setContentsMargins(14, 12, 12, 12)
         lay.setSpacing(6)
         lbl = QLabel(label)
-        lbl.setStyleSheet(f"color: {T.TEXT_SECONDARY}; font-size: 9pt; border: none;")
+        lbl.setStyleSheet(
+            f"color: {T.TEXT_SECONDARY}; font-size: {T.FONT_SIZE_SHORTCUT}pt; border: none;"
+        )
         val = QLabel(value)
         val.setFont(ui_font(T.FONT_SIZE_GRAND, bold=True))
         val.setStyleSheet(f"color: {color}; border: none; font-size: {T.FONT_SIZE_GRAND}pt;")

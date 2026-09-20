@@ -92,7 +92,7 @@ class PlaceholderScreen(QWidget):
         bl = QVBoxLayout(box)
         bl.setContentsMargins(20, 20, 20, 20)
         lbl = QLabel(title)
-        lbl.setStyleSheet("font-size: 14pt; font-weight: bold;")
+        lbl.setStyleSheet(f"font-size: {T.FONT_SIZE_TITLE}pt; font-weight: bold;")
         hint = QLabel(
             "This screen is scaffolded and ready for business logic.\n"
             "Final Windows .exe will use the same layout and Fusion theme."
@@ -198,7 +198,7 @@ class MainWindow(QMainWindow):
                 sec = QLabel(label)
                 sec.setProperty("class", "navSection")
                 sec.setStyleSheet(
-                    "color: #7A8799; font-size: 8pt; font-weight: bold; "
+                    f"color: #7A8799; font-size: {T.FONT_SIZE_SHORTCUT}pt; font-weight: bold; "
                     "padding: 12px 10px 4px 10px;"
                 )
                 sec.setObjectName(f"sec_{key}")
@@ -279,7 +279,9 @@ class MainWindow(QMainWindow):
         lay.setContentsMargins(14, 0, 14, 0)
         self.breadcrumb = QLabel("Dashboard")
         self.breadcrumb.setObjectName("breadcrumbLabel")
-        self.breadcrumb.setStyleSheet(f"color: {T.TEXT_SECONDARY}; font-size: 9pt;")
+        self.breadcrumb.setStyleSheet(
+            f"color: {T.TEXT_SECONDARY}; font-size: {T.FONT_SIZE_SHORTCUT}pt;"
+        )
         lay.addWidget(self.breadcrumb)
         lay.addStretch()
         return bar

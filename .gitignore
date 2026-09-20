@@ -1,0 +1,90 @@
+# Byte-compiled / cache
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyo
+
+# Virtual environments
+.venv/
+venv/
+env/
+.env/
+.conda/
+*.egg-info/
+.eggs/
+dist/
+build/
+*.egg
+
+# Conda
+*.conda
+
+# Environment / secrets
+.env
+.env.*
+!.env.example
+*.local
+secrets.*
+credentials.*
+*.pem
+*.key
+license.key
+
+# IDE / editors
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.project
+.pydevproject
+.settings/
+
+# OS
+.DS_Store
+Thumbs.db
+Desktop.ini
+ehthumbs.db
+
+# PyInstaller / packaging
+*.manifest
+*.spec
+*.exe
+*.dll
+*.so
+*.dylib
+build/
+dist/
+*.app
+
+# Qt / PyQt
+*.qmlc
+*.jsc
+moc_*.cpp
+ui_*.py
+*_ui.py
+
+# Logs / temp / databases
+*.log
+*.tmp
+*.temp
+*.bak
+*.sqlite
+*.sqlite3
+*.db
+*.mdb
+
+# Test / coverage
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+.tox/
+.nox/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Cursor / local agent
+.cursor/

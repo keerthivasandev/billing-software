@@ -27,7 +27,7 @@ class ProductMasterScreen(QWidget):
 
         bar = QHBoxLayout()
         title = QLabel("Products")
-        title.setStyleSheet("font-size: 14pt; font-weight: bold;")
+        title.setStyleSheet(f"font-size: {T.FONT_SIZE_TITLE}pt; font-weight: bold;")
         bar.addWidget(title)
         bar.addStretch()
         self.btn_new = make_button("New")
@@ -68,7 +68,7 @@ class ProductMasterScreen(QWidget):
         rl = QVBoxLayout(right)
         rl.setContentsMargins(16, 12, 16, 12)
         form_title = QLabel("Product Details")
-        form_title.setStyleSheet("font-size: 11pt; font-weight: bold;")
+        form_title.setStyleSheet(f"font-size: {T.FONT_SIZE_UI}pt; font-weight: bold;")
         rl.addWidget(form_title)
 
         form = QFormLayout()
@@ -96,7 +96,7 @@ class ProductMasterScreen(QWidget):
         self.warehouse = QComboBox()
         self.warehouse.addItems(D.WAREHOUSES)
         self.err = QLabel("")
-        self.err.setStyleSheet(f"color: {T.DANGER}; font-size: 8pt;")
+        self.err.setStyleSheet(f"color: {T.DANGER}; font-size: {T.FONT_SIZE_SHORTCUT}pt;")
 
         form.addRow(field_label("SKU / Barcode"), self.sku)
         form.addRow(field_label("Product / Item"), self.name)

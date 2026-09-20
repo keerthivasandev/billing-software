@@ -27,7 +27,7 @@ class LicenseActivationDialog(QDialog):
         root.setSpacing(10)
 
         title = QLabel("License Activation")
-        title.setStyleSheet("font-size: 14pt; font-weight: bold;")
+        title.setStyleSheet(f"font-size: {T.FONT_SIZE_TITLE}pt; font-weight: bold;")
         root.addWidget(title)
 
         hint = QLabel(
@@ -35,7 +35,7 @@ class LicenseActivationDialog(QDialog):
             "(hardware fingerprint)."
         )
         hint.setWordWrap(True)
-        hint.setStyleSheet(f"color: {T.TEXT_SECONDARY}; font-size: 9pt;")
+        hint.setStyleSheet(f"color: {T.TEXT_SECONDARY}; font-size: {T.FONT_SIZE_SHORTCUT}pt;")
         root.addWidget(hint)
 
         form = QFormLayout()
@@ -44,7 +44,7 @@ class LicenseActivationDialog(QDialog):
         machine_row = QHBoxLayout()
         self.machine_id = QLineEdit(D.MACHINE_ID)
         self.machine_id.setReadOnly(True)
-        self.machine_id.setFont(mono_font(10))
+        self.machine_id.setFont(mono_font(T.FONT_SIZE_LABEL))
         btn_copy = make_button("Copy")
         btn_copy.setMaximumWidth(80)
         btn_copy.clicked.connect(self._copy_machine_id)
@@ -54,7 +54,7 @@ class LicenseActivationDialog(QDialog):
         self.license_key = QTextEdit()
         self.license_key.setPlaceholderText("Paste license key here…")
         self.license_key.setFixedHeight(80)
-        self.license_key.setFont(mono_font(9))
+        self.license_key.setFont(mono_font(T.FONT_SIZE_SHORTCUT))
 
         self.status = QLabel(D.LICENSE_STATUS)
         self._update_status_style()

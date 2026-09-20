@@ -28,7 +28,7 @@ class PartyMasterScreen(QWidget):
         # Toolbar
         bar = QHBoxLayout()
         title = QLabel("Parties (Customers & Suppliers)")
-        title.setStyleSheet("font-size: 14pt; font-weight: bold;")
+        title.setStyleSheet(f"font-size: {T.FONT_SIZE_TITLE}pt; font-weight: bold;")
         bar.addWidget(title)
         bar.addStretch()
         self.btn_new = make_button("New", "secondary")
@@ -72,7 +72,7 @@ class PartyMasterScreen(QWidget):
         rl = QVBoxLayout(right)
         rl.setContentsMargins(16, 12, 16, 12)
         form_title = QLabel("Party Details")
-        form_title.setStyleSheet("font-size: 11pt; font-weight: bold;")
+        form_title.setStyleSheet(f"font-size: {T.FONT_SIZE_UI}pt; font-weight: bold;")
         rl.addWidget(form_title)
 
         form = QFormLayout()
@@ -96,7 +96,7 @@ class PartyMasterScreen(QWidget):
         self.notes = QLineEdit()
         self.notes.setPlaceholderText("Notes")
         self.err = QLabel("")
-        self.err.setStyleSheet(f"color: {T.DANGER}; font-size: 8pt;")
+        self.err.setStyleSheet(f"color: {T.DANGER}; font-size: {T.FONT_SIZE_SHORTCUT}pt;")
 
         form.addRow(field_label("Party Name"), self.name)
         form.addRow(field_label("Type"), self.ptype)
