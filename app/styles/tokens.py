@@ -1,58 +1,73 @@
-"""Design tokens — dense Windows ERP (readable type, compact controls)."""
+"""Zoho Inventory palette — dense ERP tokens for low-spec PCs."""
 
 import sys
 
-# Colors
-BG_CANVAS = "#E8EAED"
-SURFACE = "#FFFFFF"
-BORDER = "#C5CAD3"
-BORDER_STRONG = "#9AA3B2"
-HEADER_BAND = "#F0F2F5"
-NAV_BG = "#1B2A4A"
-NAV_TEXT = "#D0D7E2"
-NAV_TEXT_ACTIVE = "#FFFFFF"
-NAV_HOVER = "#243656"
-NAV_ACTIVE = "#2B4A7A"
-TEXT_PRIMARY = "#1A1F2C"
-TEXT_SECONDARY = "#4B5565"
-ACCENT = "#1F6FEB"
-ACCENT_HOVER = "#1858C5"
-ACCENT_SOFT = "#E8F1FF"
-SUCCESS = "#15803D"
-WARNING = "#B45309"
-DANGER = "#B91C1C"
-READONLY_CELL = "#EEF0F3"
-ALT_ROW = "#F7F8FA"
-NAV_ACTIVE_BG = "#E8F1FF"
-FOCUS_BORDER = "#1F6FEB"
-GRAND_TOTAL_BG = "#1B2A4A"
+# Sidebar & dark accents
+NAV_BG = "#111827"
+NAV_HOVER = "#1f2937"
+NAV_ACTIVE = "#2563eb"
+NAV_TEXT = "#9ca3af"
+NAV_TEXT_ACTIVE = "#f9fafb"
+ACCENT = "#2563eb"
+ACCENT_HOVER = "#1d4ed8"
+ACCENT_SOFT = "#eff6ff"
+FOCUS_BORDER = "#2563eb"
+GRAND_TOTAL_BG = "#111827"
 
-# Sizing — matched controls (button ≈ input), denser layout
-INPUT_H = 26
-BUTTON_H = 26
-GRID_ROW_H = 26
-NAV_COLLAPSED = 52
-NAV_EXPANDED = 210
+# Canvas & surfaces
+BG_CANVAS = "#f3f4f6"
+SURFACE = "#ffffff"
+BORDER = "#e5e7eb"
+BORDER_STRONG = "#d1d5db"
+HEADER_BAND = "#f9fafb"
+ALT_ROW = "#f9fafb"
+READONLY_CELL = "#f3f4f6"
+NAV_ACTIVE_BG = "#eff6ff"
+
+# Typography colors
+TEXT_PRIMARY = "#111827"
+TEXT_SECONDARY = "#6b7280"
+
+# Status
+SUCCESS = "#10b981"
+SUCCESS_BG = "#ecfdf5"
+WARNING = "#f59e0b"
+WARNING_BG = "#fffbeb"
+DANGER = "#ef4444"
+DANGER_BG = "#fef2f2"
+DOC_PILL_BG = "#e0e7ff"
+DOC_PILL_FG = "#3730a3"
+
+# Sizing — compact for 1366×768 / potato PCs
+INPUT_H = 28
+BUTTON_H = 28
+GRID_ROW_H = 28
+NAV_COLLAPSED = 56
+NAV_EXPANDED = 248
 LIST_PANEL_W = 260
 HEADER_ZONE_H = 78
 FAST_STRIP_H = 48
 FOOTER_ZONE_H = 118
-RADIUS = 2
+RADIUS = 4
 EMPTY_GRID_ROWS = 12
+CARD_RADIUS = 6
 
-# Typography (pt) — normal desktop ERP scale (Tally/Busy-like)
+# Typography (pt)
 FONT_SIZE_UI = 9
 FONT_SIZE_LABEL = 8
 FONT_SIZE_GRID = 9
 FONT_SIZE_NAV = 9
 FONT_SIZE_TITLE = 11
-FONT_SIZE_GRAND = 12
+FONT_SIZE_GRAND = 13
 FONT_SIZE_SHORTCUT = 8
 
-FONT_UI = "Segoe UI"
-FONT_UI_FALLBACK = "Arial"
+FONT_UI = "Inter"
+FONT_UI_FALLBACK = "Segoe UI"
 FONT_MONO = "Consolas"
 FONT_MONO_FALLBACK = "Courier New"
+
+FONT_UI_RESOLVED = FONT_UI
+FONT_MONO_RESOLVED = FONT_MONO
 
 
 def _pick_font(preferred, fallback):
@@ -64,22 +79,17 @@ def _pick_font(preferred, fallback):
         return fallback
     if sys.platform == "darwin":
         return "Helvetica Neue"
-    return preferred
-
-
-FONT_UI_RESOLVED = FONT_UI
-FONT_MONO_RESOLVED = FONT_MONO
+    return fallback
 
 
 def resolve_fonts():
-    """Call after QApplication exists."""
+    """Call after QApplication exists. Prefer Inter → Segoe UI → system."""
     global FONT_UI_RESOLVED, FONT_MONO_RESOLVED
     if sys.platform == "darwin":
-        # Prefer faces that render clean Latin digits (avoid Arial ₹ fallback junk)
-        FONT_UI_RESOLVED = _pick_font("Helvetica Neue", "Arial")
+        FONT_UI_RESOLVED = _pick_font("Inter", "Helvetica Neue")
     elif sys.platform == "win32":
-        FONT_UI_RESOLVED = _pick_font("Segoe UI", "Arial")
+        FONT_UI_RESOLVED = _pick_font("Inter", "Segoe UI")
     else:
-        FONT_UI_RESOLVED = _pick_font("Ubuntu", "DejaVu Sans")
-    FONT_MONO_RESOLVED = FONT_UI_RESOLVED  # amounts use same clean UI face
+        FONT_UI_RESOLVED = _pick_font("Inter", "Ubuntu")
+    FONT_MONO_RESOLVED = FONT_UI_RESOLVED
     return FONT_UI_RESOLVED, FONT_MONO_RESOLVED

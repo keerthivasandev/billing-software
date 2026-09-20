@@ -1,8 +1,9 @@
-"""Shared UI helpers — compact controls, readable labels."""
+"""Shared UI helpers — Zoho-style compact controls + lightweight toast."""
 
+from PyQt5.QtCore import Qt, QTimer
 from PyQt5.QtGui import QFont, QColor
 from PyQt5.QtWidgets import (
-    QHBoxLayout, QLabel, QPushButton, QVBoxLayout, QWidget,
+    QFrame, QHBoxLayout, QLabel, QPushButton, QVBoxLayout, QWidget,
 )
 
 from app.styles import tokens as T
@@ -16,7 +17,6 @@ def ui_font(size_pt=None, bold=False):
 
 
 def amount_font(size_pt=None, bold=False):
-    """Clean sans-serif for money/qty — never monospace / typewriter."""
     face = getattr(T, "FONT_UI_RESOLVED", T.FONT_UI)
     f = QFont(face, size_pt or T.FONT_SIZE_GRID)
     f.setBold(bold)
@@ -26,7 +26,6 @@ def amount_font(size_pt=None, bold=False):
     return f
 
 
-# Back-compat alias used across screens
 def mono_font(size_pt=None, bold=False):
     return amount_font(size_pt, bold)
 
@@ -43,7 +42,8 @@ def shortcut_badge(text: str) -> QLabel:
     face = getattr(T, "FONT_UI_RESOLVED", T.FONT_UI)
     lbl = QLabel(text)
     lbl.setStyleSheet(
-        f"color: #6B7280; font-family: '{face}'; font-size: {T.FONT_SIZE_SHORTCUT}pt;"
+        f"color: {T.TEXT_SECONDARY}; font-family: '{face}'; "
+        f"font-size: {T.FONT_SIZE_SHORTCUT}pt;"
     )
     return lbl
 
@@ -68,10 +68,9 @@ def labeled_field(label: str, widget: QWidget, shortcut: str = None) -> QWidget:
 def make_button(text: str, kind: str = "secondary", shortcut: str = None) -> QPushButton:
     label = f"{text}  {shortcut}" if shortcut else text
     btn = QPushButton(label)
-    # Keep button height locked to INPUT_H / BUTTON_H — no tall padded CTAs
     base = (
         f"min-height: {T.BUTTON_H}px; max-height: {T.BUTTON_H}px; "
-        f"padding: 1px 8px; border-radius: {T.RADIUS}px; "
+        f"padding: 1px 10px; border-radius: {T.RADIUS}px; "
         f"font-size: {T.FONT_SIZE_UI}pt; min-width: 72px;"
     )
     if kind == "primary":
@@ -84,7 +83,7 @@ def make_button(text: str, kind: str = "secondary", shortcut: str = None) -> QPu
         btn.setStyleSheet(
             f"QPushButton {{ background-color: {T.SURFACE}; color: {T.DANGER}; "
             f"border: 1px solid {T.DANGER}; {base} }}"
-            f"QPushButton:hover {{ background-color: #FEF2F2; }}"
+            f"QPushButton:hover {{ background-color: {T.DANGER_BG}; }}"
         )
     elif kind == "ghost":
         btn.setStyleSheet(
@@ -107,10 +106,10 @@ def make_button(text: str, kind: str = "secondary", shortcut: str = None) -> QPu
 def balance_label(amount: float) -> QLabel:
     if amount > 0:
         text = f"Rs. {amount:,.2f} DUE"
-        bg, fg, border = "#FEE2E2", T.DANGER, T.DANGER
+        bg, fg, border = T.DANGER_BG, T.DANGER, T.DANGER
     elif amount < 0:
         text = f"Rs. {abs(amount):,.2f} CREDIT"
-        bg, fg, border = "#DCFCE7", T.SUCCESS, T.SUCCESS
+        bg, fg, border = T.SUCCESS_BG, T.SUCCESS, T.SUCCESS
     else:
         text = "Rs. 0.00"
         bg, fg, border = T.HEADER_BAND, T.TEXT_SECONDARY, T.BORDER
@@ -118,15 +117,128 @@ def balance_label(amount: float) -> QLabel:
     lbl.setFont(amount_font(T.FONT_SIZE_UI, bold=True))
     lbl.setStyleSheet(
         f"color: {fg}; background: {bg}; border: 1px solid {border}; "
-        f"padding: 3px 10px; font-weight: bold;"
+        f"padding: 3px 10px; font-weight: bold; border-radius: {T.RADIUS}px;"
     )
     return lbl
 
 
 def format_inr(amount: float) -> str:
-    # Use "Rs." (ASCII) so Qt won't fall back to a typewriter font for missing ₹ glyphs
     return f"Rs. {amount:,.2f}"
 
 
 def readonly_brush():
     return QColor(T.READONLY_CELL)
+
+
+def type_badge(text: str) -> QLabel:
+    """Document / txn type pill (Sale, Purchase, SI, etc.)."""
+    mapping = {
+        "Sale": (T.SUCCESS_BG, T.SUCCESS),
+        "Purchase": (T.WARNING_BG, T.WARNING),
+        "Receipt": (T.ACCENT_SOFT, T.ACCENT),
+        "Payment": (T.DANGER_BG, T.DANGER),
+        "SI": (T.DOC_PILL_BG, T.DOC_PILL_FG),
+        "PI": (T.DOC_PILL_BG, T.DOC_PILL_FG),
+        "RC": (T.DOC_PILL_BG, T.DOC_PILL_FG),
+        "PY": (T.DOC_PILL_BG, T.DOC_PILL_FG),
+        "QT": (T.DOC_PILL_BG, T.DOC_PILL_FG),
+    }
+    bg, fg = mapping.get(text, (T.HEADER_BAND, T.TEXT_SECONDARY))
+    lbl = QLabel(text)
+    lbl.setAlignment(Qt.AlignCenter)
+    lbl.setStyleSheet(
+        f"background: {bg}; color: {fg}; border-radius: 8px; "
+        f"padding: 2px 8px; font-size: {T.FONT_SIZE_SHORTCUT}pt; font-weight: bold;"
+    )
+    return lbl
+
+
+def growth_pill(pct: float) -> QLabel:
+    positive = pct >= 0
+    bg = T.SUCCESS_BG if positive else T.DANGER_BG
+    fg = T.SUCCESS if positive else T.DANGER
+    sign = "+" if positive else ""
+    lbl = QLabel(f"{sign}{pct:.1f}%")
+    lbl.setStyleSheet(
+        f"background: {bg}; color: {fg}; border-radius: 8px; "
+        f"padding: 1px 6px; font-size: {T.FONT_SIZE_SHORTCUT}pt; font-weight: bold;"
+    )
+    return lbl
+
+
+def card_frame() -> QFrame:
+    box = QFrame()
+    box.setStyleSheet(
+        f"QFrame {{ background: {T.SURFACE}; border: 1px solid {T.BORDER}; "
+        f"border-radius: {T.CARD_RADIUS}px; }}"
+    )
+    return box
+
+
+def section_title(text: str) -> QLabel:
+    lbl = QLabel(text)
+    lbl.setStyleSheet(
+        f"font-size: {T.FONT_SIZE_UI}pt; font-weight: bold; color: {T.TEXT_PRIMARY}; "
+        f"border: none; background: transparent;"
+    )
+    return lbl
+
+
+def page_title(text: str) -> QLabel:
+    lbl = QLabel(text)
+    lbl.setStyleSheet(
+        f"font-size: {T.FONT_SIZE_TITLE}pt; font-weight: bold; color: {T.TEXT_PRIMARY};"
+    )
+    return lbl
+
+
+class ToastHost(QWidget):
+    """Non-blocking toast overlay — no QMessageBox / alert()."""
+
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.setAttribute(Qt.WA_TransparentForMouseEvents, False)
+        self.hide()
+        self._banner = QFrame(self)
+        self._banner.setObjectName("toastBanner")
+        lay = QHBoxLayout(self._banner)
+        lay.setContentsMargins(14, 8, 14, 8)
+        self._label = QLabel("")
+        self._label.setStyleSheet(
+            f"color: {T.NAV_TEXT_ACTIVE}; font-size: {T.FONT_SIZE_UI}pt; border: none;"
+        )
+        lay.addWidget(self._label)
+        self._timer = QTimer(self)
+        self._timer.setSingleShot(True)
+        self._timer.timeout.connect(self.hide)
+
+    def show_toast(self, message: str, ms: int = 2200):
+        parent = self.parentWidget() or self.window()
+        if parent is None:
+            return
+        self.setParent(parent)
+        self._label.setText(message)
+        self._banner.adjustSize()
+        w = max(280, self._banner.sizeHint().width() + 8)
+        h = self._banner.sizeHint().height() + 8
+        self.resize(w, h)
+        self._banner.setGeometry(0, 0, w, h)
+        pw = parent.width()
+        self.move(max(12, (pw - w) // 2), 56)
+        self.raise_()
+        self.show()
+        self._timer.start(ms)
+
+
+_TOAST_HOST = None
+
+
+def toast(widget: QWidget, message: str, ms: int = 2200):
+    """Show lightweight non-blocking toast from any widget."""
+    global _TOAST_HOST
+    win = widget.window() if widget else None
+    if win is None:
+        return
+    if _TOAST_HOST is None or _TOAST_HOST.parent() is not win:
+        _TOAST_HOST = ToastHost(win)
+    _TOAST_HOST.show_toast(message, ms)

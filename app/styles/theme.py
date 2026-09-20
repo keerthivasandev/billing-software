@@ -1,4 +1,4 @@
-"""Flat Windows-ERP QSS — readable fonts, compact equal-height controls."""
+"""Zoho Inventory QSS — flat, lightweight, token-driven."""
 
 from app.styles import tokens as T
 
@@ -7,7 +7,7 @@ def build_qss() -> str:
     ui = getattr(T, "FONT_UI_RESOLVED", T.FONT_UI)
     return f"""
 * {{
-    font-family: "{ui}", "{T.FONT_UI_FALLBACK}";
+    font-family: "{ui}", "{T.FONT_UI_FALLBACK}", -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
     font-size: {T.FONT_SIZE_UI}pt;
     color: {T.TEXT_PRIMARY};
 }}
@@ -22,7 +22,7 @@ QWidget#centralRoot {{
 
 QFrame#navRail {{
     background-color: {T.NAV_BG};
-    border-right: 1px solid #122038;
+    border-right: 1px solid #0b1220;
 }}
 
 QLabel#navBrand {{
@@ -35,19 +35,23 @@ QLabel#navBrand {{
 QLabel#navBrandSub {{
     color: {T.NAV_TEXT};
     font-size: {T.FONT_SIZE_SHORTCUT}pt;
-    padding: 0 4px 6px 4px;
+    padding: 0 4px 8px 4px;
 }}
 
 QPushButton#navToggle {{
     background-color: {T.NAV_HOVER};
     color: {T.NAV_TEXT_ACTIVE};
-    border: 1px solid #2A3F5F;
+    border: 1px solid #374151;
     border-radius: {T.RADIUS}px;
-    min-width: 26px;
-    max-width: 26px;
-    min-height: 24px;
-    max-height: 24px;
+    min-width: 28px;
+    max-width: 28px;
+    min-height: 26px;
+    max-height: 26px;
     padding: 0;
+}}
+
+QPushButton#navToggle:hover {{
+    background-color: {T.ACCENT};
 }}
 
 QFrame#topBar {{
@@ -63,13 +67,15 @@ QFrame#breadcrumbBar {{
 QLabel#companyTitle {{
     font-size: {T.FONT_SIZE_TITLE}pt;
     font-weight: bold;
+    color: {T.TEXT_PRIMARY};
 }}
 
 QLabel#fyBadge {{
-    color: {T.TEXT_PRIMARY};
+    color: {T.ACCENT};
     background-color: {T.ACCENT_SOFT};
-    border: 1px solid #BFD6F8;
-    padding: 2px 8px;
+    border: 1px solid #bfdbfe;
+    border-radius: 10px;
+    padding: 3px 10px;
     font-size: {T.FONT_SIZE_LABEL}pt;
     font-weight: bold;
 }}
@@ -78,8 +84,23 @@ QLabel#userBadge {{
     color: {T.TEXT_SECONDARY};
     background-color: {T.HEADER_BAND};
     border: 1px solid {T.BORDER};
-    padding: 2px 8px;
+    border-radius: 10px;
+    padding: 3px 10px;
     font-size: {T.FONT_SIZE_LABEL}pt;
+}}
+
+QLineEdit#globalSearch {{
+    background-color: {T.HEADER_BAND};
+    border: 1px solid {T.BORDER};
+    border-radius: 14px;
+    padding: 2px 12px;
+    min-height: {T.INPUT_H}px;
+    max-height: {T.INPUT_H}px;
+}}
+
+QLineEdit#globalSearch:focus {{
+    border: 1px solid {T.FOCUS_BORDER};
+    background-color: {T.SURFACE};
 }}
 
 QLineEdit, QComboBox, QSpinBox, QDoubleSpinBox, QDateEdit, QTextEdit {{
@@ -95,14 +116,14 @@ QLineEdit, QComboBox, QSpinBox, QDoubleSpinBox, QDateEdit, QTextEdit {{
 }}
 
 QTextEdit {{
-    max-height: 80px;
+    max-height: 90px;
     min-height: 60px;
 }}
 
 QLineEdit:focus, QComboBox:focus, QSpinBox:focus,
 QDoubleSpinBox:focus, QDateEdit:focus {{
     border: 1px solid {T.FOCUS_BORDER};
-    background-color: #FAFCFF;
+    background-color: #fafcff;
 }}
 
 QComboBox::drop-down {{
@@ -121,7 +142,6 @@ QComboBox QAbstractItemView {{
     outline: 0;
 }}
 
-/* Compact buttons — same height as inputs */
 QPushButton {{
     background-color: {T.SURFACE};
     border: 1px solid {T.BORDER_STRONG};
@@ -144,7 +164,7 @@ QPushButton:pressed {{
 }}
 
 QPushButton:disabled {{
-    color: #9AA3B2;
+    color: #9ca3af;
     background-color: {T.HEADER_BAND};
 }}
 
@@ -153,7 +173,7 @@ QToolButton {{
     color: white;
     border: 1px solid {T.ACCENT};
     border-radius: {T.RADIUS}px;
-    padding: 2px 10px;
+    padding: 2px 12px;
     font-weight: bold;
     font-size: {T.FONT_SIZE_UI}pt;
     min-height: {T.BUTTON_H}px;
@@ -181,14 +201,14 @@ QTableWidget, QTreeWidget, QListWidget {{
 }}
 
 QHeaderView::section {{
-    background-color: #E2E6EC;
+    background-color: {T.HEADER_BAND};
     border: none;
     border-right: 1px solid {T.BORDER};
-    border-bottom: 1px solid {T.BORDER_STRONG};
-    padding: 4px 6px;
+    border-bottom: 1px solid {T.BORDER};
+    padding: 5px 6px;
     font-size: {T.FONT_SIZE_LABEL}pt;
     font-weight: bold;
-    color: {T.TEXT_PRIMARY};
+    color: {T.TEXT_SECONDARY};
 }}
 
 QTableWidget::item {{
@@ -197,7 +217,7 @@ QTableWidget::item {{
 
 QTableWidget::item:focus {{
     border: 1px solid {T.FOCUS_BORDER};
-    background-color: #FAFCFF;
+    background-color: #fafcff;
 }}
 
 QListWidget::item {{
@@ -214,13 +234,14 @@ QListWidget::item:selected {{
 QTabWidget::pane {{
     border: 1px solid {T.BORDER};
     background: {T.SURFACE};
+    border-radius: 0 0 {T.CARD_RADIUS}px {T.CARD_RADIUS}px;
 }}
 
 QTabBar::tab {{
     background: {T.HEADER_BAND};
     border: 1px solid {T.BORDER};
     border-bottom: none;
-    padding: 5px 14px;
+    padding: 6px 14px;
     margin-right: 2px;
     font-size: {T.FONT_SIZE_UI}pt;
     color: {T.TEXT_SECONDARY};
@@ -238,6 +259,20 @@ QRadioButton {{
     spacing: 4px;
 }}
 
+QProgressBar {{
+    border: none;
+    background: {T.HEADER_BAND};
+    border-radius: 3px;
+    max-height: 8px;
+    min-height: 8px;
+    text-align: center;
+}}
+
+QProgressBar::chunk {{
+    background-color: {T.ACCENT};
+    border-radius: 3px;
+}}
+
 QScrollBar:vertical {{
     background: {T.HEADER_BAND};
     width: 10px;
@@ -247,6 +282,7 @@ QScrollBar:vertical {{
 QScrollBar::handle:vertical {{
     background: {T.BORDER_STRONG};
     min-height: 24px;
+    border-radius: 4px;
 }}
 
 QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical {{
@@ -271,7 +307,7 @@ QStatusBar {{
     background-color: {T.NAV_BG};
     color: {T.NAV_TEXT};
     font-size: {T.FONT_SIZE_LABEL}pt;
-    border-top: 1px solid #122038;
+    border-top: 1px solid #0b1220;
 }}
 
 QSplitter::handle {{
@@ -286,11 +322,17 @@ QMenu {{
 }}
 
 QMenu::item {{
-    padding: 5px 20px 5px 10px;
+    padding: 6px 22px 6px 12px;
 }}
 
 QMenu::item:selected {{
     background: {T.ACCENT_SOFT};
+}}
+
+QFrame#toastBanner {{
+    background-color: {T.NAV_BG};
+    border-radius: {T.CARD_RADIUS}px;
+    border: 1px solid #374151;
 }}
 """
 

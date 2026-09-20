@@ -4,17 +4,17 @@ Native Python desktop ERP for wholesale electrical-goods distribution — purcha
 
 ## Stack
 
-- **Primary:** PyQt5 + QSS (flat Windows ERP theme)
+- **Primary:** PyQt5 + QSS (Zoho Inventory palette)
 - **Style:** Qt **Fusion** (same look on Mac preview and Windows `.exe`)
-- **Grids:** `QTableWidget`
+- **Nav:** Collapsible accordion (Master / Operations / Reports / Settings)
+- **Grids:** `QTableWidget` (no heavy chart libs)
 - **Target resolution:** 1366×768 (primary), 1920×1080 (secondary)
-- **Target OS:** Windows 7/10 shop PCs (develop on Mac is fine)
+- **Target OS:** Windows 7/10 shop PCs (2–4 GB RAM)
 
 ## Run
 
 ```bash
-python3 -m venv .venv
-source .venv/bin/activate   # Windows: .venv\Scripts\activate
+conda activate billing-software
 pip install -r requirements.txt
 python main.py
 ```
@@ -23,22 +23,22 @@ python main.py
 
 | Shortcut | Action |
 |----------|--------|
+| Ctrl+K / `/` | Global search |
+| Alt+1 | Master Setup |
+| Alt+2 | Sales Invoice |
+| Alt+3 | Purchase Entry |
+| Alt+4 | Cash Flow |
 | F2 | Search item (transaction screens) |
-| F5 | New entry |
+| F5 | New sales entry |
 | F9 | Save & Print |
 | F10 | Save & New |
 | Ctrl+P | Print Preview |
-| Esc | Cancel |
-| Ctrl+D | Duplicate row |
-| Delete | Remove row |
-| Enter | Add line (fast input strip) |
+| Esc | Cancel / clear focus |
 
 ## Screens
 
-1. Dashboard  
-2. Sales Invoice Entry  
-3. Purchase Entry  
-4. Party (Ledger) Master  
-5. Product Master  
-6. Payables & Receivables Summary  
-7. License Activation  
+**Dashboard** — KPI cards, top sellers, stocked items, channel mix, pending actions, low stock  
+**1. Master Setup** — Company, Parties, Groups, Products, Godowns  
+**2. Operations** — Purchases, Sales, Cash Flow, Billwise Settlement, Estimates  
+**3. Reports** — Ledger Statement, Sales/Purchase Registers, AR/AP, Export Tools  
+**4. Settings** — Audit Trail, Users, Change FY, Year Rollover, License  

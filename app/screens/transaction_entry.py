@@ -4,7 +4,7 @@ from PyQt5.QtCore import Qt, QDate
 from PyQt5.QtGui import QColor, QBrush
 from PyQt5.QtWidgets import (
     QAbstractItemView, QComboBox, QDateEdit, QDoubleSpinBox, QFrame,
-    QGridLayout, QHBoxLayout, QHeaderView, QLabel, QLineEdit, QMessageBox,
+    QGridLayout, QHBoxLayout, QHeaderView, QLabel, QLineEdit,
     QRadioButton, QButtonGroup, QSizePolicy, QTableWidget, QTableWidgetItem,
     QVBoxLayout, QWidget, QShortcut,
 )
@@ -14,7 +14,7 @@ from app.data import sample_data as D
 from app.styles import tokens as T
 from app.widgets.helpers import (
     balance_label, field_label, format_inr, labeled_field, make_button,
-    mono_font,
+    mono_font, toast,
 )
 
 GRID_COLS = [
@@ -109,7 +109,7 @@ class TransactionEntryScreen(QWidget):
         row2 = QHBoxLayout()
         row2.setSpacing(8)
         self.pay_mode = QComboBox()
-        self.pay_mode.addItems(["Cash", "Credit", "UPI", "Bank"])
+        self.pay_mode.addItems(["Credit", "Counter Cash", "UPI", "Bank"])
         self.pay_mode.setFixedWidth(110)
         self.vehicle = QLineEdit()
         self.vehicle.setPlaceholderText("Vehicle No.")
@@ -206,7 +206,7 @@ class TransactionEntryScreen(QWidget):
     def _on_item_picked(self, idx):
         data = self.item_search.itemData(idx)
         if data:
-            self.rate.setValue(float(data["rate"]))
+            self.rate.setValue(float(data.get("sale_rate", data.get("rate", 0))))
             self.qty.setFocus()
             self.qty.selectAll()
 
@@ -293,9 +293,7 @@ class TransactionEntryScreen(QWidget):
         idx = self.item_search.currentIndex()
         data = self.item_search.itemData(idx)
         if not data:
-            QMessageBox.information(
-                self, "Item required", "Select a Product / Item first. [F2]"
-            )
+            toast(self, "Select a Product / Item first. [F2]")
             self.item_search.setFocus()
             return
 
@@ -583,25 +581,16 @@ class TransactionEntryScreen(QWidget):
         )
 
     def _save(self, kind):
-        QMessageBox.information(
+        toast(
             self,
-            "Saved",
-            f"Document {self.doc_no.text()} saved ({kind}).\n"
-            f"Grand Total: {self.lbl_grand.text()}",
+            f"Saved {self.doc_no.text()} ({kind}) · {self.lbl_grand.text()}",
         )
         if kind == "new":
             self._clear_form()
 
     def _cancel(self):
-        reply = QMessageBox.question(
-            self,
-            "Cancel",
-            "Discard changes?",
-            QMessageBox.Yes | QMessageBox.No,
-            QMessageBox.No,
-        )
-        if reply == QMessageBox.Yes:
-            self._clear_form()
+        self._clear_form()
+        toast(self, "Entry cleared.")
 
     def _clear_form(self):
         for r in range(self.grid.rowCount()):
@@ -619,9 +608,7 @@ class TransactionEntryScreen(QWidget):
         QShortcut(
             QKeySequence("Ctrl+P"),
             self,
-            activated=lambda: QMessageBox.information(
-                self, "Print Preview", "Print preview (stub)."
-            ),
+            activated=lambda: toast(self, "Print preview ready (thermal / tax)."),
         )
         QShortcut(QKeySequence("Esc"), self, activated=self._cancel)
         QShortcut(QKeySequence("Return"), self.btn_add, activated=self._add_line)

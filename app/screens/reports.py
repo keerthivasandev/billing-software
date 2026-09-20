@@ -3,13 +3,13 @@
 from PyQt5.QtCore import Qt, QDate
 from PyQt5.QtWidgets import (
     QAbstractItemView, QComboBox, QDateEdit, QFrame, QHBoxLayout,
-    QHeaderView, QLabel, QMessageBox, QPushButton, QTabWidget,
+    QHeaderView, QLabel, QTabWidget,
     QTableWidget, QTableWidgetItem, QVBoxLayout, QWidget,
 )
 
 from app.data import sample_data as D
 from app.styles import tokens as T
-from app.widgets.helpers import field_label, format_inr, make_button, mono_font
+from app.widgets.helpers import field_label, format_inr, make_button, mono_font, toast
 
 
 COLS = ["Party Name", "Bill No.", "Bill Date", "Due Date", "Amount", "Balance", "Days"]
@@ -57,9 +57,9 @@ class ReportsScreen(QWidget):
         btn_pdf = make_button("Export PDF")
         btn_print = make_button("Print", shortcut="[Ctrl+P]")
         btn_run.clicked.connect(self._run)
-        btn_csv.clicked.connect(lambda: QMessageBox.information(self, "Export", "CSV export (stub)."))
-        btn_pdf.clicked.connect(lambda: QMessageBox.information(self, "Export", "PDF export (stub)."))
-        btn_print.clicked.connect(lambda: QMessageBox.information(self, "Print", "Print (stub)."))
+        btn_csv.clicked.connect(lambda: toast(self, "CSV export ready (demo)."))
+        btn_pdf.clicked.connect(lambda: toast(self, "PDF export ready (demo)."))
+        btn_print.clicked.connect(lambda: toast(self, "Print view ready (demo)."))
 
         for w in (
             self._wrap("From", self.from_date),
