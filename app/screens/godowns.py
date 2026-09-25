@@ -2,13 +2,14 @@
 
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import (
-    QCheckBox, QFormLayout, QFrame, QHBoxLayout, QLabel, QLineEdit,
+    QCheckBox, QHBoxLayout, QLineEdit,
     QListWidget, QListWidgetItem, QSplitter, QVBoxLayout, QWidget,
 )
 
 from app.data import sample_data as D
 from app.styles import tokens as T
-from app.widgets.helpers import card_frame, field_label, make_button, page_title, toast
+from app.widgets.fields import field_row, icon_field
+from app.widgets.helpers import card_frame, make_button, page_title, toast
 
 
 class GodownsScreen(QWidget):
@@ -45,20 +46,23 @@ class GodownsScreen(QWidget):
         right = card_frame()
         rl = QVBoxLayout(right)
         rl.setContentsMargins(16, 12, 16, 12)
-        form = QFormLayout()
-        form.setSpacing(8)
-        form.setLabelAlignment(Qt.AlignRight)
+        rl.setSpacing(8)
         self.name = QLineEdit()
         self.incharge = QLineEdit()
         self.address = QLineEdit()
         self.capacity = QLineEdit()
         self.is_default = QCheckBox("Default Godown")
-        form.addRow(field_label("Warehouse / Location"), self.name)
-        form.addRow(field_label("In-charge"), self.incharge)
-        form.addRow(field_label("Address"), self.address)
-        form.addRow(field_label("Capacity"), self.capacity)
-        form.addRow(QLabel(""), self.is_default)
-        rl.addLayout(form)
+        rl.addWidget(
+            icon_field("Warehouse / Location", self.name, icon="folder", show_edit=True)
+        )
+        rl.addWidget(
+            field_row(
+                icon_field("In-charge", self.incharge, icon="team"),
+                icon_field("Capacity", self.capacity, icon="inbox"),
+            )
+        )
+        rl.addWidget(icon_field("Address", self.address, icon="map-pin"))
+        rl.addWidget(self.is_default)
         rl.addStretch()
         split.addWidget(right)
         root.addWidget(split, stretch=1)
