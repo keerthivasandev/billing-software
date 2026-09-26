@@ -11,15 +11,45 @@ CURRENT_ROLE = "Billing Clerk"
 
 COMPANY = {
     "legal_name": "Sri Lakshmi Electricals",
+    "trade_name": "Sri Lakshmi Electricals",
+    "entity_type": "Proprietorship / Partnership Firm",
     "address": "42, Industrial Estate, Guindy",
+    "landmark": "Near Guindy Metro / SIDCO Estate Gate",
     "city": "Chennai",
+    "district": "Chennai",
+    "pincode": "600032",
+    "state_code": "33 — Tamil Nadu",
     "phone": "044-2250-1234",
+    "mobile": "98765 43210",
+    "landline": "044-2250-1234",
+    "email": "accounts@srilakshmi-electricals.in",
+    "contact_person": "Ramesh Kumar",
     "gstin": "33AABCS1234A1Z5",
+    "pan": "AABCS1234A",
+    "business_activity": "Wholesale of electrical wires, switches, MCBs & lighting",
+    "financial_year": "FY 2026–27",
+    "fy_display": "2026–2027 (01-Apr-2026 to 31-Mar-2027)",
+    "assessment_year": "Assessment Yr 2027–28",
+    "city_display": "Chennai, Chennai District",
     "bank_name": "State Bank of India",
+    "beneficiary": "Sri Lakshmi Electricals",
     "account_no": "30123456789",
+    "account_type": "Current Account",
     "ifsc": "SBIN0001234",
+    "branch": "Guindy Industrial Estate Branch",
+    "upi": "srilakshmi@sbi",
+    "invoice_note": "Goods once sold will not be taken back. Interest @ 18% p.a. after due date. Subject to Chennai jurisdiction.",
     "valid_from": "2026-04-01",
     "valid_to": "2027-03-31",
+    "gst_filing_status": "GSTR-1 & 3B Compliant",
+    "einvoice_status": "NIC Portal Linked",
+    "terminal_id": "CHN-GUINDY-POS-01",
+    "compliance_version": "V1.4.2",
+    "distributor_status": "Authorized Distributor",
+    "compliance_note": "Registered under Central Goods & Services Tax Act, Chennai South Division.",
+    "einvoice_portal": "Active (Live)",
+    "hsn_chapters": "8544, 8536 (Wires, MCBs)",
+    "tds_exemption": "Standard 0.1% u/s 194Q",
 }
 
 PARTIES = [
@@ -120,12 +150,159 @@ RECENT_TXNS = [
 ]
 
 DASHBOARD_KPI = {
-    "todays_sales": 40750.00,
-    "todays_purchases": 95600.00,
-    "cash_in_hand": 34280.00,
-    "receivables_due": 69550.00,
-    "low_stock_count": 2,
+    "todays_sales": 148250.00,
+    "todays_purchases": 86400.00,
+    "cash_in_hand": 119450.00,
+    "receivables_due": 1428400.00,
+    "todays_sales_bills": 18,
+    "sales_growth_pct": 14.2,
+    "purchase_vouchers": 3,
+    "purchase_godown": "Godown: Central Main",
+    "drawer_txns": 42,
+    "drawer_status": "Tally: Reconciled",
+    "active_debtors": 112,
+    "overdue_amount_label": "₹ 83.7k overdue",
+    "purchases_note": "3 Inward Vouchers",
+    "cash_opening": 5000.00,
+    "low_stock_count": 3,
 }
+
+# Stitch — Today's Counter Summary & Cash Split
+COUNTER_SUMMARY = [
+    {
+        "title": "Cash Sales",
+        "amount": 48250.00,
+        "meta": "11 Cash Memos",
+        "badge": "32.5%",
+        "badge_kind": "neutral",
+    },
+    {
+        "title": "Credit Sales",
+        "amount": 100000.00,
+        "meta": "7 Ledger Parties",
+        "badge": "67.5%",
+        "badge_kind": "neutral",
+    },
+    {
+        "title": "Collections Recd",
+        "amount": 35000.00,
+        "meta": "Dr Clearances",
+        "badge": "Reconciled",
+        "badge_kind": "success",
+    },
+]
+
+# Stitch — Fast Item Lookup table
+FAST_LOOKUP_ITEMS = [
+    {
+        "code": "EL-WIR-104",
+        "name": "Finolex 1.5 sq mm Blue FR Wire 90M",
+        "category": "Wires & Cables",
+        "stock": "32 ROL",
+        "low": False,
+        "rate": 1450.00,
+        "unit": "/coil",
+    },
+    {
+        "code": "EL-LED-202",
+        "name": "Philips 20W LED Batten 4ft Cool Day",
+        "category": "LED Fixtures",
+        "stock": "8 NOS (Low)",
+        "low": True,
+        "rate": 240.00,
+        "unit": "/pc",
+    },
+    {
+        "code": "EL-WIR-205",
+        "name": "Polycab 2.5 sq mm Red FR Wire 90M",
+        "category": "Wires & Cables",
+        "stock": "45 ROL",
+        "low": False,
+        "rate": 2200.00,
+        "unit": "/coil",
+    },
+    {
+        "code": "EL-SWT-312",
+        "name": "Schneider 16A 1-Way Modular Switch",
+        "category": "Switches",
+        "stock": "15 NOS",
+        "low": False,
+        "rate": 95.00,
+        "unit": "/pc",
+    },
+    {
+        "code": "EL-MCB-408",
+        "name": "Legrand 32A DP Isolator MCB",
+        "category": "Switchgear",
+        "stock": "28 NOS",
+        "low": False,
+        "rate": 420.00,
+        "unit": "/pc",
+    },
+]
+
+LOW_STOCK_ALERTS = [
+    {
+        "name": "Philips 20W LED Batten 4ft Cool Day",
+        "note": "Godown: Main Shelf B2 · Reorder trigger hit",
+        "stock": "8 NOS (Min: 25)",
+    },
+    {
+        "name": "Finolex 1.5 sq mm Blue FR Wire 90M",
+        "note": "Godown: Cable Bay C1 · Fast moving",
+        "stock": "12 ROL (Min: 30)",
+    },
+    {
+        "name": "Schneider 16A 1-Way Modular Switch",
+        "note": "Godown: Box Rack D4 · Regular order",
+        "stock": "15 NOS (Min: 50)",
+    },
+]
+
+PENDING_OVERDUE = [
+    {
+        "party": "Balaji Electricals",
+        "note": "6 Days Overdue · Inv #791",
+        "amount": 13250.00,
+        "actions": ["Call", "WA"],
+    },
+    {
+        "party": "Venkateshwara Wires",
+        "note": "Due Today · Net 15 terms",
+        "amount": 48500.00,
+        "actions": ["Reminder"],
+    },
+    {
+        "party": "Polycab Local Agency",
+        "note": "3 Days Overdue · Inv #812",
+        "amount": 22000.00,
+        "actions": ["Reminder"],
+    },
+]
+
+# Back-compat aliases used by older dashboard widgets / screens
+TODAYS_INVOICES = [
+    {"doc": "INV-2026-0842", "party": "Sri Venkateshwara Electricals", "amount": 41400.00},
+    {"doc": "INV-2026-0841", "party": "Sai Balaji Electricals", "amount": 12675.00},
+    {"doc": "INV-2026-0840", "party": "Maruthi Power Controls", "amount": 9200.00},
+    {"doc": "INV-2026-0839", "party": "Kiran Infra & Projects", "amount": 8400.00},
+    {"doc": "INV-2026-0838", "party": "S.K. Enterprises (Cash Sale)", "amount": 13750.00},
+]
+
+LOW_STOCK_ITEMS = [
+    {"name": a["name"], "left": 0, "out": False} for a in LOW_STOCK_ALERTS
+]
+
+PENDING_COLLECTIONS = [
+    {"party": p["party"], "note": p["note"], "amount": p["amount"]} for p in PENDING_OVERDUE
+]
+
+TERMINAL_NAME = "Terminal-01 (Main Counter)"
+SERVER_STATUS = "Server: 192.168.1.104 (Connected)"
+SYNC_STATUS = "Sync: Instant"
+DASHBOARD_WELCOME = "Welcome back, Ramesh"
+DASHBOARD_SHIFT = "Main Wholesale Counter · Shift active since 08:30 AM · Auto-sync: Active"
+COUNTER_SHIFT_LABEL = "Shift: 08:30 AM - Ongoing"
 
 TOP_SELLING = [
     {"name": "1.5 sq.mm Copper Wire", "units": 86, "growth": 12.4},

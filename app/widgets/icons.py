@@ -72,6 +72,9 @@ def _tint_svg(xml: str, color: str, thicken: bool = True) -> str:
 
     xml = re.sub(r'stroke="#[0-9A-Fa-f]{3,8}"', _stroke, xml)
     xml = re.sub(r'fill="([^"]+)"', _fill, xml)
+    # Material Symbols filled paths often omit fill= — inject tint color.
+    if 'fill="' not in xml or re.search(r"<path(?![^>]*fill=)", xml):
+        xml = re.sub(r"<path(?![^>]*\bfill=)", f'<path fill="{color}"', xml)
     if thicken:
         # Thin 1.8 strokes look soft at ~20px; bump for field icons on light UI.
         def _width(m):

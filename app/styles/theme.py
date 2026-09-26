@@ -30,78 +30,83 @@ QLabel#navBrand {{
     color: {T.NAV_TEXT_ACTIVE};
     font-size: {T.FONT_SIZE_TITLE}pt;
     font-weight: bold;
-    padding: 2px 4px;
+    padding: 0;
 }}
 
 QLabel#navBrandSub {{
     color: {T.NAV_TEXT};
-    font-size: {T.FONT_SIZE_SHORTCUT}pt;
-    padding: 0 4px 8px 4px;
+    font-size: {T.FONT_SIZE_MICRO}pt;
+    padding: 0;
 }}
 
 QPushButton#navToggle {{
-    background-color: {T.NAV_HOVER};
-    color: {T.NAV_TEXT_ACTIVE};
-    border: 1px solid #374151;
+    background-color: transparent;
+    color: {T.NAV_TEXT};
+    border: 1px solid transparent;
     border-radius: {T.RADIUS}px;
-    min-width: 32px;
-    max-width: 32px;
-    min-height: 30px;
-    max-height: 30px;
-    padding: 4px;
+    min-width: 28px;
+    max-width: 28px;
+    min-height: 28px;
+    max-height: 28px;
+    padding: 2px;
 }}
 
 QPushButton#navToggle:hover {{
-    background-color: {T.ACCENT};
+    background-color: {T.NAV_HOVER};
+    color: {T.NAV_TEXT_ACTIVE};
 }}
 
 QFrame#topBar {{
     background-color: {T.SURFACE};
-    border-bottom: 1px solid {T.BORDER};
+    border-bottom: none;
 }}
 
 QFrame#breadcrumbBar {{
     background-color: {T.HEADER_BAND};
+    border-top: 1px solid {T.BORDER};
     border-bottom: 1px solid {T.BORDER};
 }}
 
 QLabel#companyTitle {{
-    font-size: {T.FONT_SIZE_TITLE}pt;
-    font-weight: bold;
+    font-size: 11pt;
+    font-weight: 700;
     color: {T.TEXT_PRIMARY};
 }}
 
-QLabel#fyBadge {{
-    color: {T.ACCENT};
-    background-color: {T.ACCENT_SOFT};
-    border: 1px solid #bfdbfe;
-    border-radius: 10px;
-    padding: 3px 10px;
-    font-size: {T.FONT_SIZE_LABEL}pt;
-    font-weight: bold;
-}}
-
-QLabel#userBadge {{
-    color: {T.TEXT_SECONDARY};
-    background-color: {T.HEADER_BAND};
-    border: 1px solid {T.BORDER};
-    border-radius: 10px;
-    padding: 3px 10px;
-    font-size: {T.FONT_SIZE_LABEL}pt;
+QFrame#globalSearchBox {{
+    background-color: #f3f4f6;
+    border: 1px solid {T.BORDER_STRONG};
+    border-radius: 4px;
 }}
 
 QLineEdit#globalSearch {{
-    background-color: {T.HEADER_BAND};
-    border: 1px solid {T.BORDER};
-    border-radius: 14px;
-    padding: 2px 12px;
-    min-height: {T.INPUT_H}px;
-    max-height: {T.INPUT_H}px;
+    background: transparent;
+    border: none;
+    padding: 0 4px;
+    min-height: 24px;
+    max-height: 28px;
+    font-size: 9pt;
+    color: {T.TEXT_PRIMARY};
 }}
 
 QLineEdit#globalSearch:focus {{
+    border: none;
+    background: transparent;
+}}
+
+QFrame#globalSearchBox:focus-within {{
     border: 1px solid {T.FOCUS_BORDER};
     background-color: {T.SURFACE};
+}}
+
+QLabel#fyBadge {{
+    color: {T.PRIMARY_CONTAINER};
+    background-color: {T.ACCENT_SOFT};
+    border: 1px solid {T.BORDER};
+    border-radius: 4px;
+    padding: 2px 6px;
+    font-size: 8pt;
+    font-weight: 600;
 }}
 
 QLineEdit, QComboBox, QSpinBox, QDoubleSpinBox, QDateEdit, QTextEdit {{

@@ -130,6 +130,27 @@ def format_inr(amount: float) -> str:
     return f"Rs. {amount:,.2f}"
 
 
+def format_inr_indian(amount: float, with_symbol: bool = True) -> str:
+    """Indian grouping: ₹ 1,84,650.00 (matches Stitch mockups)."""
+    neg = amount < 0
+    amount = abs(float(amount))
+    whole, frac = f"{amount:.2f}".split(".")
+    if len(whole) <= 3:
+        grouped = whole
+    else:
+        last3 = whole[-3:]
+        rest = whole[:-3]
+        chunks = []
+        while rest:
+            chunks.append(rest[-2:])
+            rest = rest[:-2]
+        grouped = ",".join(reversed(chunks)) + "," + last3
+    sign = "-" if neg else ""
+    if with_symbol:
+        return f"{sign}₹ {grouped}.{frac}"
+    return f"{sign}{grouped}.{frac}"
+
+
 def readonly_brush():
     return QColor(T.READONLY_CELL)
 
