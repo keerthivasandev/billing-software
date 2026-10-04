@@ -25,26 +25,12 @@ class GodownsScreen(QWidget):
         self.setStyleSheet(f"QWidget#godownRoot {{ background: {T.BG_CANVAS}; }}")
 
         root = QVBoxLayout(self)
-        root.setContentsMargins(0, 0, 0, 0)
-        root.setSpacing(0)
+        root.setContentsMargins(16, 16, 16, 16)
+        root.setSpacing(12)
 
-        scroll = QScrollArea()
-        scroll.setWidgetResizable(True)
-        scroll.setFrameShape(QFrame.Shape.NoFrame)
-        scroll.setStyleSheet(f"QScrollArea {{ background: {T.BG_CANVAS}; border: none; }}")
-
-        host = QWidget()
-        host.setStyleSheet(f"background: {T.BG_CANVAS};")
-        body = QVBoxLayout(host)
-        body.setContentsMargins(16, 16, 16, 16)
-        body.setSpacing(12)
-
-        body.addWidget(self._page_header())
-        body.addWidget(self._workspace(), stretch=1)
-        body.addWidget(self._footer())
-
-        scroll.setWidget(host)
-        root.addWidget(scroll)
+        root.addWidget(self._page_header())
+        root.addWidget(self._workspace(), stretch=1)
+        root.addWidget(self._footer())
 
         QShortcut(QKeySequence("F3"), self, activated=self._new)
         QShortcut(QKeySequence("F4"), self, activated=self._enter_edit)
@@ -55,27 +41,34 @@ class GodownsScreen(QWidget):
         self._load_detail()
         self._set_editing(False)
 
+    # ── Header ───────────────────────────────────────────────
     def _page_header(self) -> QFrame:
         box = S.card()
         lay = QHBoxLayout(box)
-        lay.setContentsMargins(14, 12, 14, 12)
+        lay.setContentsMargins(16, 12, 16, 12)
         lay.setSpacing(12)
 
         left = QVBoxLayout()
-        left.setSpacing(4)
+        left.setSpacing(2)
         title_row = QHBoxLayout()
         title_row.setSpacing(8)
         ic = QLabel()
         ic.setFixedSize(22, 22)
+        ic.setStyleSheet("background: transparent; border: none;")
         ic.setPixmap(icon_pixmap("warehouse", size=20, color=S.PRIMARY))
         ttl = QLabel("5. Godown & Location Master")
         ttl.setStyleSheet(
             f"font-size: 15px; font-weight: 700; color: {T.TEXT_PRIMARY}; "
             f"border: none; background: transparent;"
         )
+        badge = QLabel("Primary Setup")
+        badge.setStyleSheet(
+            f"color: {S.PRIMARY}; background: {S.SURFACE_GREY}; border: none; "
+            f"border-radius: 3px; padding: 2px 6px; font-size: 9px; font-weight: 700;"
+        )
         title_row.addWidget(ic)
         title_row.addWidget(ttl)
-        title_row.addWidget(S.pill("Primary Setup", "primary"))
+        title_row.addWidget(badge)
         title_row.addStretch()
         sub = QLabel(
             "Manage physical storage warehouses, shop floors and racks for stock inward/outward"
@@ -88,10 +81,18 @@ class GodownsScreen(QWidget):
 
         actions = QHBoxLayout()
         actions.setSpacing(6)
-        actions.addWidget(S.action_btn("+ New Godown", "F3", "add_box", "primary", self._new))
-        actions.addWidget(S.action_btn("Edit", "F4", "edit", "secondary", self._enter_edit))
-        actions.addWidget(S.action_btn("Save", "Ctrl+S", "save", "secondary", self._save))
-        actions.addWidget(S.action_btn("Delete", "Del", "delete", "danger", self._delete))
+        actions.addWidget(
+            S.action_btn("+ New Godown", "F3", "add_box", "primary", self._new)
+        )
+        actions.addWidget(
+            S.action_btn("Edit", "F4", "edit", "secondary", self._enter_edit)
+        )
+        actions.addWidget(
+            S.action_btn("Save", "Ctrl+S", "save", "save", self._save)
+        )
+        actions.addWidget(
+            S.action_btn("Delete", "Del", "delete", "danger", self._delete)
+        )
 
         lay.addLayout(left, stretch=1)
         lay.addLayout(actions)
@@ -103,23 +104,22 @@ class GodownsScreen(QWidget):
         lay = QHBoxLayout(wrap)
         lay.setContentsMargins(0, 0, 0, 0)
         lay.setSpacing(12)
-        lay.addWidget(self._left_panel(), stretch=3)
-        lay.addWidget(self._right_panel(), stretch=9)
+        lay.addWidget(self._left_panel())
+        lay.addWidget(self._right_panel(), stretch=1)
         return wrap
 
     # ── Left list ────────────────────────────────────────────
     def _left_panel(self) -> QWidget:
         col = QWidget()
         col.setStyleSheet("background: transparent;")
-        col.setMinimumWidth(260)
-        col.setMaximumWidth(340)
+        col.setFixedWidth(300)
         lay = QVBoxLayout(col)
         lay.setContentsMargins(0, 0, 0, 0)
         lay.setSpacing(10)
 
         box = S.card()
         bl = QVBoxLayout(box)
-        bl.setContentsMargins(10, 10, 10, 10)
+        bl.setContentsMargins(12, 12, 12, 12)
         bl.setSpacing(8)
 
         head = QHBoxLayout()
@@ -128,7 +128,11 @@ class GodownsScreen(QWidget):
             f"font-size: 13px; font-weight: 700; color: {T.TEXT_PRIMARY}; "
             f"border: none; background: transparent;"
         )
-        self.units_pill = S.pill(f"{len(self.rows)} units", "neutral")
+        self.units_pill = QLabel(f"{len(self.rows)} units")
+        self.units_pill.setStyleSheet(
+            f"color: {S.SECONDARY}; background: {S.HEADER_GREY}; border: none; "
+            f"border-radius: 3px; padding: 2px 6px; font-size: 10px; font-weight: 600;"
+        )
         head.addWidget(ttl)
         head.addStretch()
         head.addWidget(self.units_pill)
@@ -141,13 +145,16 @@ class GodownsScreen(QWidget):
         )
         sw = QHBoxLayout(search_box)
         sw.setContentsMargins(8, 0, 8, 0)
+        sw.setSpacing(6)
         sic = QLabel()
         sic.setFixedSize(16, 16)
+        sic.setStyleSheet("background: transparent; border: none;")
         sic.setPixmap(icon_pixmap("search", size=16, color=S.SECONDARY))
         self.filter = QLineEdit()
         self.filter.setPlaceholderText("Filter code, name, shed...")
         self.filter.setStyleSheet(
-            "QLineEdit { background: transparent; border: none; font-size: 12px; }"
+            f"QLineEdit {{ background: transparent; border: none; font-size: 12px; "
+            f"color: {T.TEXT_PRIMARY}; }}"
         )
         self.filter.textChanged.connect(self._rebuild_list)
         sw.addWidget(sic)
@@ -160,7 +167,13 @@ class GodownsScreen(QWidget):
         list_wrap = QWidget()
         list_wrap.setStyleSheet("background: transparent;")
         list_wrap.setLayout(self.list_host)
-        bl.addWidget(list_wrap)
+        list_scroll = QScrollArea()
+        list_scroll.setWidgetResizable(True)
+        list_scroll.setFrameShape(QFrame.Shape.NoFrame)
+        list_scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        list_scroll.setStyleSheet("QScrollArea { background: transparent; border: none; }")
+        list_scroll.setWidget(list_wrap)
+        bl.addWidget(list_scroll, stretch=1)
 
         reg = QFrame()
         reg.setStyleSheet(
@@ -181,12 +194,12 @@ class GodownsScreen(QWidget):
         rl.addStretch()
         rl.addWidget(self.reg_lbl)
         bl.addWidget(reg)
-        lay.addWidget(box)
+        lay.addWidget(box, stretch=1)
 
         # Depot glance
         glance = S.card()
         gl = QVBoxLayout(glance)
-        gl.setContentsMargins(10, 10, 10, 10)
+        gl.setContentsMargins(12, 10, 12, 10)
         gl.setSpacing(6)
         gt = QLabel("Depot Operations Glance")
         gt.setStyleSheet(
@@ -194,11 +207,13 @@ class GodownsScreen(QWidget):
             f"border: none; background: transparent;"
         )
         gl.addWidget(gt)
-        total_items = sum(g.get("item_count", 0) for g in self.rows)
-        gl.addWidget(self._glance_row("Current SKUs Mapped", f"{total_items} Items", primary=True))
-        gl.addWidget(self._glance_row("Active Dispatch Terminal", "Gate #01 / Guindy"))
+        self.glance_skus = self._glance_row("Current SKUs Mapped", "0 Items", primary=True)
+        self.glance_term = self._glance_row(
+            "Active Dispatch Terminal", "Gate #01 / Ranigunj"
+        )
+        gl.addWidget(self.glance_skus)
+        gl.addWidget(self.glance_term)
         lay.addWidget(glance)
-        lay.addStretch(1)
         return col
 
     def _glance_row(self, k: str, v: str, primary: bool = False) -> QFrame:
@@ -213,6 +228,7 @@ class GodownsScreen(QWidget):
             f"color: {S.SECONDARY}; font-size: 10px; border: none; background: transparent;"
         )
         b = QLabel(v)
+        b.setObjectName("glanceVal")
         color = S.PRIMARY if primary else T.TEXT_PRIMARY
         b.setStyleSheet(
             f"color: {color}; font-size: 11px; font-weight: 700; "
@@ -230,12 +246,17 @@ class GodownsScreen(QWidget):
                 item.widget().deleteLater()
         q = self.filter.text().strip().lower()
         for g in self.rows:
-            if q and q not in g["name"].lower() and q not in g.get("code", "").lower() \
-                    and q not in g.get("location_label", "").lower():
+            hay = f"{g['name']} {g.get('code', '')} {g.get('location_label', '')}".lower()
+            if q and q not in hay:
                 continue
             self.list_host.addWidget(self._godown_card(g))
+        self.list_host.addStretch(1)
         self.units_pill.setText(f"{len(self.rows)} units")
         self.reg_lbl.setText(f"{len(self.rows)} / 10 Allowed")
+        total_items = sum(int(g.get("item_count", 0)) for g in self.rows)
+        val = self.glance_skus.findChild(QLabel, "glanceVal")
+        if val:
+            val.setText(f"{total_items} Items")
 
     def _godown_card(self, g: dict) -> QFrame:
         selected = g["id"] == self._selected_id
@@ -257,12 +278,21 @@ class GodownsScreen(QWidget):
 
         top = QHBoxLayout()
         name = QLabel(g["name"])
-        name_color = S.PRIMARY if selected else T.TEXT_PRIMARY
         name.setStyleSheet(
-            f"color: {name_color}; font-size: 12px; font-weight: 700; "
-            f"border: none; background: transparent;"
+            f"color: {S.PRIMARY if selected else T.TEXT_PRIMARY}; "
+            f"font-size: 12px; font-weight: 700; border: none; background: transparent;"
         )
-        code = S.pill(g.get("code", ""), "primary" if selected else "neutral")
+        code = QLabel(g.get("code", ""))
+        if selected:
+            code.setStyleSheet(
+                f"color: {S.PRIMARY}; background: {T.SURFACE}; border: none; "
+                f"border-radius: 3px; padding: 2px 6px; font-size: 10px; font-weight: 700;"
+            )
+        else:
+            code.setStyleSheet(
+                f"color: {S.SECONDARY}; background: {S.HEADER_GREY}; border: none; "
+                f"border-radius: 3px; padding: 2px 6px; font-size: 10px; font-weight: 600;"
+            )
         top.addWidget(name)
         top.addStretch()
         top.addWidget(code)
@@ -272,10 +302,16 @@ class GodownsScreen(QWidget):
         meta.setSpacing(4)
         mic = QLabel()
         mic.setFixedSize(14, 14)
+        mic.setStyleSheet("background: transparent; border: none;")
         mic.setPixmap(
-            icon_pixmap(g.get("icon", "warehouse"), size=13, color=S.SECONDARY)
+            icon_pixmap(
+                g.get("icon", "warehouse"), size=13,
+                color=S.PRIMARY if selected else S.SECONDARY,
+            )
         )
-        mtxt = QLabel(f"{g.get('location_label', '')}  ·  {g.get('item_count', 0)} Items")
+        mtxt = QLabel(
+            f"{g.get('location_label', '')}  ·  {g.get('item_count', 0)} Items"
+        )
         mtxt.setStyleSheet(
             f"color: {S.SECONDARY}; font-size: 10px; border: none; background: transparent;"
         )
@@ -322,29 +358,95 @@ class GodownsScreen(QWidget):
         self.right_lay.setContentsMargins(0, 0, 0, 0)
         self.right_lay.setSpacing(12)
 
-        # Identification
-        id_card = S.card()
-        id_outer = QVBoxLayout(id_card)
-        id_outer.setContentsMargins(0, 0, 0, 0)
-        id_outer.setSpacing(0)
+        self.right_lay.addWidget(self._id_card())
+        self.right_lay.addWidget(self._loc_card())
+        self.right_lay.addWidget(self._stock_card(), stretch=1)
+        return col
+
+    def _soft_field(self, widget: QWidget):
+        widget.setStyleSheet(
+            f"""
+            QLineEdit, QTextEdit, QComboBox {{
+                background: {S.INPUT_BG}; border: none; border-radius: 4px;
+                padding: 6px 10px; font-size: 12px; font-weight: 600;
+                color: {T.TEXT_PRIMARY};
+                selection-background-color: {S.PRIMARY}; selection-color: white;
+            }}
+            QLineEdit:focus, QTextEdit:focus {{
+                background: {T.SURFACE}; border: 1px solid {S.PRIMARY};
+            }}
+            """
+        )
+
+    def _labeled(
+        self, label: str, widget: QWidget, *, required: bool = False, hint: str = ""
+    ) -> QWidget:
+        wrap = QWidget()
+        wrap.setStyleSheet("background: transparent;")
+        lay = QVBoxLayout(wrap)
+        lay.setContentsMargins(0, 0, 0, 0)
+        lay.setSpacing(4)
+        top = QHBoxLayout()
+        top.setSpacing(3)
+        cap = QLabel(label)
+        cap.setStyleSheet(
+            f"color: {T.TEXT_PRIMARY}; font-size: 12px; font-weight: 600; "
+            f"border: none; background: transparent;"
+        )
+        top.addWidget(cap)
+        if required:
+            star = QLabel("*")
+            star.setStyleSheet(
+                f"color: {S.ERROR}; font-size: 12px; font-weight: 700; "
+                f"border: none; background: transparent;"
+            )
+            top.addWidget(star)
+        top.addStretch()
+        lay.addLayout(top)
+        lay.addWidget(widget)
+        if hint:
+            h = QLabel(hint)
+            h.setStyleSheet(
+                f"color: {S.SECONDARY}; font-size: 10px; border: none; background: transparent;"
+            )
+            h.setWordWrap(True)
+            lay.addWidget(h)
+        return wrap
+
+    def _id_card(self) -> QFrame:
+        card = S.card()
+        outer = QVBoxLayout(card)
+        outer.setContentsMargins(16, 14, 16, 14)
+        outer.setSpacing(12)
+
+        head = QHBoxLayout()
+        ic = QLabel()
+        ic.setFixedSize(18, 18)
+        ic.setStyleSheet("background: transparent; border: none;")
+        ic.setPixmap(icon_pixmap("badge", size=18, color=S.PRIMARY))
+        ttl = QLabel("Godown Identification")
+        ttl.setStyleSheet(
+            f"font-size: 13px; font-weight: 700; color: {T.TEXT_PRIMARY}; "
+            f"border: none; background: transparent;"
+        )
         self.ref_lbl = QLabel("System Ref ID: —")
         self.ref_lbl.setStyleSheet(
-            f"color: {S.SECONDARY}; font-size: 10px; border: none; background: transparent;"
+            f"color: {S.SECONDARY}; font-size: 11px; border: none; background: transparent;"
         )
-        id_outer.addWidget(S.section_head("Godown Identification", "badge", self.ref_lbl))
-        id_body = QWidget()
-        id_body.setStyleSheet("background: transparent;")
-        idl = QVBoxLayout(id_body)
-        idl.setContentsMargins(14, 12, 14, 14)
-        idl.setSpacing(10)
+        head.addWidget(ic)
+        head.addWidget(ttl)
+        head.addStretch()
+        head.addWidget(self.ref_lbl)
+        outer.addLayout(head)
 
         self.name = QLineEdit()
         self.code = QLineEdit()
-        row1 = QHBoxLayout()
-        row1.setSpacing(10)
-        name_f = S.labeled_input("Godown Name", self.name, required=True)
-        code_f = S.labeled_input("Godown Code", self.code, required=True)
-        # Status toggle
+        self._soft_field(self.name)
+        self._soft_field(self.code)
+        self.name.setFixedHeight(36)
+        self.code.setFixedHeight(36)
+
+        # Status chip with toggle_on
         status_wrap = QWidget()
         status_wrap.setStyleSheet("background: transparent;")
         sl = QVBoxLayout(status_wrap)
@@ -352,7 +454,7 @@ class GodownsScreen(QWidget):
         sl.setSpacing(4)
         scap = QLabel("Godown Status")
         scap.setStyleSheet(
-            f"color: {S.SECONDARY}; font-size: 11px; font-weight: 600; "
+            f"color: {T.TEXT_PRIMARY}; font-size: 12px; font-weight: 600; "
             f"border: none; background: transparent;"
         )
         sl.addWidget(scap)
@@ -370,96 +472,272 @@ class GodownsScreen(QWidget):
         )
         tog = QLabel()
         tog.setFixedSize(22, 22)
+        tog.setStyleSheet("background: transparent; border: none;")
         tog.setPixmap(icon_pixmap("toggle_on", size=20, color=S.PRIMARY))
         scl.addWidget(self.status_txt)
         scl.addStretch()
         scl.addWidget(tog)
         sl.addWidget(self.status_chip)
-        hint = QLabel("Available in sales/purchase dropdown")
-        hint.setStyleSheet(
+        shint = QLabel("Available in sales/purchase dropdown")
+        shint.setStyleSheet(
             f"color: {S.SECONDARY}; font-size: 10px; border: none; background: transparent;"
         )
-        sl.addWidget(hint)
+        sl.addWidget(shint)
 
-        row1.addWidget(name_f, stretch=6)
-        row1.addWidget(code_f, stretch=3)
-        row1.addWidget(status_wrap, stretch=3)
-        idl.addLayout(row1)
-        name_hint = QLabel("Name printed on Delivery Challans & Transfer Vouchers")
-        name_hint.setStyleSheet(
-            f"color: {S.SECONDARY}; font-size: 10px; border: none; background: transparent;"
+        row = QHBoxLayout()
+        row.setSpacing(12)
+        row.addWidget(
+            self._labeled(
+                "Godown Name", self.name, required=True,
+                hint="Name printed on Delivery Challans & Transfer Vouchers",
+            ),
+            stretch=6,
         )
-        idl.addWidget(name_hint)
-        id_outer.addWidget(id_body)
-        self.right_lay.addWidget(id_card)
+        row.addWidget(
+            self._labeled(
+                "Godown Code", self.code, required=True,
+                hint="Short unique identifier",
+            ),
+            stretch=3,
+        )
+        row.addWidget(status_wrap, stretch=3)
+        outer.addLayout(row)
+        return card
 
-        # Location & contact
-        loc_card = S.card()
-        loc_outer = QVBoxLayout(loc_card)
-        loc_outer.setContentsMargins(0, 0, 0, 0)
-        loc_outer.setSpacing(0)
-        loc_outer.addWidget(S.section_head("Location & In-Charge Contact", "location_on"))
-        loc_body = QWidget()
-        loc_body.setStyleSheet("background: transparent;")
-        locl = QVBoxLayout(loc_body)
-        locl.setContentsMargins(14, 12, 14, 14)
-        locl.setSpacing(10)
+    def _loc_card(self) -> QFrame:
+        card = S.card()
+        outer = QVBoxLayout(card)
+        outer.setContentsMargins(16, 14, 16, 14)
+        outer.setSpacing(12)
+
+        head = QHBoxLayout()
+        ic = QLabel()
+        ic.setFixedSize(18, 18)
+        ic.setStyleSheet("background: transparent; border: none;")
+        ic.setPixmap(icon_pixmap("place", size=18, color=S.PRIMARY))
+        ttl = QLabel("Location & In-Charge Contact")
+        ttl.setStyleSheet(
+            f"font-size: 13px; font-weight: 700; color: {T.TEXT_PRIMARY}; "
+            f"border: none; background: transparent;"
+        )
+        self.pin_zone = QLabel("")
+        self.pin_zone.setStyleSheet(
+            f"color: {S.SECONDARY}; font-size: 11px; border: none; background: transparent;"
+        )
+        head.addWidget(ic)
+        head.addWidget(ttl)
+        head.addStretch()
+        head.addWidget(self.pin_zone)
+        outer.addLayout(head)
+
+        body = QHBoxLayout()
+        body.setSpacing(12)
+
+        # Address
         self.address = QTextEdit()
-        self.address.setFixedHeight(64)
+        self.address.setFixedHeight(84)
+        self._soft_field(self.address)
+        body.addWidget(
+            self._labeled(
+                "Physical Warehouse Address", self.address,
+                hint="Used for E-Way bill generation and delivery transit notes",
+            ),
+            stretch=1,
+        )
+
+        # Contact column
+        contact = QWidget()
+        contact.setStyleSheet("background: transparent;")
+        cl = QVBoxLayout(contact)
+        cl.setContentsMargins(0, 0, 0, 0)
+        cl.setSpacing(8)
+
+        # In-charge with person icon
+        in_wrap = QWidget()
+        in_wrap.setStyleSheet("background: transparent;")
+        il = QVBoxLayout(in_wrap)
+        il.setContentsMargins(0, 0, 0, 0)
+        il.setSpacing(4)
+        icap = QLabel("In-Charge Supervisor Name")
+        icap.setStyleSheet(
+            f"color: {T.TEXT_PRIMARY}; font-size: 12px; font-weight: 600; "
+            f"border: none; background: transparent;"
+        )
+        il.addWidget(icap)
+        in_box = QFrame()
+        in_box.setFixedHeight(36)
+        in_box.setStyleSheet(
+            f"QFrame {{ background: {S.INPUT_BG}; border: none; border-radius: 4px; }}"
+        )
+        ibl = QHBoxLayout(in_box)
+        ibl.setContentsMargins(8, 0, 8, 0)
+        ibl.setSpacing(6)
+        pic = QLabel()
+        pic.setFixedSize(16, 16)
+        pic.setStyleSheet("background: transparent; border: none;")
+        pic.setPixmap(icon_pixmap("person", size=16, color=S.SECONDARY))
         self.incharge = QLineEdit()
+        self.incharge.setStyleSheet(
+            f"QLineEdit {{ background: transparent; border: none; font-size: 12px; "
+            f"font-weight: 600; color: {T.TEXT_PRIMARY}; }}"
+        )
+        ibl.addWidget(pic)
+        ibl.addWidget(self.incharge, stretch=1)
+        il.addWidget(in_box)
+        cl.addWidget(in_wrap)
+
+        phones = QHBoxLayout()
+        phones.setSpacing(10)
         self.phone = QLineEdit()
         self.alt_phone = QLineEdit()
-        locl.addWidget(S.labeled_input("Physical Warehouse Address", self.address))
-        row2 = QHBoxLayout()
-        row2.setSpacing(10)
-        row2.addWidget(S.labeled_input("In-Charge Supervisor Name", self.incharge), 1)
-        row2.addWidget(S.labeled_input("Contact Phone", self.phone), 1)
-        row2.addWidget(S.labeled_input("Alternate Line", self.alt_phone), 1)
-        locl.addLayout(row2)
-        loc_outer.addWidget(loc_body)
-        self.right_lay.addWidget(loc_card)
+        self._soft_field(self.phone)
+        self._soft_field(self.alt_phone)
+        self.phone.setFixedHeight(36)
+        self.alt_phone.setFixedHeight(36)
+        phones.addWidget(self._labeled("Contact Phone", self.phone), 1)
+        phones.addWidget(self._labeled("Alternate Line", self.alt_phone), 1)
+        cl.addLayout(phones)
+        cl.addStretch()
 
-        # Stock summary
-        stock_card = S.card()
-        stock_outer = QVBoxLayout(stock_card)
-        stock_outer.setContentsMargins(0, 0, 0, 0)
-        stock_outer.setSpacing(0)
-        stock_outer.addWidget(S.section_head("Stock Summary in this Godown", "inventory_2"))
-        stock_body = QWidget()
-        stock_body.setStyleSheet("background: transparent;")
-        sbl = QVBoxLayout(stock_body)
-        sbl.setContentsMargins(12, 8, 12, 12)
+        body.addWidget(contact, stretch=1)
+        outer.addLayout(body)
+        return card
+
+    def _stock_card(self) -> QFrame:
+        card = S.card()
+        outer = QVBoxLayout(card)
+        outer.setContentsMargins(16, 14, 16, 14)
+        outer.setSpacing(10)
+
+        head = QHBoxLayout()
+        head.setSpacing(8)
+        ic = QLabel()
+        ic.setFixedSize(18, 18)
+        ic.setStyleSheet("background: transparent; border: none;")
+        ic.setPixmap(icon_pixmap("inventory_2", size=18, color=S.PRIMARY))
+        ttl = QLabel("Stock Summary in this Godown")
+        ttl.setStyleSheet(
+            f"font-size: 13px; font-weight: 700; color: {T.TEXT_PRIMARY}; "
+            f"border: none; background: transparent;"
+        )
+        self.live_badge = QLabel("Live Inventory")
+        self.live_badge.setStyleSheet(
+            f"color: {S.PRIMARY}; background: {S.HEADER_GREY}; border: none; "
+            f"border-radius: 3px; padding: 2px 8px; font-size: 10px; font-weight: 700;"
+        )
+        head.addWidget(ic)
+        head.addWidget(ttl)
+        head.addWidget(self.live_badge)
+        head.addStretch()
+        head.addWidget(
+            self._mini_btn("Filter Group", "tune", lambda: toast(self, "Filter by group…"))
+        )
+        head.addWidget(
+            self._mini_btn("Export XLS", "download", lambda: toast(self, "Exporting XLS…"))
+        )
+        outer.addLayout(head)
+
         self.stock_table = QTableWidget(0, 6)
         self.stock_table.setHorizontalHeaderLabels(
-            ["ITEM CODE", "PRODUCT DESCRIPTION", "CATEGORY GROUP", "CURRENT QTY", "UNIT", "EST. VALUE (₹)"]
+            [
+                "Item Code", "Product Description", "Category Group",
+                "Current Qty", "Unit", "Est. Value (₹)",
+            ]
         )
-        self.stock_table.horizontalHeader().setSectionResizeMode(1, QHeaderView.Stretch)
+        hdr = self.stock_table.horizontalHeader()
+        hdr.setSectionResizeMode(0, QHeaderView.ResizeToContents)
+        hdr.setSectionResizeMode(1, QHeaderView.Stretch)
+        hdr.setSectionResizeMode(2, QHeaderView.ResizeToContents)
+        hdr.setSectionResizeMode(3, QHeaderView.ResizeToContents)
+        hdr.setSectionResizeMode(4, QHeaderView.ResizeToContents)
+        hdr.setSectionResizeMode(5, QHeaderView.ResizeToContents)
         self.stock_table.verticalHeader().setVisible(False)
         self.stock_table.setEditTriggers(QTableWidget.NoEditTriggers)
         self.stock_table.setSelectionMode(QTableWidget.NoSelection)
         self.stock_table.setFocusPolicy(Qt.NoFocus)
         self.stock_table.setShowGrid(False)
+        self.stock_table.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         self.stock_table.setStyleSheet(
             f"""
-            QTableWidget {{ background: {T.SURFACE}; border: 1px solid {T.BORDER};
-                border-radius: 4px; }}
-            QHeaderView::section {{ background: {S.HEADER_GREY}; color: {S.SECONDARY};
-                font-size: 10px; font-weight: 700; padding: 6px 8px; border: none;
-                border-bottom: 1px solid {T.BORDER}; }}
-            QTableWidget::item {{ padding: 6px 8px; border-bottom: 1px solid {T.BORDER}; }}
+            QTableWidget {{
+                background: {T.SURFACE}; border: 1px solid {T.BORDER};
+                border-radius: 4px; gridline-color: transparent;
+            }}
+            QHeaderView::section {{
+                background: {S.HEADER_GREY}; color: {S.SECONDARY};
+                font-size: 10px; font-weight: 700; padding: 8px 10px; border: none;
+                border-bottom: 1px solid {T.BORDER};
+            }}
+            QTableWidget::item {{
+                padding: 6px 10px; border-bottom: 1px solid {T.BORDER};
+            }}
             """
         )
-        sbl.addWidget(self.stock_table)
-        self.stock_footer = QLabel()
+        outer.addWidget(self.stock_table, stretch=1)
+
+        # Totals footer strip (Stitch tfoot)
+        self.stock_footer = QFrame()
         self.stock_footer.setStyleSheet(
-            f"color: {S.PRIMARY}; font-size: 12px; font-weight: 700; "
-            f"border: none; background: transparent; padding: 4px 2px;"
+            f"QFrame {{ background: {S.HEADER_GREY}; border: 1px solid {T.BORDER}; "
+            f"border-radius: 4px; }}"
         )
-        sbl.addWidget(self.stock_footer)
-        stock_outer.addWidget(stock_body)
-        self.right_lay.addWidget(stock_card)
-        self.right_lay.addStretch(1)
-        return col
+        fl = QHBoxLayout(self.stock_footer)
+        fl.setContentsMargins(10, 8, 10, 8)
+        self.stock_total_lbl = QLabel("Total Sampled Inventory in Godown")
+        self.stock_total_lbl.setStyleSheet(
+            f"color: {T.TEXT_PRIMARY}; font-size: 11px; font-weight: 600; "
+            f"border: none; background: transparent;"
+        )
+        self.stock_qty_lbl = QLabel("0.00")
+        self.stock_qty_lbl.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
+        self.stock_qty_lbl.setStyleSheet(
+            f"color: {S.PRIMARY}; font-size: 12px; font-weight: 700; "
+            f"border: none; background: transparent;"
+        )
+        dash = QLabel("—")
+        dash.setAlignment(Qt.AlignCenter)
+        dash.setStyleSheet(
+            f"color: {S.SECONDARY}; font-size: 11px; border: none; background: transparent;"
+        )
+        self.stock_val_lbl = QLabel("₹ 0.00")
+        self.stock_val_lbl.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
+        self.stock_val_lbl.setStyleSheet(
+            f"color: {S.PRIMARY}; font-size: 12px; font-weight: 700; "
+            f"border: none; background: transparent;"
+        )
+        fl.addWidget(self.stock_total_lbl, stretch=3)
+        fl.addWidget(self.stock_qty_lbl, stretch=1)
+        fl.addWidget(dash, stretch=0)
+        fl.addWidget(self.stock_val_lbl, stretch=1)
+        outer.addWidget(self.stock_footer)
+        return card
+
+    def _mini_btn(self, label: str, icon: str, on_click) -> QFrame:
+        btn = QFrame()
+        btn.setCursor(QCursor(Qt.PointingHandCursor))
+        btn.setFixedHeight(26)
+        btn.setStyleSheet(
+            f"QFrame {{ background: {S.INPUT_BG}; border: none; border-radius: 4px; }}"
+            f"QFrame:hover {{ background: {S.SURFACE_GREY}; }}"
+        )
+        lay = QHBoxLayout(btn)
+        lay.setContentsMargins(8, 0, 8, 0)
+        lay.setSpacing(4)
+        ic = QLabel()
+        ic.setFixedSize(14, 14)
+        ic.setStyleSheet("background: transparent; border: none;")
+        ic.setPixmap(icon_pixmap(icon, size=14, color=S.SECONDARY))
+        txt = QLabel(label)
+        txt.setStyleSheet(
+            f"color: {T.TEXT_PRIMARY}; font-size: 11px; font-weight: 600; "
+            f"border: none; background: transparent;"
+        )
+        lay.addWidget(ic)
+        lay.addWidget(txt)
+        btn.mousePressEvent = (
+            lambda e, cb=on_click: cb() if e.button() == Qt.LeftButton else None
+        )
+        return btn
 
     def _load_detail(self):
         g = self._current()
@@ -473,30 +751,59 @@ class GodownsScreen(QWidget):
         self.phone.setText(g.get("phone", ""))
         self.alt_phone.setText(g.get("alt_phone", ""))
         self.status_txt.setText("Active Depot" if g.get("active", True) else "Inactive")
+        self.pin_zone.setText(g.get("pin_zone", ""))
+        self.live_badge.setText(f"{g.get('code', '')} Live Inventory")
 
         stock = D.GODOWN_STOCK.get(g["id"], [])
         self.stock_table.setRowCount(len(stock))
         total_qty = 0.0
         total_val = 0.0
         for r, row in enumerate(stock):
+            # Alternating row tint via background brush is awkward; keep clean rows
             code = QTableWidgetItem(row["sku"])
-            code.setForeground(Qt.blue)
+            code.setForeground(Qt.GlobalColor.blue)
+            f = code.font()
+            f.setBold(True)
+            code.setFont(f)
             self.stock_table.setItem(r, 0, code)
+
             self.stock_table.setItem(r, 1, QTableWidgetItem(row["name"]))
-            self.stock_table.setItem(r, 2, QTableWidgetItem(row["group"]))
-            self.stock_table.setItem(r, 3, QTableWidgetItem(f"{row['qty']:,.2f}"))
-            self.stock_table.setItem(r, 4, QTableWidgetItem(row["unit"]))
-            self.stock_table.setItem(r, 5, QTableWidgetItem(format_inr_indian(row["value"])))
+
+            grp = QTableWidgetItem(row["group"])
+            grp.setForeground(Qt.GlobalColor.darkGray)
+            self.stock_table.setItem(r, 2, grp)
+
+            qty = QTableWidgetItem(f"{row['qty']:,.2f}")
+            qty.setTextAlignment(Qt.AlignRight | Qt.AlignVCenter)
+            f = qty.font()
+            f.setBold(True)
+            qty.setFont(f)
+            self.stock_table.setItem(r, 3, qty)
+
+            unit = QTableWidgetItem(row["unit"])
+            unit.setTextAlignment(Qt.AlignCenter)
+            unit.setForeground(Qt.GlobalColor.darkGray)
+            self.stock_table.setItem(r, 4, unit)
+
+            val = QTableWidgetItem(f"{row['value']:,.2f}")
+            val.setTextAlignment(Qt.AlignRight | Qt.AlignVCenter)
+            self.stock_table.setItem(r, 5, val)
+
             total_qty += float(row["qty"])
             total_val += float(row["value"])
-        self.stock_table.setFixedHeight(28 + max(len(stock), 1) * 32)
-        self.stock_footer.setText(
-            f"Sampled inventory: {total_qty:,.2f} qty    ·    "
-            f"Est. value {format_inr_indian(total_val)}"
+
+        total_lines = int(g.get("item_count", len(stock)))
+        self.stock_total_lbl.setText(
+            f"Total Sampled Inventory in Godown ({len(stock)} of {total_lines} lines)"
         )
+        self.stock_qty_lbl.setText(f"{total_qty:,.2f}")
+        self.stock_val_lbl.setText(format_inr_indian(total_val))
 
     def _fields(self):
-        return [self.name, self.code, self.address, self.incharge, self.phone, self.alt_phone]
+        return [
+            self.name, self.code, self.address,
+            self.incharge, self.phone, self.alt_phone,
+        ]
 
     def _set_editing(self, enabled: bool):
         self._editing = enabled
@@ -522,6 +829,7 @@ class GodownsScreen(QWidget):
             "alt_phone": "",
             "address": "",
             "location_label": "New Location",
+            "pin_zone": "",
             "item_count": 0,
             "status": "Active",
             "role_tag": "Storage",
@@ -548,6 +856,7 @@ class GodownsScreen(QWidget):
         g["alt_phone"] = self.alt_phone.text().strip()
         self._set_editing(False)
         self._rebuild_list()
+        self._load_detail()
         toast(self, "Godown saved.")
 
     def _delete(self):
@@ -565,11 +874,17 @@ class GodownsScreen(QWidget):
         lay = QHBoxLayout(box)
         lay.setContentsMargins(14, 8, 14, 8)
         lay.setSpacing(8)
-        tip = QLabel("Keyboard:")
+
+        kbd_ic = QLabel()
+        kbd_ic.setFixedSize(16, 16)
+        kbd_ic.setStyleSheet("background: transparent; border: none;")
+        kbd_ic.setPixmap(icon_pixmap("keyboard", size=15, color=S.SECONDARY))
+        tip = QLabel("KEYBOARD ACCELERATORS:")
         tip.setStyleSheet(
-            f"color: {T.TEXT_PRIMARY}; font-size: 10px; font-weight: 700; "
+            f"color: {S.SECONDARY}; font-size: 11px; font-weight: 700; "
             f"border: none; background: transparent;"
         )
+        lay.addWidget(kbd_ic)
         lay.addWidget(tip)
         for key, label in (
             ("F3", "New Godown"),
@@ -581,17 +896,17 @@ class GodownsScreen(QWidget):
             lay.addWidget(S.kbd(key))
             t = QLabel(label)
             t.setStyleSheet(
-                f"color: {S.SECONDARY}; font-size: 10px; border: none; background: transparent;"
+                f"color: {S.SECONDARY}; font-size: 11px; border: none; background: transparent;"
             )
             lay.addWidget(t)
-            lay.addSpacing(4)
+            lay.addSpacing(6)
         lay.addStretch()
         dot = QFrame()
         dot.setFixedSize(8, 8)
         dot.setStyleSheet(f"background: {S.PRIMARY}; border-radius: 4px; border: none;")
         st = QLabel("Terminal Sync: Verified (Port 8042)")
         st.setStyleSheet(
-            f"color: {S.SECONDARY}; font-size: 10px; border: none; background: transparent;"
+            f"color: {S.SECONDARY}; font-size: 11px; border: none; background: transparent;"
         )
         lay.addWidget(dot)
         lay.addWidget(st)

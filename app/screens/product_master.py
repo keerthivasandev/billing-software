@@ -23,22 +23,44 @@ _FILTER_TABS = [
 ]
 
 _UNITS = [
-    "Roll (ROL)", "Numbers (NOS)", "Meter (MTR)", "Bundle (BDL)",
-    "Packet (PKT)", "Coil", "Pcs", "Box", "Kg",
+    "Roll (ROL)",
+    "Numbers (NOS)",
+    "Meter (MTR)",
+    "Bundle (BDL)",
+    "Packet (PKT)",
+    "Coil (COIL)",
+    "Pcs (PCS)",
+    "Box (BOX)",
+    "Kg (KG)",
+    "ROL (90m)",
 ]
 
 
 def _unit_short(unit: str) -> str:
-    u = (unit or "Pcs").upper()
+    """Short UOM code shown beside Current Stock (follows Unit of Sale)."""
+    text = (unit or "Pcs").strip()
     mapping = {
-        "ROLL (ROL)": "ROL", "ROL": "ROL", "COIL": "ROL",
-        "NUMBERS (NOS)": "NOS", "NOS": "NOS", "PCS": "NOS",
-        "METER (MTR)": "MTR", "MTR": "MTR", "MTR.": "MTR",
-        "BUNDLE (BDL)": "BDL", "BDL": "BDL",
-        "PACKET (PKT)": "PKT", "PKT": "PKT",
-        "BOX": "BOX", "KG": "KG",
+        "ROLL": "ROL", "ROL": "ROL", "COIL": "COIL",
+        "NUMBERS": "NOS", "NOS": "NOS", "PCS": "PCS", "PIECES": "PCS",
+        "METER": "MTR", "METRE": "MTR", "MTR": "MTR",
+        "BUNDLE": "BDL", "BDL": "BDL",
+        "PACKET": "PKT", "PKT": "PKT",
+        "BOX": "BOX", "KG": "KG", "KILOGRAM": "KG",
     }
-    return mapping.get(u, u[:3])
+    base = text
+    inner = ""
+    if "(" in text and text.endswith(")"):
+        base = text[: text.rfind("(")].strip()
+        inner = text[text.rfind("(") + 1 : -1].strip().upper().split()[0]
+    token = (base or text).upper().split()[0]
+    # "Roll (ROL)" → use parenthetical code; "ROL (90m)" → use ROL base
+    if token in mapping:
+        return mapping[token]
+    if len(token) <= 6 and token.isalpha():
+        return token
+    if inner and (inner in mapping or (len(inner) <= 6 and inner.isalpha())):
+        return mapping.get(inner, inner)
+    return mapping.get(token, token[:6])
 
 
 class ProductMasterScreen(QWidget):
@@ -459,8 +481,9 @@ class ProductMasterScreen(QWidget):
         self.group = QComboBox()
         self.group.addItems(list(D.ITEM_GROUPS))
         self.unit = QComboBox()
-        self.unit.setEditable(True)
+        self.unit.setEditable(False)
         self.unit.addItems(_UNITS)
+        self.unit.currentTextChanged.connect(self._on_unit_changed)
         self.hsn = QLineEdit()
         self.stock = QDoubleSpinBox()
         self.stock.setRange(0, 9_999_999)
@@ -517,26 +540,41 @@ class ProductMasterScreen(QWidget):
         sl = QVBoxLayout(stock_wrap)
         sl.setContentsMargins(0, 0, 0, 0)
         sl.setSpacing(4)
-        scap = QLabel("Current Stock")
-        scap.setStyleSheet(
+        self.stock_cap = QLabel("Current Stock")
+        self.stock_cap.setStyleSheet(
             f"color: {S.SECONDARY}; font-size: 11px; font-weight: 600; "
             f"border: none; background: transparent;"
         )
-        sl.addWidget(scap)
-        srow = QHBoxLayout()
-        srow.setSpacing(6)
+        sl.addWidget(self.stock_cap)
+        # Qty + unit chip (unit follows Unit of Sale dropdown)
+        stock_box = QFrame()
+        stock_box.setFixedHeight(36)
+        stock_box.setStyleSheet(
+            f"QFrame {{ background: {S.INPUT_BG}; border: none; border-radius: 4px; }}"
+        )
+        srow = QHBoxLayout(stock_box)
+        srow.setContentsMargins(8, 0, 8, 0)
+        srow.setSpacing(8)
         self.stock.setStyleSheet(
-            f"QDoubleSpinBox {{ background: {S.INPUT_BG}; border: none; border-radius: 4px; "
-            f"padding: 8px 10px; min-height: 20px; font-size: 13px; font-weight: 700; }}"
+            f"QDoubleSpinBox {{ background: transparent; border: none; "
+            f"padding: 4px 2px; font-size: 13px; font-weight: 700; "
+            f"color: {T.TEXT_PRIMARY}; }}"
         )
         self.stock_unit_lbl = QLabel("NOS")
+        self.stock_unit_lbl.setAlignment(Qt.AlignCenter)
+        self.stock_unit_lbl.setMinimumWidth(44)
         self.stock_unit_lbl.setStyleSheet(
-            f"color: {S.SECONDARY}; font-size: 12px; font-weight: 600; "
-            f"border: none; background: transparent;"
+            f"color: {S.PRIMARY}; background: {T.ACCENT_SOFT}; border: none; "
+            f"border-radius: 4px; padding: 4px 8px; font-size: 11px; font-weight: 700;"
         )
         srow.addWidget(self.stock, stretch=1)
         srow.addWidget(self.stock_unit_lbl)
-        sl.addLayout(srow)
+        sl.addWidget(stock_box)
+        hint = QLabel("Unit size follows Unit of Sale")
+        hint.setStyleSheet(
+            f"color: {S.SECONDARY}; font-size: 10px; border: none; background: transparent;"
+        )
+        sl.addWidget(hint)
         row2.addWidget(stock_wrap, 1)
         outer.addLayout(row2)
 
@@ -600,15 +638,24 @@ class ProductMasterScreen(QWidget):
         idx = self.group.findText(grp)
         self.group.setCurrentIndex(idx if idx >= 0 else 0)
         unit = p.get("unit", "Pcs")
-        # Prefer matching Stitch-style unit labels
+        # Match Unit of Sale dropdown (or insert custom unit once)
         uidx = self.unit.findText(unit, Qt.MatchContains)
+        if uidx < 0:
+            uidx = self.unit.findText(unit, Qt.MatchFixedString)
         if uidx >= 0:
+            self.unit.blockSignals(True)
             self.unit.setCurrentIndex(uidx)
+            self.unit.blockSignals(False)
         else:
-            self.unit.setEditText(unit)
+            # Keep dropdown options intact; select closest / first and sync chip from data
+            self.unit.blockSignals(True)
+            if self.unit.findText(unit) < 0:
+                self.unit.insertItem(0, unit)
+            self.unit.setCurrentText(unit)
+            self.unit.blockSignals(False)
         self.hsn.setText(p.get("hsn", ""))
         self.stock.setValue(float(p.get("stock", 0)))
-        self.stock_unit_lbl.setText(_unit_short(unit))
+        self._sync_stock_unit(unit)
         self.purchase_rate.setValue(float(p.get("purchase_rate", 0)))
         self.sale_rate.setValue(float(p.get("sale_rate", p.get("rate", 0))))
         low = float(p.get("stock", 0)) <= float(p.get("min_stock", 0))
@@ -616,6 +663,15 @@ class ProductMasterScreen(QWidget):
             self.status_lbl.setText("Status: Low Stock — Reorder")
         else:
             self.status_lbl.setText("Status: In Stock & Active")
+
+    def _on_unit_changed(self, text: str = ""):
+        unit = text or self.unit.currentText()
+        self._sync_stock_unit(unit)
+
+    def _sync_stock_unit(self, unit: str):
+        code = _unit_short(unit)
+        self.stock_unit_lbl.setText(code)
+        self.stock_cap.setText(f"Current Stock ({code})")
 
     def _fields(self):
         return [
