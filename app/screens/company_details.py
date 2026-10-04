@@ -11,12 +11,13 @@ from app.data import sample_data as D
 from app.styles import tokens as T
 from app.widgets.helpers import toast
 from app.widgets.icons import icon_pixmap
+from app.widgets import stitch_ui as S
 
-_PRIMARY = "#2563eb"
-_SECONDARY = "#575e70"
-_HEADER_GREY = "#f3f4f6"       # surface-container-low
-_SURFACE_GREY = "#edeef0"     # surface-container
-_INPUT_BG = "#f3f4f6"
+_PRIMARY = S.PRIMARY
+_SECONDARY = S.SECONDARY
+_HEADER_GREY = S.HEADER_GREY
+_SURFACE_GREY = S.SURFACE_GREY
+_INPUT_BG = S.INPUT_BG
 
 
 def _card() -> QFrame:
@@ -134,7 +135,7 @@ def _form_field(
     if required:
         star = QLabel("*")
         star.setStyleSheet(
-            "color: #dc2626; font-size: 12px; font-weight: 700; "
+            "color: #ba1a1a; font-size: 12px; font-weight: 700; "
             "border: none; background: transparent;"
         )
         top.addWidget(star)
@@ -269,11 +270,11 @@ class CompanyDetailsScreen(QWidget):
             if enabled:
                 self._edit_btn.setStyleSheet(
                     f"QFrame {{ background: {_SURFACE_GREY}; border: 1px solid {_PRIMARY}; "
-                    f"border-radius: 6px; }}"
+                    f"border-radius: 4px; }}"
                 )
             else:
                 self._edit_btn.setStyleSheet(
-                    f"QFrame {{ background: {_HEADER_GREY}; border: none; border-radius: 6px; }}"
+                    f"QFrame {{ background: {_HEADER_GREY}; border: none; border-radius: 4px; }}"
                     f"QFrame:hover {{ background: {_SURFACE_GREY}; }}"
                 )
 
@@ -359,14 +360,14 @@ class CompanyDetailsScreen(QWidget):
         btn.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
         if kind == "primary":
             btn.setStyleSheet(
-                f"QFrame {{ background: {_PRIMARY}; border: none; border-radius: 6px; }}"
-                f"QFrame:hover {{ background: #1d4ed8; }}"
+                f"QFrame {{ background: {_PRIMARY}; border: none; border-radius: 4px; }}"
+                f"QFrame:hover {{ background: {T.ACCENT_HOVER}; }}"
             )
             fg = "white"
             ic_color = "white"
         else:
             btn.setStyleSheet(
-                f"QFrame {{ background: {_HEADER_GREY}; border: none; border-radius: 6px; }}"
+                f"QFrame {{ background: {_HEADER_GREY}; border: none; border-radius: 4px; }}"
                 f"QFrame:hover {{ background: {_SURFACE_GREY}; }}"
             )
             fg = T.TEXT_PRIMARY

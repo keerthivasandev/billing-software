@@ -124,7 +124,7 @@ class LedgerEditDialog(QDialog):
         ic.setFixedSize(36, 36)
         ic.setAlignment(Qt.AlignCenter)
         ic.setStyleSheet(
-            f"background: {T.ACCENT_SOFT}; border-radius: 6px; border: none;"
+            f"background: {T.ACCENT_SOFT}; border-radius: 4px; border: none;"
         )
         ic.setPixmap(icon_pixmap("person_add", size=20, color=S.PRIMARY))
 

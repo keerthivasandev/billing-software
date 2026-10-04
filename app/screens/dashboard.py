@@ -13,7 +13,7 @@ from app.styles import tokens as T
 from app.widgets.helpers import format_inr_indian, toast, ui_font
 from app.widgets.icons import icon_pixmap
 
-_PRIMARY = "#2563eb"
+_PRIMARY = "#1D4ED8"
 _PRIMARY_HOVER = "#1d4ed8"
 
 
@@ -96,7 +96,7 @@ class DashboardScreen(QWidget):
         icon.setFixedSize(40, 40)
         icon.setAlignment(Qt.AlignCenter)
         icon.setStyleSheet(
-            f"background: {T.ACCENT_SOFT}; border-radius: 6px; border: none;"
+            f"background: {T.ACCENT_SOFT}; border-radius: 4px; border: none;"
         )
         icon.setPixmap(icon_pixmap("home", size=22, color=_PRIMARY))
 
@@ -302,7 +302,7 @@ class DashboardScreen(QWidget):
         card = QFrame()
         card.setStyleSheet(
             f"QFrame {{ background: #F8FAFC; border: 1px solid {T.BORDER}; "
-            f"border-radius: 6px; }}"
+            f"border-radius: 4px; }}"
         )
         lay = QVBoxLayout(card)
         lay.setContentsMargins(12, 10, 12, 10)
@@ -594,7 +594,7 @@ class DashboardScreen(QWidget):
             row = QFrame()
             row.setStyleSheet(
                 f"QFrame {{ background: #F8FAFC; border: 1px solid {T.BORDER}; "
-                f"border-radius: 6px; }}"
+                f"border-radius: 4px; }}"
             )
             rl = QVBoxLayout(row)
             rl.setContentsMargins(10, 8, 10, 8)
@@ -645,7 +645,7 @@ class DashboardScreen(QWidget):
             card = QFrame()
             card.setStyleSheet(
                 f"QFrame {{ background: #F8FAFC; border: 1px solid {T.BORDER}; "
-                f"border-radius: 6px; }}"
+                f"border-radius: 4px; }}"
             )
             rl = QVBoxLayout(card)
             rl.setContentsMargins(10, 8, 10, 8)

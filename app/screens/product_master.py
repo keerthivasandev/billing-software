@@ -118,7 +118,7 @@ class ProductMasterScreen(QWidget):
         ic1.setFixedSize(32, 32)
         ic1.setAlignment(Qt.AlignCenter)
         ic1.setStyleSheet(
-            f"background: {S.SURFACE_GREY}; border-radius: 6px; border: none;"
+            f"background: {S.SURFACE_GREY}; border-radius: 4px; border: none;"
         )
         ic1.setPixmap(icon_pixmap("inventory_2", size=18, color=S.PRIMARY))
         c1 = QVBoxLayout()
@@ -157,7 +157,7 @@ class ProductMasterScreen(QWidget):
         ic2.setFixedSize(32, 32)
         ic2.setAlignment(Qt.AlignCenter)
         ic2.setStyleSheet(
-            f"background: {S.HEADER_GREY}; border-radius: 6px; border: none;"
+            f"background: {S.HEADER_GREY}; border-radius: 4px; border: none;"
         )
         ic2.setPixmap(icon_pixmap("payments", size=16, color=S.SECONDARY))
         c2 = QVBoxLayout()
@@ -237,7 +237,7 @@ class ProductMasterScreen(QWidget):
         search_box = QFrame()
         search_box.setFixedHeight(32)
         search_box.setStyleSheet(
-            f"QFrame {{ background: {T.SURFACE}; border: none; border-radius: 6px; }}"
+            f"QFrame {{ background: {T.SURFACE}; border: none; border-radius: 4px; }}"
         )
         sw = QHBoxLayout(search_box)
         sw.setContentsMargins(8, 0, 6, 0)
@@ -520,7 +520,7 @@ class ProductMasterScreen(QWidget):
         nl.addLayout(ntop)
         self.name.setStyleSheet(
             f"QLineEdit {{ background: {S.INPUT_BG}; border: 1px solid {T.BORDER}; "
-            f"border-radius: 6px; padding: 8px 10px; font-size: 13px; font-weight: 600; "
+            f"border-radius: 4px; padding: 8px 10px; font-size: 13px; font-weight: 600; "
             f"color: {T.TEXT_PRIMARY}; }}"
         )
         nl.addWidget(self.name)

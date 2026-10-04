@@ -69,7 +69,7 @@ class PartyMasterScreen(QWidget):
         ic.setFixedSize(32, 32)
         ic.setAlignment(Qt.AlignCenter)
         ic.setStyleSheet(
-            f"background: {T.ACCENT_SOFT}; border-radius: 6px; border: none;"
+            f"background: {T.ACCENT_SOFT}; border-radius: 4px; border: none;"
         )
         ic.setPixmap(icon_pixmap("group", size=18, color=S.PRIMARY))
         col = QVBoxLayout()

@@ -8,7 +8,7 @@ def build_qss() -> str:
     ui = getattr(T, "FONT_UI_RESOLVED", T.FONT_UI)
     return f"""
 * {{
-    font-family: "{ui}", "{T.FONT_UI_FALLBACK}", -apple-system, BlinkMacSystemFont, sans-serif;
+    font-family: "{ui}", "Inter", "Inter Variable", "Segoe UI", "{T.FONT_UI_FALLBACK}", -apple-system, BlinkMacSystemFont, sans-serif;
     font-size: {T.FONT_SIZE_UI}pt;
     color: {T.TEXT_PRIMARY};
 }}
@@ -74,9 +74,9 @@ QLabel#companyTitle {{
 }}
 
 QFrame#globalSearchBox {{
-    background-color: #f3f4f6;
+    background-color: {T.INPUT_BG};
     border: 1px solid {T.BORDER_STRONG};
-    border-radius: 4px;
+    border-radius: {T.RADIUS}px;
 }}
 
 QLineEdit#globalSearch {{
@@ -100,24 +100,24 @@ QFrame#globalSearchBox:focus-within {{
 }}
 
 QLabel#fyBadge {{
-    color: {T.PRIMARY_CONTAINER};
+    color: {T.PRIMARY};
     background-color: {T.ACCENT_SOFT};
     border: 1px solid {T.BORDER};
-    border-radius: 4px;
+    border-radius: {T.RADIUS}px;
     padding: 2px 6px;
     font-size: 8pt;
     font-weight: 600;
 }}
 
 QLineEdit, QComboBox, QSpinBox, QDoubleSpinBox, QDateEdit, QTextEdit {{
-    background-color: {T.SURFACE};
+    background-color: {T.INPUT_BG};
     border: 1px solid {T.BORDER};
     border-radius: {T.RADIUS}px;
     padding: 1px 6px;
     min-height: {T.INPUT_H}px;
     max-height: {T.INPUT_H}px;
     font-size: {T.FONT_SIZE_UI}pt;
-    selection-background-color: {T.ACCENT};
+    selection-background-color: {T.PRIMARY};
     selection-color: white;
 }}
 

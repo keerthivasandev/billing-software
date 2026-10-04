@@ -95,7 +95,7 @@ class GroupsScreen(QWidget):
         ic.setFixedSize(36, 36)
         ic.setAlignment(Qt.AlignCenter)
         ic.setStyleSheet(
-            f"background: {S.PRIMARY}; border-radius: 6px; border: none;"
+            f"background: {S.PRIMARY}; border-radius: 4px; border: none;"
         )
         ic.setPixmap(icon_pixmap("folder_copy", size=20, color="#ffffff"))
 
@@ -133,7 +133,7 @@ class GroupsScreen(QWidget):
         wrap = QFrame()
         wrap.setStyleSheet(
             f"QFrame {{ background: {S.HEADER_GREY}; border: 1px solid {T.BORDER}; "
-            f"border-radius: 6px; }}"
+            f"border-radius: 4px; }}"
         )
         lay = QHBoxLayout(wrap)
         lay.setContentsMargins(4, 4, 4, 4)
@@ -478,7 +478,7 @@ class GroupsScreen(QWidget):
         ic_wrap.setFixedSize(32, 32)
         ic_wrap.setAlignment(Qt.AlignCenter)
         ic_wrap.setStyleSheet(
-            f"background: {T.ACCENT_SOFT}; border-radius: 6px; border: none;"
+            f"background: {T.ACCENT_SOFT}; border-radius: 4px; border: none;"
         )
         self.detail_icon = ic_wrap
         ic_wrap.setPixmap(icon_pixmap("category", size=18, color=S.PRIMARY))
@@ -521,7 +521,7 @@ class GroupsScreen(QWidget):
         form = QFrame()
         form.setStyleSheet(
             f"QFrame {{ background: {S.INPUT_BG}; border: 1px solid {T.BORDER}; "
-            f"border-radius: 6px; }}"
+            f"border-radius: 4px; }}"
         )
         fl = QVBoxLayout(form)
         fl.setContentsMargins(12, 12, 12, 12)
