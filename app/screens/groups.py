@@ -584,28 +584,11 @@ class GroupsScreen(QWidget):
         hdr.setSectionResizeMode(3, QHeaderView.ResizeToContents)
         hdr.setSectionResizeMode(4, QHeaderView.Fixed)
         self.table.setColumnWidth(4, 64)
-        self.table.verticalHeader().setVisible(False)
         self.table.setEditTriggers(QTableWidget.NoEditTriggers)
         self.table.setSelectionMode(QTableWidget.NoSelection)
         self.table.setFocusPolicy(Qt.NoFocus)
-        self.table.setShowGrid(False)
         self.table.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
-        self.table.setStyleSheet(
-            f"""
-            QTableWidget {{
-                background: {T.SURFACE}; border: 1px solid {T.BORDER};
-                border-radius: 4px; gridline-color: transparent;
-            }}
-            QHeaderView::section {{
-                background: {S.HEADER_GREY}; color: {S.SECONDARY};
-                font-size: 10px; font-weight: 700; padding: 8px 10px; border: none;
-                border-bottom: 1px solid {T.BORDER};
-            }}
-            QTableWidget::item {{
-                padding: 6px 10px; border-bottom: 1px solid {T.BORDER};
-            }}
-            """
-        )
+        S.apply_table_style(self.table)
         outer.addWidget(self.table)
 
         # Pagination — fixed horizontal strip (widget, not bare layout)
@@ -764,7 +747,7 @@ class GroupsScreen(QWidget):
             self.table.setCellWidget(r, 4, act)
 
         rows_h = max(len(items), 1)
-        self.table.setFixedHeight(36 + rows_h * 34)
+        self.table.setFixedHeight(T.TABLE_HEADER_H + rows_h * T.GRID_ROW_H + 4)
         shown = len(items)
         self.page_info.setText(f"Showing {shown} of {total_count} items")
         pages = max(1, min(3, (max(total_count, 1) + 49) // 50)) if total_count else 1

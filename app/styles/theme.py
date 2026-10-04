@@ -236,7 +236,8 @@ QAbstractSpinBox::down-arrow {{
 QTableWidget, QTreeWidget, QListWidget {{
     background-color: {T.SURFACE};
     border: 1px solid {T.BORDER};
-    gridline-color: {T.BORDER};
+    border-radius: {T.RADIUS}px;
+    gridline-color: transparent;
     alternate-background-color: {T.ALT_ROW};
     selection-background-color: {T.ACCENT_SOFT};
     selection-color: {T.TEXT_PRIMARY};
@@ -244,19 +245,28 @@ QTableWidget, QTreeWidget, QListWidget {{
     outline: 0;
 }}
 
+QHeaderView {{
+    background-color: {T.SURFACE_CONTAINER_LOW};
+}}
+
 QHeaderView::section {{
-    background-color: {T.HEADER_BAND};
+    background-color: {T.SURFACE_CONTAINER_LOW};
     border: none;
     border-right: 1px solid {T.BORDER};
     border-bottom: 1px solid {T.BORDER};
-    padding: 5px 6px;
+    padding: {T.TABLE_HEADER_PAD_Y}px {T.TABLE_HEADER_PAD_X}px;
     font-size: {T.FONT_SIZE_LABEL}pt;
-    font-weight: bold;
+    font-weight: 700;
     color: {T.TEXT_SECONDARY};
 }}
 
+QHeaderView::section:last {{
+    border-right: none;
+}}
+
 QTableWidget::item {{
-    padding: 1px 4px;
+    padding: {T.TABLE_PAD_Y}px {T.TABLE_PAD_X}px;
+    border-bottom: 1px solid {T.BORDER};
 }}
 
 QTableWidget::item:focus {{
@@ -264,10 +274,16 @@ QTableWidget::item:focus {{
     background-color: #fafcff;
 }}
 
+QTableWidget::item:selected {{
+    background-color: {T.ACCENT_SOFT};
+    color: {T.TEXT_PRIMARY};
+}}
+
 QListWidget::item {{
-    padding: 6px 8px;
+    padding: {T.TABLE_PAD_Y}px {T.TABLE_PAD_X}px;
     border-bottom: 1px solid {T.BORDER};
     font-size: {T.FONT_SIZE_UI}pt;
+    min-height: {T.GRID_ROW_H - 8}px;
 }}
 
 QListWidget::item:selected {{

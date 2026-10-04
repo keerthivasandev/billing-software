@@ -8,6 +8,7 @@ from PySide6.QtWidgets import (
 
 from app.data import sample_data as D
 from app.styles import tokens as T
+from app.widgets import stitch_ui as S
 from app.widgets.helpers import (
     card_frame, format_inr, labeled_field, make_button, page_title, toast, ui_font,
 )
@@ -45,11 +46,9 @@ class LedgerStatementScreen(QWidget):
         self.table.setHorizontalHeaderLabels(
             ["Date", "Particulars", "Voucher", "Debit", "Credit", "Balance"]
         )
-        self.table.setAlternatingRowColors(True)
-        self.table.verticalHeader().setVisible(False)
         self.table.setEditTriggers(QAbstractItemView.NoEditTriggers)
         self.table.horizontalHeader().setSectionResizeMode(1, QHeaderView.Stretch)
-        self.table.verticalHeader().setDefaultSectionSize(T.GRID_ROW_H)
+        S.apply_table_style(self.table)
         root.addWidget(self.table, stretch=1)
         self._run()
 
@@ -110,11 +109,9 @@ class RegistersScreen(QWidget):
         t.setHorizontalHeaderLabels(
             ["Date", "Doc", "Party", "Taxable", "CGST", "SGST", "IGST", "Total"]
         )
-        t.setAlternatingRowColors(True)
-        t.verticalHeader().setVisible(False)
         t.setEditTriggers(QAbstractItemView.NoEditTriggers)
         t.horizontalHeader().setSectionResizeMode(2, QHeaderView.Stretch)
-        t.verticalHeader().setDefaultSectionSize(T.GRID_ROW_H)
+        S.apply_table_style(t)
         for r, row in enumerate(rows):
             vals = [
                 row["date"], row["doc"], row["party"],

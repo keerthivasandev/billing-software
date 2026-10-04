@@ -651,28 +651,11 @@ class GodownsScreen(QWidget):
         hdr.setSectionResizeMode(3, QHeaderView.ResizeToContents)
         hdr.setSectionResizeMode(4, QHeaderView.ResizeToContents)
         hdr.setSectionResizeMode(5, QHeaderView.ResizeToContents)
-        self.stock_table.verticalHeader().setVisible(False)
         self.stock_table.setEditTriggers(QTableWidget.NoEditTriggers)
         self.stock_table.setSelectionMode(QTableWidget.NoSelection)
         self.stock_table.setFocusPolicy(Qt.NoFocus)
-        self.stock_table.setShowGrid(False)
         self.stock_table.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
-        self.stock_table.setStyleSheet(
-            f"""
-            QTableWidget {{
-                background: {T.SURFACE}; border: 1px solid {T.BORDER};
-                border-radius: 4px; gridline-color: transparent;
-            }}
-            QHeaderView::section {{
-                background: {S.HEADER_GREY}; color: {S.SECONDARY};
-                font-size: 10px; font-weight: 700; padding: 8px 10px; border: none;
-                border-bottom: 1px solid {T.BORDER};
-            }}
-            QTableWidget::item {{
-                padding: 6px 10px; border-bottom: 1px solid {T.BORDER};
-            }}
-            """
-        )
+        S.apply_table_style(self.stock_table)
         outer.addWidget(self.stock_table, stretch=1)
 
         # Totals footer strip (Stitch tfoot)
@@ -682,7 +665,7 @@ class GodownsScreen(QWidget):
             f"border-radius: 4px; }}"
         )
         fl = QHBoxLayout(self.stock_footer)
-        fl.setContentsMargins(10, 8, 10, 8)
+        fl.setContentsMargins(T.TABLE_PAD_X, T.TABLE_PAD_Y, T.TABLE_PAD_X, T.TABLE_PAD_Y)
         self.stock_total_lbl = QLabel("Total Sampled Inventory in Godown")
         self.stock_total_lbl.setStyleSheet(
             f"color: {T.TEXT_PRIMARY}; font-size: 11px; font-weight: 600; "

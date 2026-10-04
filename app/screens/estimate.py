@@ -9,6 +9,7 @@ from PySide6.QtWidgets import (
 
 from app.data import sample_data as D
 from app.styles import tokens as T
+from app.widgets import stitch_ui as S
 from app.widgets.helpers import (
     card_frame, format_inr, labeled_field, make_button, page_title, toast, ui_font,
 )
@@ -70,20 +71,18 @@ class EstimateScreen(QWidget):
         self.lines = QTableWidget(0, 4)
         self.lines.setHorizontalHeaderLabels(["Item", "Qty", "Rate", "Amount"])
         self.lines.horizontalHeader().setSectionResizeMode(0, QHeaderView.Stretch)
-        self.lines.verticalHeader().setVisible(False)
-        self.lines.setMaximumHeight(140)
+        self.lines.setMaximumHeight(160)
+        S.apply_table_style(self.lines)
         root.addWidget(self.lines)
 
         self.table = QTableWidget(0, 5)
         self.table.setHorizontalHeaderLabels(
             ["Quotation No.", "Party", "Date", "Amount", "Status"]
         )
-        self.table.setAlternatingRowColors(True)
-        self.table.verticalHeader().setVisible(False)
         self.table.setSelectionBehavior(QAbstractItemView.SelectRows)
         self.table.setEditTriggers(QAbstractItemView.NoEditTriggers)
         self.table.horizontalHeader().setSectionResizeMode(1, QHeaderView.Stretch)
-        self.table.verticalHeader().setDefaultSectionSize(T.GRID_ROW_H)
+        S.apply_table_style(self.table)
         root.addWidget(self.table, stretch=1)
         self._line_total = 0.0
         self._reload()

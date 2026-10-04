@@ -10,6 +10,7 @@ from PySide6.QtWidgets import (
 
 from app.data import sample_data as D
 from app.styles import tokens as T
+from app.widgets import stitch_ui as S
 from app.widgets.fields import field_row, icon_field
 from app.widgets.helpers import (
     card_frame, format_inr, make_button, page_title, toast, ui_font,
@@ -76,12 +77,10 @@ class CashFlowScreen(QWidget):
         self.table.setHorizontalHeaderLabels(
             ["Date", "Type", "Mode", "Reference", "Purpose", "Amount"]
         )
-        self.table.setAlternatingRowColors(True)
-        self.table.verticalHeader().setVisible(False)
         self.table.setEditTriggers(QAbstractItemView.NoEditTriggers)
         self.table.setSelectionBehavior(QAbstractItemView.SelectRows)
         self.table.horizontalHeader().setSectionResizeMode(4, QHeaderView.Stretch)
-        self.table.verticalHeader().setDefaultSectionSize(T.GRID_ROW_H)
+        S.apply_table_style(self.table)
         root.addWidget(self.table, stretch=1)
         self._reload_table()
 

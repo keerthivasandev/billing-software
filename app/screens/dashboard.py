@@ -407,13 +407,11 @@ class DashboardScreen(QWidget):
         table.setHorizontalHeaderLabels(
             ["ITEM CODE", "PRODUCT DESCRIPTION", "CATEGORY", "GODOWN STOCK", "WHOLESALE RATE", ""]
         )
-        table.verticalHeader().setVisible(False)
         table.setEditTriggers(QAbstractItemView.NoEditTriggers)
         table.setSelectionBehavior(QAbstractItemView.SelectRows)
-        table.setShowGrid(False)
         table.setFocusPolicy(Qt.NoFocus)
-        table.setAlternatingRowColors(True)
-        table.verticalHeader().setDefaultSectionSize(42)
+        from app.widgets import stitch_ui as S
+        S.apply_table_style(table)
         table.horizontalHeader().setSectionResizeMode(1, QHeaderView.Stretch)
         table.horizontalHeader().setSectionResizeMode(0, QHeaderView.ResizeToContents)
         table.horizontalHeader().setSectionResizeMode(2, QHeaderView.ResizeToContents)
@@ -421,34 +419,10 @@ class DashboardScreen(QWidget):
         table.horizontalHeader().setSectionResizeMode(4, QHeaderView.ResizeToContents)
         table.horizontalHeader().setSectionResizeMode(5, QHeaderView.Fixed)
         table.setColumnWidth(5, 72)
-        table.setMinimumHeight(42 * len(rows) + 40)
-        table.setMaximumHeight(42 * len(rows) + 44)
+        row_h = T.GRID_ROW_H
+        table.setMinimumHeight(row_h * len(rows) + T.TABLE_HEADER_H + 4)
+        table.setMaximumHeight(row_h * len(rows) + T.TABLE_HEADER_H + 8)
         table.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
-        table.setStyleSheet(
-            f"""
-            QTableWidget {{
-                border: none; background: {T.SURFACE};
-                alternate-background-color: #F8FAFC;
-            }}
-            QHeaderView::section {{
-                background: {T.HEADER_BAND};
-                color: {T.TEXT_MUTED};
-                border: none;
-                border-bottom: 1px solid {T.BORDER};
-                padding: 8px 10px;
-                font-size: 10px;
-                font-weight: 700;
-            }}
-            QTableWidget::item {{
-                padding: 4px 10px;
-                border-bottom: 1px solid {T.BORDER};
-            }}
-            QTableWidget::item:selected {{
-                background: {T.ACCENT_SOFT};
-                color: {T.TEXT_PRIMARY};
-            }}
-            """
-        )
         self._fill_lookup_table(rows)
         lay.addWidget(table)
 

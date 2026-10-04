@@ -570,8 +570,9 @@ class PartyMasterScreen(QWidget):
             f"border-top-left-radius: 4px; border-top-right-radius: 4px;"
         )
         hl = QHBoxLayout(head)
-        hl.setContentsMargins(10, 7, 10, 7)
-        hl.setSpacing(8)
+        hl.setContentsMargins(T.TABLE_PAD_X, T.TABLE_HEADER_PAD_Y, T.TABLE_PAD_X, T.TABLE_HEADER_PAD_Y)
+        hl.setSpacing(10)
+        head.setMinimumHeight(T.TABLE_HEADER_H)
         cols = (
             ("Date", 1, Qt.AlignLeft),
             ("Voucher Type / No", 3, Qt.AlignLeft),
@@ -609,8 +610,9 @@ class PartyMasterScreen(QWidget):
                 f"QFrame {{ background: {bg}; border: none; {border} }}"
             )
             rl = QHBoxLayout(row_f)
-            rl.setContentsMargins(10, 8, 10, 8)
-            rl.setSpacing(8)
+            rl.setContentsMargins(T.TABLE_PAD_X, T.TABLE_PAD_Y, T.TABLE_PAD_X, T.TABLE_PAD_Y)
+            rl.setSpacing(10)
+            row_f.setMinimumHeight(T.GRID_ROW_H)
 
             # Date — mono secondary
             date_lbl = QLabel(row.get("date", "—"))
