@@ -8,7 +8,7 @@ def build_qss() -> str:
     ui = getattr(T, "FONT_UI_RESOLVED", T.FONT_UI)
     return f"""
 * {{
-    font-family: "{ui}", "{T.FONT_UI_FALLBACK}", -apple-system, BlinkMacSystemFont, sans-serif;
+    font-family: "{ui}", "Inter", "Inter Variable", "Segoe UI", "{T.FONT_UI_FALLBACK}", -apple-system, BlinkMacSystemFont, sans-serif;
     font-size: {T.FONT_SIZE_UI}pt;
     color: {T.TEXT_PRIMARY};
 }}
@@ -30,89 +30,94 @@ QLabel#navBrand {{
     color: {T.NAV_TEXT_ACTIVE};
     font-size: {T.FONT_SIZE_TITLE}pt;
     font-weight: bold;
-    padding: 2px 4px;
+    padding: 0;
 }}
 
 QLabel#navBrandSub {{
     color: {T.NAV_TEXT};
-    font-size: {T.FONT_SIZE_SHORTCUT}pt;
-    padding: 0 4px 8px 4px;
+    font-size: {T.FONT_SIZE_MICRO}pt;
+    padding: 0;
 }}
 
 QPushButton#navToggle {{
-    background-color: {T.NAV_HOVER};
-    color: {T.NAV_TEXT_ACTIVE};
-    border: 1px solid #374151;
+    background-color: transparent;
+    color: {T.NAV_TEXT};
+    border: 1px solid transparent;
     border-radius: {T.RADIUS}px;
-    min-width: 32px;
-    max-width: 32px;
-    min-height: 30px;
-    max-height: 30px;
-    padding: 4px;
+    min-width: 28px;
+    max-width: 28px;
+    min-height: 28px;
+    max-height: 28px;
+    padding: 2px;
 }}
 
 QPushButton#navToggle:hover {{
-    background-color: {T.ACCENT};
+    background-color: {T.NAV_HOVER};
+    color: {T.NAV_TEXT_ACTIVE};
 }}
 
 QFrame#topBar {{
     background-color: {T.SURFACE};
-    border-bottom: 1px solid {T.BORDER};
+    border-bottom: none;
 }}
 
 QFrame#breadcrumbBar {{
     background-color: {T.HEADER_BAND};
+    border-top: 1px solid {T.BORDER};
     border-bottom: 1px solid {T.BORDER};
 }}
 
 QLabel#companyTitle {{
-    font-size: {T.FONT_SIZE_TITLE}pt;
-    font-weight: bold;
+    font-size: 11pt;
+    font-weight: 700;
     color: {T.TEXT_PRIMARY};
 }}
 
-QLabel#fyBadge {{
-    color: {T.ACCENT};
-    background-color: {T.ACCENT_SOFT};
-    border: 1px solid #bfdbfe;
-    border-radius: 10px;
-    padding: 3px 10px;
-    font-size: {T.FONT_SIZE_LABEL}pt;
-    font-weight: bold;
-}}
-
-QLabel#userBadge {{
-    color: {T.TEXT_SECONDARY};
-    background-color: {T.HEADER_BAND};
-    border: 1px solid {T.BORDER};
-    border-radius: 10px;
-    padding: 3px 10px;
-    font-size: {T.FONT_SIZE_LABEL}pt;
+QFrame#globalSearchBox {{
+    background-color: {T.INPUT_BG};
+    border: 1px solid {T.BORDER_STRONG};
+    border-radius: {T.RADIUS}px;
 }}
 
 QLineEdit#globalSearch {{
-    background-color: {T.HEADER_BAND};
-    border: 1px solid {T.BORDER};
-    border-radius: 14px;
-    padding: 2px 12px;
-    min-height: {T.INPUT_H}px;
-    max-height: {T.INPUT_H}px;
+    background: transparent;
+    border: none;
+    padding: 0 4px;
+    min-height: 24px;
+    max-height: 28px;
+    font-size: 9pt;
+    color: {T.TEXT_PRIMARY};
 }}
 
 QLineEdit#globalSearch:focus {{
+    border: none;
+    background: transparent;
+}}
+
+QFrame#globalSearchBox:focus-within {{
     border: 1px solid {T.FOCUS_BORDER};
     background-color: {T.SURFACE};
 }}
 
+QLabel#fyBadge {{
+    color: {T.PRIMARY};
+    background-color: {T.ACCENT_SOFT};
+    border: 1px solid {T.BORDER};
+    border-radius: {T.RADIUS}px;
+    padding: 2px 6px;
+    font-size: 8pt;
+    font-weight: 600;
+}}
+
 QLineEdit, QComboBox, QSpinBox, QDoubleSpinBox, QDateEdit, QTextEdit {{
-    background-color: {T.SURFACE};
+    background-color: {T.INPUT_BG};
     border: 1px solid {T.BORDER};
     border-radius: {T.RADIUS}px;
     padding: 1px 6px;
     min-height: {T.INPUT_H}px;
     max-height: {T.INPUT_H}px;
     font-size: {T.FONT_SIZE_UI}pt;
-    selection-background-color: {T.ACCENT};
+    selection-background-color: {T.PRIMARY};
     selection-color: white;
 }}
 
@@ -231,7 +236,8 @@ QAbstractSpinBox::down-arrow {{
 QTableWidget, QTreeWidget, QListWidget {{
     background-color: {T.SURFACE};
     border: 1px solid {T.BORDER};
-    gridline-color: {T.BORDER};
+    border-radius: {T.RADIUS}px;
+    gridline-color: transparent;
     alternate-background-color: {T.ALT_ROW};
     selection-background-color: {T.ACCENT_SOFT};
     selection-color: {T.TEXT_PRIMARY};
@@ -239,19 +245,28 @@ QTableWidget, QTreeWidget, QListWidget {{
     outline: 0;
 }}
 
+QHeaderView {{
+    background-color: {T.SURFACE_CONTAINER_LOW};
+}}
+
 QHeaderView::section {{
-    background-color: {T.HEADER_BAND};
+    background-color: {T.SURFACE_CONTAINER_LOW};
     border: none;
     border-right: 1px solid {T.BORDER};
     border-bottom: 1px solid {T.BORDER};
-    padding: 5px 6px;
+    padding: {T.TABLE_HEADER_PAD_Y}px {T.TABLE_HEADER_PAD_X}px;
     font-size: {T.FONT_SIZE_LABEL}pt;
-    font-weight: bold;
+    font-weight: 700;
     color: {T.TEXT_SECONDARY};
 }}
 
+QHeaderView::section:last {{
+    border-right: none;
+}}
+
 QTableWidget::item {{
-    padding: 1px 4px;
+    padding: {T.TABLE_PAD_Y}px {T.TABLE_PAD_X}px;
+    border-bottom: 1px solid {T.BORDER};
 }}
 
 QTableWidget::item:focus {{
@@ -259,10 +274,16 @@ QTableWidget::item:focus {{
     background-color: #fafcff;
 }}
 
+QTableWidget::item:selected {{
+    background-color: {T.ACCENT_SOFT};
+    color: {T.TEXT_PRIMARY};
+}}
+
 QListWidget::item {{
-    padding: 6px 8px;
+    padding: {T.TABLE_PAD_Y}px {T.TABLE_PAD_X}px;
     border-bottom: 1px solid {T.BORDER};
     font-size: {T.FONT_SIZE_UI}pt;
+    min-height: {T.GRID_ROW_H - 8}px;
 }}
 
 QListWidget::item:selected {{

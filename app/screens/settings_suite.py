@@ -9,6 +9,7 @@ from PySide6.QtWidgets import (
 
 from app.data import sample_data as D
 from app.styles import tokens as T
+from app.widgets import stitch_ui as S
 from app.widgets.helpers import (
     card_frame, field_label, make_button, page_title, toast, ui_font,
 )
@@ -24,11 +25,9 @@ class AuditTrailScreen(QWidget):
 
         self.table = QTableWidget(len(D.AUDIT_LOG), 4)
         self.table.setHorizontalHeaderLabels(["Timestamp", "User", "Module", "Action"])
-        self.table.setAlternatingRowColors(True)
-        self.table.verticalHeader().setVisible(False)
         self.table.setEditTriggers(QAbstractItemView.NoEditTriggers)
         self.table.horizontalHeader().setSectionResizeMode(3, QHeaderView.Stretch)
-        self.table.verticalHeader().setDefaultSectionSize(T.GRID_ROW_H)
+        S.apply_table_style(self.table)
         for r, row in enumerate(D.AUDIT_LOG):
             for c, key in enumerate(("ts", "user", "module", "action")):
                 it = QTableWidgetItem(row[key])
@@ -58,6 +57,8 @@ class UsersScreen(QWidget):
         left.setFixedWidth(240)
         ll = QVBoxLayout(left)
         self.list = QListWidget()
+        self.list.setSpacing(2)
+        self.list.setUniformItemSizes(True)
         self.list.currentRowChanged.connect(self._load)
         ll.addWidget(self.list)
         split.addWidget(left)

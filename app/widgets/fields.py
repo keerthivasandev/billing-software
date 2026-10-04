@@ -77,12 +77,12 @@ class IconField(QFrame):
         self.setStyleSheet(
             f"""
             QFrame#iconField {{
-                background: {T.HEADER_BAND};
-                border: 1px solid {T.BORDER_STRONG};
-                border-radius: 8px;
+                background: {T.INPUT_BG};
+                border: 1px solid {T.BORDER};
+                border-radius: {T.RADIUS}px;
             }}
             QFrame#iconField:hover {{
-                border-color: {T.ACCENT};
+                border-color: {T.PRIMARY};
                 background: {T.SURFACE};
             }}
             QLabel#iconFieldLabel {{
@@ -106,7 +106,7 @@ class IconField(QFrame):
                 background: {T.BORDER};
                 color: {T.TEXT_PRIMARY};
                 border: 1px solid {T.BORDER_STRONG};
-                border-radius: 6px;
+                border-radius: {T.RADIUS}px;
                 padding: 2px 10px;
                 min-height: 22px;
                 max-height: 24px;
@@ -115,8 +115,8 @@ class IconField(QFrame):
             }}
             QPushButton#iconFieldEdit:hover {{
                 background: {T.ACCENT_SOFT};
-                border-color: {T.ACCENT};
-                color: {T.ACCENT};
+                border-color: {T.PRIMARY};
+                color: {T.PRIMARY};
             }}
             """
         )

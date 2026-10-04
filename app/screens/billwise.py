@@ -8,6 +8,7 @@ from PySide6.QtWidgets import (
 
 from app.data import sample_data as D
 from app.styles import tokens as T
+from app.widgets import stitch_ui as S
 from app.widgets.helpers import (
     card_frame, format_inr, labeled_field, make_button, page_title, toast, ui_font,
 )
@@ -54,12 +55,10 @@ class BillwiseScreen(QWidget):
         self.table.setHorizontalHeaderLabels(
             ["Party", "Bill No.", "Original", "Paid", "Pending", "Days"]
         )
-        self.table.setAlternatingRowColors(True)
-        self.table.verticalHeader().setVisible(False)
         self.table.setSelectionBehavior(QAbstractItemView.SelectRows)
         self.table.setEditTriggers(QAbstractItemView.NoEditTriggers)
         self.table.horizontalHeader().setSectionResizeMode(0, QHeaderView.Stretch)
-        self.table.verticalHeader().setDefaultSectionSize(T.GRID_ROW_H)
+        S.apply_table_style(self.table)
         root.addWidget(self.table, stretch=1)
         self.summary = QLabel()
         self.summary.setStyleSheet(

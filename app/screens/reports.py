@@ -9,6 +9,7 @@ from PySide6.QtWidgets import (
 
 from app.data import sample_data as D
 from app.styles import tokens as T
+from app.widgets import stitch_ui as S
 from app.widgets.helpers import field_label, format_inr, make_button, mono_font, toast
 
 
@@ -92,14 +93,12 @@ class ReportsScreen(QWidget):
     def _make_table(self):
         t = QTableWidget(0, len(COLS))
         t.setHorizontalHeaderLabels(COLS)
-        t.setAlternatingRowColors(True)
-        t.verticalHeader().setVisible(False)
         t.setEditTriggers(QAbstractItemView.NoEditTriggers)
         t.setSelectionBehavior(QAbstractItemView.SelectRows)
         t.setSortingEnabled(True)
         t.setFont(mono_font(T.FONT_SIZE_GRID))
-        t.verticalHeader().setDefaultSectionSize(T.GRID_ROW_H)
         t.horizontalHeader().setSectionResizeMode(0, QHeaderView.Stretch)
+        S.apply_table_style(t)
         return t
 
     def _wrap_table(self, table, kind):
@@ -114,7 +113,7 @@ class ReportsScreen(QWidget):
             f"border-top: none; }}"
         )
         sl = QHBoxLayout(summary)
-        sl.setContentsMargins(10, 6, 10, 6)
+        sl.setContentsMargins(T.TABLE_PAD_X, T.TABLE_PAD_Y, T.TABLE_PAD_X, T.TABLE_PAD_Y)
         lbl = QLabel("Total Qty / Total Value: —")
         lbl.setFont(mono_font(T.FONT_SIZE_LABEL, bold=True))
         if kind == "recv":

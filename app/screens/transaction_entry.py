@@ -253,6 +253,21 @@ class TransactionEntryScreen(QWidget):
 
         self.grid.verticalHeader().setDefaultSectionSize(T.GRID_ROW_H)
         self.grid.verticalHeader().setMinimumSectionSize(T.GRID_ROW_H)
+        self.grid.horizontalHeader().setFixedHeight(T.TABLE_HEADER_H)
+        # Keep gridlines for entry; still use even Stitch cell padding
+        self.grid.setStyleSheet(
+            f"""
+            QHeaderView::section {{
+                background: {T.SURFACE_CONTAINER_LOW}; color: {T.TEXT_SECONDARY};
+                font-weight: 700; padding: {T.TABLE_HEADER_PAD_Y}px {T.TABLE_HEADER_PAD_X}px;
+                border: none; border-bottom: 1px solid {T.BORDER};
+                border-right: 1px solid {T.BORDER};
+            }}
+            QTableWidget::item {{
+                padding: {T.TABLE_PAD_Y}px {T.TABLE_PAD_X}px;
+            }}
+            """
+        )
 
         for r in range(rows):
             self._init_empty_row(r)

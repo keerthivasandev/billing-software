@@ -11,87 +11,224 @@ CURRENT_ROLE = "Billing Clerk"
 
 COMPANY = {
     "legal_name": "Sri Lakshmi Electricals",
+    "trade_name": "Sri Lakshmi Electricals",
+    "entity_type": "Proprietorship / Partnership Firm",
     "address": "42, Industrial Estate, Guindy",
+    "landmark": "Near Guindy Metro / SIDCO Estate Gate",
     "city": "Chennai",
+    "district": "Chennai",
+    "pincode": "600032",
+    "state_code": "33 — Tamil Nadu",
     "phone": "044-2250-1234",
+    "mobile": "98765 43210",
+    "landline": "044-2250-1234",
+    "email": "accounts@srilakshmi-electricals.in",
+    "contact_person": "Ramesh Kumar",
     "gstin": "33AABCS1234A1Z5",
+    "pan": "AABCS1234A",
+    "business_activity": "Wholesale of electrical wires, switches, MCBs & lighting",
+    "financial_year": "FY 2026–27",
+    "fy_display": "2026–2027 (01-Apr-2026 to 31-Mar-2027)",
+    "assessment_year": "Assessment Yr 2027–28",
+    "city_display": "Chennai, Chennai District",
     "bank_name": "State Bank of India",
+    "beneficiary": "Sri Lakshmi Electricals",
     "account_no": "30123456789",
+    "account_type": "Current Account",
     "ifsc": "SBIN0001234",
+    "branch": "Guindy Industrial Estate Branch",
+    "upi": "srilakshmi@sbi",
+    "invoice_note": "Goods once sold will not be taken back. Interest @ 18% p.a. after due date. Subject to Chennai jurisdiction.",
     "valid_from": "2026-04-01",
     "valid_to": "2027-03-31",
+    "gst_filing_status": "GSTR-1 & 3B Compliant",
+    "einvoice_status": "NIC Portal Linked",
+    "terminal_id": "CHN-GUINDY-POS-01",
+    "compliance_version": "V1.4.2",
+    "distributor_status": "Authorized Distributor",
+    "compliance_note": "Registered under Central Goods & Services Tax Act, Chennai South Division.",
+    "einvoice_portal": "Active (Live)",
+    "hsn_chapters": "8544, 8536 (Wires, MCBs)",
+    "tds_exemption": "Standard 0.1% u/s 194Q",
 }
 
 PARTIES = [
-    {"id": 1, "name": "Anand Traders", "type": "Customer", "gstin": "33AABCA1234A1Z5",
-     "phone": "9876543210", "address": "12 Anna Salai", "city": "Chennai",
-     "balance": 45200.00, "balance_type": "Dr", "credit_limit": 100000.00, "credit_days": 30},
-    {"id": 2, "name": "Bharat Electricals", "type": "Customer", "gstin": "33AABCB5678B1Z2",
-     "phone": "9876501234", "address": "88 Cross Cut Rd", "city": "Coimbatore",
-     "balance": -3500.00, "balance_type": "Cr", "credit_limit": 50000.00, "credit_days": 15},
-    {"id": 3, "name": "Cauvery Agencies", "type": "Supplier", "gstin": "33AABCC9012C1Z9",
-     "phone": "9444412345", "address": "5 Bypass Rd", "city": "Madurai",
-     "balance": 128500.00, "balance_type": "Cr", "credit_limit": 200000.00, "credit_days": 45},
-    {"id": 4, "name": "Delta Switchgear", "type": "Supplier", "gstin": "29AABCD3456D1Z1",
-     "phone": "9988776655", "address": "Peenya Indl Area", "city": "Bengaluru",
-     "balance": 0.00, "balance_type": "Dr", "credit_limit": 75000.00, "credit_days": 30},
-    {"id": 5, "name": "Eastern Power Co", "type": "Customer", "gstin": "33AABCE7890E1Z8",
-     "phone": "9000011122", "address": "Omalur Main Rd", "city": "Salem",
-     "balance": 8750.00, "balance_type": "Dr", "credit_limit": 40000.00, "credit_days": 7},
-    {"id": 6, "name": "Falcon Cables Ltd", "type": "Supplier", "gstin": "27AABCF1122F1Z3",
-     "phone": "9123456780", "address": "Andheri East", "city": "Mumbai",
-     "balance": 22000.00, "balance_type": "Cr", "credit_limit": 150000.00, "credit_days": 30},
-    {"id": 7, "name": "Ganesh Hardware", "type": "Customer", "gstin": "33AABCG3344G1Z6",
-     "phone": "9887766554", "address": "Thillai Nagar", "city": "Trichy",
-     "balance": 15600.00, "balance_type": "Dr", "credit_limit": 60000.00, "credit_days": 21},
-    {"id": 8, "name": "Hitech Lighting", "type": "Both", "gstin": "33AABCH5566H1Z0",
-     "phone": "9776655443", "address": "Perundurai Rd", "city": "Erode",
-     "balance": -1200.00, "balance_type": "Cr", "credit_limit": 35000.00, "credit_days": 15},
+    {"id": 1, "code": "SLE-PTY-0001",
+     "name": "Sri Sai Builders & Infra Pvt Ltd", "short_name": "Sri Sai Builders & Infra",
+     "type": "Customer", "group": "Sundry Debtor",
+     "contact_person": "Mr. K. Sai Srinivas (Managing Partner)",
+     "gstin": "36AAACS8214M1Z2", "state_code": "36 — Telangana",
+     "phone": "+91 98480 23411", "address": "Ranigunj, Secunderabad - 500003",
+     "city": "Secunderabad",
+     "balance": 112000.00, "balance_type": "Dr", "opening_balance": 85000.00,
+     "credit_limit": 75000.00, "credit_days": 30, "active": True, "whatsapp": True},
+    {"id": 2, "code": "SLE-PTY-0002",
+     "name": "Venkateshwara Electricals & Hardware", "short_name": "Venkateshwara Elec. & Hdw",
+     "type": "Customer", "group": "Sundry Debtor", "contact_person": "Mr. Venkat",
+     "gstin": "36AABCV5678B1Z2", "state_code": "36 — Telangana",
+     "phone": "+91 94401 88290", "address": "Troop Bazar", "city": "Troop Bazar, Hyderabad",
+     "balance": 48500.00, "balance_type": "Dr", "opening_balance": 30000.00,
+     "credit_limit": 60000.00, "credit_days": 21, "active": True, "whatsapp": True},
+    {"id": 3, "code": "SLE-PTY-0003",
+     "name": "Havells India Limited", "short_name": "Havells India Limited",
+     "type": "Supplier", "group": "Sundry Creditor", "contact_person": "Mr. Rajesh",
+     "gstin": "07AAACH7456L1Z0", "state_code": "36 — Telangana",
+     "phone": "+91 40 2715 2200", "address": "Nacharam", "city": "Nacharam, Hyderabad",
+     "balance": 245000.00, "balance_type": "Cr", "opening_balance": 200000.00,
+     "credit_limit": 500000.00, "credit_days": 45, "active": True, "whatsapp": False},
+    {"id": 4, "code": "SLE-PTY-0004",
+     "name": "Balaji Power Systems & Transformers", "short_name": "Balaji Power Systems & Trans.",
+     "type": "Customer", "group": "Sundry Debtor", "contact_person": "Mr. Balaji",
+     "gstin": "36AABCB9012C1Z9", "state_code": "36 — Telangana",
+     "phone": "+91 99887 11223", "address": "IDA Jeedimetla", "city": "IDA Jeedimetla, Secunderabad",
+     "balance": 72000.00, "balance_type": "Dr", "opening_balance": 50000.00,
+     "credit_limit": 100000.00, "credit_days": 30, "active": True, "whatsapp": True},
+    {"id": 5, "code": "SLE-PTY-0005",
+     "name": "Polycab Wires Pvt Ltd", "short_name": "Polycab Wires Pvt Ltd",
+     "type": "Supplier", "group": "Sundry Creditor", "contact_person": "Ms. Anitha",
+     "gstin": "27AABCP3344G1Z6", "state_code": "36 — Telangana",
+     "phone": "+91 40 2784 3311", "address": "MG Road", "city": "MG Road, Secunderabad",
+     "balance": 184200.00, "balance_type": "Cr", "opening_balance": 150000.00,
+     "credit_limit": 400000.00, "credit_days": 30, "active": True, "whatsapp": False},
+    {"id": 6, "code": "SLE-PTY-0006",
+     "name": "Meenakshi Enterprises", "short_name": "Meenakshi Enterprises",
+     "type": "Customer", "group": "Sundry Debtor", "contact_person": "Ms. Meenakshi",
+     "gstin": "36AABCM5566H1Z0", "state_code": "36 — Telangana",
+     "phone": "+91 90000 44556", "address": "Balanagar", "city": "Balanagar, Hyderabad",
+     "balance": 14350.00, "balance_type": "Dr", "opening_balance": 10000.00,
+     "credit_limit": 40000.00, "credit_days": 15, "active": True, "whatsapp": True},
 ]
 
-ITEM_GROUPS = [
-    "Wires & Cables", "Switches & Sockets", "MCB & Distribution",
-    "Lighting", "Fans", "Conduit & Fittings", "Tools", "Miscellaneous",
+PARTY_VOUCHERS = {
+    1: [
+        {"date": "18-Oct-2026", "voucher_type": "Tax Invoice", "voucher_no": "#INV-26-0842",
+         "voucher": "Tax Invoice #INV-26-0842",
+         "debit": 45200.00, "credit": 0.00, "balance": 112000.00, "balance_type": "Dr"},
+        {"date": "02-Oct-2026", "voucher_type": "Tax Invoice", "voucher_no": "#INV-26-0791",
+         "voucher": "Tax Invoice #INV-26-0791",
+         "debit": 66800.00, "credit": 0.00, "balance": 66800.00, "balance_type": "Dr"},
+        {"date": "15-Sep-2026", "voucher_type": "Bank Receipt", "voucher_no": "#REC-26-0310",
+         "voucher": "Bank Receipt #REC-26-0310",
+         "debit": 0.00, "credit": 50000.00, "balance": 0.00, "balance_type": ""},
+    ],
+}
+
+# Rich Group Master records (Stitch). Flat name lists kept for older screens.
+PRODUCT_GROUP_RECORDS = [
+    {"id": 1, "name": "Wires & Cables", "gst": 18, "parent": "Primary / Top-Level [Root]",
+     "kind": "product", "active": True,
+     "notes": "All copper, multi-strand, and flexible electrical cabling for domestic and commercial projects.",
+     "item_count": 142},
+    {"id": 2, "name": "Switchgear & Modular", "gst": 18, "parent": "Primary / Top-Level [Root]",
+     "kind": "product", "active": True, "notes": "Modular switches, sockets, plates, and switchgear.",
+     "item_count": 86},
+    {"id": 3, "name": "Commercial Lighting", "gst": 12, "parent": "Primary / Top-Level [Root]",
+     "kind": "product", "active": True, "notes": "LED bulbs, battens, panels, and commercial fixtures.",
+     "item_count": 64},
+    {"id": 4, "name": "PVC Conduit & Piping", "gst": 18, "parent": "Primary / Top-Level [Root]",
+     "kind": "product", "active": True, "notes": "PVC conduits, bends, and junction boxes.",
+     "item_count": 38},
+    {"id": 5, "name": "Motors & Pumps", "gst": 18, "parent": "Primary / Top-Level [Root]",
+     "kind": "product", "active": True, "notes": "Motors, pumps, and drive accessories.",
+     "item_count": 22},
+    {"id": 6, "name": "Industrial MCB & DBs", "gst": 18, "parent": "Primary / Top-Level [Root]",
+     "kind": "product", "active": True, "notes": "MCBs, RCCBs, and distribution boards.",
+     "item_count": 45},
 ]
 
-LEDGER_GROUPS = [
-    "Sundry Debtors", "Sundry Creditors", "Cash-in-Hand", "Bank Accounts",
-    "Sales Accounts", "Purchase Accounts", "Duties & Taxes", "Indirect Expenses",
+# Preview rows shown in Group Master items table (Stitch demo).
+GROUP_ITEMS_PREVIEW = {
+    1: [
+        {"code": "SKU-WIR-001", "name": "Polycab 2.5mm² FR Single Core Flame Retardant (Red)",
+         "unit": "ROL (90m)", "rate": 1450.00},
+        {"code": "SKU-WIR-002", "name": "Finolex 1.5mm² FRLS Industrial Grade (Blue)",
+         "unit": "ROL (90m)", "rate": 1120.00},
+        {"code": "SKU-WIR-003", "name": "Anchor Advance 1.0mm² PVC Flexible Cable (Yellow)",
+         "unit": "ROL (90m)", "rate": 890.00},
+        {"code": "SKU-WIR-004", "name": "RR Kabel 4.0mm² Multi-strand Heavy Duty (Black)",
+         "unit": "ROL (90m)", "rate": 2340.00},
+    ],
+}
+
+LEDGER_GROUP_RECORDS = [
+    {"id": 101, "name": "Sundry Debtors", "gst": 0, "parent": "Primary / Top-Level [Root]",
+     "kind": "ledger", "active": True, "notes": "Customer receivable accounts.", "item_count": 5},
+    {"id": 102, "name": "Sundry Creditors", "gst": 0, "parent": "Primary / Top-Level [Root]",
+     "kind": "ledger", "active": True, "notes": "Supplier payable accounts.", "item_count": 3},
+    {"id": 103, "name": "Cash-in-Hand", "gst": 0, "parent": "Primary / Top-Level [Root]",
+     "kind": "ledger", "active": True, "notes": "Petty cash and drawer.", "item_count": 1},
+    {"id": 104, "name": "Bank Accounts", "gst": 0, "parent": "Primary / Top-Level [Root]",
+     "kind": "ledger", "active": True, "notes": "Operating bank ledgers.", "item_count": 2},
+    {"id": 105, "name": "Sales Accounts", "gst": 0, "parent": "Primary / Top-Level [Root]",
+     "kind": "ledger", "active": True, "notes": "Sales income heads.", "item_count": 2},
+    {"id": 106, "name": "Purchase Accounts", "gst": 0, "parent": "Primary / Top-Level [Root]",
+     "kind": "ledger", "active": True, "notes": "Purchase expense heads.", "item_count": 2},
+    {"id": 107, "name": "Duties & Taxes", "gst": 0, "parent": "Primary / Top-Level [Root]",
+     "kind": "ledger", "active": True, "notes": "GST input/output ledgers.", "item_count": 4},
+    {"id": 108, "name": "Indirect Expenses", "gst": 0, "parent": "Primary / Top-Level [Root]",
+     "kind": "ledger", "active": True, "notes": "Overheads and admin expenses.", "item_count": 6},
+    {"id": 109, "name": "Direct Expenses", "gst": 0, "parent": "Primary / Top-Level [Root]",
+     "kind": "ledger", "active": True, "notes": "Carriage, freight, and job work.", "item_count": 3},
+    {"id": 110, "name": "Fixed Assets", "gst": 0, "parent": "Primary / Top-Level [Root]",
+     "kind": "ledger", "active": True, "notes": "Furniture, vehicles, and equipment.", "item_count": 4},
+    {"id": 111, "name": "Current Assets", "gst": 0, "parent": "Primary / Top-Level [Root]",
+     "kind": "ledger", "active": True, "notes": "Deposits and other current assets.", "item_count": 2},
+    {"id": 112, "name": "Loans & Advances", "gst": 0, "parent": "Primary / Top-Level [Root]",
+     "kind": "ledger", "active": True, "notes": "Staff and party advances.", "item_count": 3},
+    {"id": 113, "name": "Capital Account", "gst": 0, "parent": "Primary / Top-Level [Root]",
+     "kind": "ledger", "active": True, "notes": "Owner capital and drawings.", "item_count": 2},
+    {"id": 114, "name": "Suspense Account", "gst": 0, "parent": "Primary / Top-Level [Root]",
+     "kind": "ledger", "active": True, "notes": "Temporary holding ledgers.", "item_count": 1},
 ]
 
-GODOWN_GROUPS = ["Primary", "Retail", "Transit / Temporary"]
+GODOWN_GROUP_RECORDS = [
+    {"id": 201, "name": "Primary", "gst": 0, "parent": "Primary / Top-Level [Root]",
+     "kind": "godown", "active": True, "notes": "Main wholesale storage classification.", "item_count": 2},
+    {"id": 202, "name": "Retail", "gst": 0, "parent": "Primary / Top-Level [Root]",
+     "kind": "godown", "active": True, "notes": "Counter / showroom floors.", "item_count": 1},
+    {"id": 203, "name": "Transit / Temporary", "gst": 0, "parent": "Primary / Top-Level [Root]",
+     "kind": "godown", "active": True, "notes": "Loading bay and buffer yards.", "item_count": 1},
+]
+
+ITEM_GROUPS = [g["name"] for g in PRODUCT_GROUP_RECORDS]
+LEDGER_GROUPS = [g["name"] for g in LEDGER_GROUP_RECORDS]
+GODOWN_GROUPS = [g["name"] for g in GODOWN_GROUP_RECORDS]
 
 PRODUCTS = [
-    {"id": 1, "sku": "WR-1.5-CU", "name": "1.5 sq.mm Copper Wire (90m)", "group": "Wires & Cables",
-     "hsn": "8544", "unit": "Coil", "sale_rate": 1850.00, "purchase_rate": 1620.00,
-     "gst": 18, "stock": 42, "warehouse": "Main Godown", "min_stock": 10, "opening_qty": 40},
-    {"id": 2, "sku": "WR-2.5-CU", "name": "2.5 sq.mm Copper Wire (90m)", "group": "Wires & Cables",
-     "hsn": "8544", "unit": "Coil", "sale_rate": 2850.00, "purchase_rate": 2480.00,
-     "gst": 18, "stock": 28, "warehouse": "Main Godown", "min_stock": 8, "opening_qty": 30},
-    {"id": 3, "sku": "SW-MOD-1W", "name": "Modular Switch 1-Way", "group": "Switches & Sockets",
+    {"id": 1, "sku": "SKU-WIR-001", "name": "Polycab 2.5mm² FR Single Core Flame Retardant (Red)",
+     "group": "Wires & Cables", "hsn": "8544", "unit": "ROL (90m)", "sale_rate": 1450.00,
+     "purchase_rate": 1280.00, "gst": 18, "stock": 42, "warehouse": "Main Wholesale Godown",
+     "min_stock": 10, "opening_qty": 40},
+    {"id": 2, "sku": "SKU-WIR-002", "name": "Finolex 1.5mm² FRLS Industrial Grade (Blue)",
+     "group": "Wires & Cables", "hsn": "8544", "unit": "ROL (90m)", "sale_rate": 1120.00,
+     "purchase_rate": 980.00, "gst": 18, "stock": 28, "warehouse": "Main Wholesale Godown",
+     "min_stock": 8, "opening_qty": 30},
+    {"id": 3, "sku": "SKU-WIR-003", "name": "Anchor Advance 1.0mm² PVC Flexible Cable (Yellow)",
+     "group": "Wires & Cables", "hsn": "8544", "unit": "ROL (90m)", "sale_rate": 890.00,
+     "purchase_rate": 760.00, "gst": 18, "stock": 36, "warehouse": "Main Wholesale Godown",
+     "min_stock": 10, "opening_qty": 35},
+    {"id": 4, "sku": "SKU-WIR-004", "name": "RR Kabel 4.0mm² Multi-strand Heavy Duty (Black)",
+     "group": "Wires & Cables", "hsn": "8544", "unit": "ROL (90m)", "sale_rate": 2340.00,
+     "purchase_rate": 2050.00, "gst": 18, "stock": 18, "warehouse": "Main Wholesale Godown",
+     "min_stock": 6, "opening_qty": 20},
+    {"id": 5, "sku": "SW-MOD-1W", "name": "Modular Switch 1-Way", "group": "Switchgear & Modular",
      "hsn": "8536", "unit": "Pcs", "sale_rate": 45.00, "purchase_rate": 32.00,
-     "gst": 18, "stock": 500, "warehouse": "Main Godown", "min_stock": 100, "opening_qty": 480},
-    {"id": 4, "sku": "SW-SOCK-6A", "name": "6A Socket Outlet", "group": "Switches & Sockets",
+     "gst": 18, "stock": 500, "warehouse": "Main Wholesale Godown", "min_stock": 100, "opening_qty": 480},
+    {"id": 6, "sku": "SW-SOCK-6A", "name": "6A Socket Outlet", "group": "Switchgear & Modular",
      "hsn": "8536", "unit": "Pcs", "sale_rate": 85.00, "purchase_rate": 58.00,
-     "gst": 18, "stock": 320, "warehouse": "Showroom", "min_stock": 50, "opening_qty": 300},
-    {"id": 5, "sku": "MCB-16A-SP", "name": "MCB 16A Single Pole", "group": "MCB & Distribution",
+     "gst": 18, "stock": 320, "warehouse": "Counter / Retail Floor", "min_stock": 50, "opening_qty": 300},
+    {"id": 7, "sku": "MCB-16A-SP", "name": "MCB 16A Single Pole", "group": "Industrial MCB & DBs",
      "hsn": "8536", "unit": "Pcs", "sale_rate": 165.00, "purchase_rate": 118.00,
-     "gst": 18, "stock": 8, "warehouse": "Main Godown", "min_stock": 20, "opening_qty": 25},
-    {"id": 6, "sku": "LED-9W", "name": "LED Bulb 9W", "group": "Lighting",
+     "gst": 18, "stock": 8, "warehouse": "Main Wholesale Godown", "min_stock": 20, "opening_qty": 25},
+    {"id": 8, "sku": "LED-9W", "name": "LED Bulb 9W", "group": "Commercial Lighting",
      "hsn": "8539", "unit": "Pcs", "sale_rate": 95.00, "purchase_rate": 62.00,
-     "gst": 12, "stock": 210, "warehouse": "Showroom", "min_stock": 40, "opening_qty": 200},
-    {"id": 7, "sku": "FAN-CLG-48", "name": "Ceiling Fan 48 inch", "group": "Fans",
-     "hsn": "8414", "unit": "Pcs", "sale_rate": 2450.00, "purchase_rate": 1980.00,
-     "gst": 18, "stock": 15, "warehouse": "Main Godown", "min_stock": 5, "opening_qty": 12},
-    {"id": 8, "sku": "PVC-20MM", "name": "PVC Conduit 20mm (3m)", "group": "Conduit & Fittings",
+     "gst": 12, "stock": 210, "warehouse": "Counter / Retail Floor", "min_stock": 40, "opening_qty": 200},
+    {"id": 9, "sku": "PVC-20MM", "name": "PVC Conduit 20mm (3m)", "group": "PVC Conduit & Piping",
      "hsn": "3917", "unit": "Pcs", "sale_rate": 28.00, "purchase_rate": 18.00,
-     "gst": 18, "stock": 800, "warehouse": "Main Godown", "min_stock": 200, "opening_qty": 750},
-    {"id": 9, "sku": "TL-TESTER", "name": "Neon Tester", "group": "Tools",
-     "hsn": "9030", "unit": "Pcs", "sale_rate": 35.00, "purchase_rate": 18.00,
-     "gst": 18, "stock": 4, "warehouse": "Showroom", "min_stock": 15, "opening_qty": 20},
-    {"id": 10, "sku": "MISC-TAPE", "name": "Insulation Tape (Roll)", "group": "Miscellaneous",
-     "hsn": "3919", "unit": "Roll", "sale_rate": 18.00, "purchase_rate": 10.00,
-     "gst": 18, "stock": 150, "warehouse": "Main Godown", "min_stock": 30, "opening_qty": 140},
+     "gst": 18, "stock": 800, "warehouse": "Main Wholesale Godown", "min_stock": 200, "opening_qty": 750},
+    {"id": 10, "sku": "MTR-1HP", "name": "1 HP Single Phase Motor", "group": "Motors & Pumps",
+     "hsn": "8501", "unit": "Pcs", "sale_rate": 4850.00, "purchase_rate": 4120.00,
+     "gst": 18, "stock": 6, "warehouse": "Main Wholesale Godown", "min_stock": 2, "opening_qty": 8},
 ]
 
 # Back-compat alias used by older screens
@@ -99,13 +236,47 @@ for _p in PRODUCTS:
     _p.setdefault("rate", _p["sale_rate"])
 
 GODOWNS = [
-    {"id": 1, "name": "Main Godown", "incharge": "Murugan", "address": "Yard A, Guindy",
-     "capacity": "5000 sq.ft", "is_default": True},
-    {"id": 2, "name": "Showroom", "incharge": "Priya", "address": "Front Counter",
-     "capacity": "800 sq.ft", "is_default": False},
-    {"id": 3, "name": "Transit", "incharge": "Karthik", "address": "Loading Bay",
-     "capacity": "200 sq.ft", "is_default": False},
+    {"id": 1, "code": "GDN-01", "name": "Main Wholesale Godown", "ref_id": "GDN-REC-00104",
+     "incharge": "Suresh Kumar - Warehouse Supervisor", "phone": "+91 98481 12345",
+     "alt_phone": "040-27845612",
+     "address": "Plot # 12, Phase-1, IDA Jeedimetla, Hyderabad, Telangana - 500055",
+     "location_label": "Ranigunj Shed #4", "pin_zone": "Secunderabad Pin Zone",
+     "item_count": 342, "status": "Primary / Active", "role_tag": "Inward Hub",
+     "active": True, "is_default": True, "icon": "location_on"},
+    {"id": 2, "code": "GDN-02", "name": "Counter / Retail Floor", "ref_id": "GDN-REC-00105",
+     "incharge": "Priya", "phone": "+91 98480 11002", "alt_phone": "",
+     "address": "Ranigunj Shop Front, Secunderabad, Telangana - 500003",
+     "location_label": "Ranigunj Shop Front", "pin_zone": "Secunderabad Pin Zone",
+     "item_count": 128, "status": "Active Retail", "role_tag": "Direct POS",
+     "active": True, "is_default": False, "icon": "store"},
+    {"id": 3, "code": "GDN-03", "name": "Station Road Depot", "ref_id": "GDN-REC-00106",
+     "incharge": "Karthik", "phone": "+91 98480 11003", "alt_phone": "",
+     "address": "IDA Jeedimetla Phase-1, Hyderabad, Telangana - 500055",
+     "location_label": "IDA Jeedimetla Phase-1", "pin_zone": "Jeedimetla Pin Zone",
+     "item_count": 85, "status": "Active Secondary", "role_tag": "Bulk Cable Racks",
+     "active": True, "is_default": False, "icon": "warehouse"},
+    {"id": 4, "code": "GDN-04", "name": "Transit & Yard Dump", "ref_id": "GDN-REC-00107",
+     "incharge": "Senthil", "phone": "+91 98480 11004", "alt_phone": "",
+     "address": "Loading Bay Buffer, Ranigunj Yard, Secunderabad - 500003",
+     "location_label": "Loading Bay Buffer", "pin_zone": "Secunderabad Pin Zone",
+     "item_count": 14, "status": "Buffer Clearance", "role_tag": "Temporary",
+     "active": True, "is_default": False, "icon": "local_shipping"},
 ]
+
+GODOWN_STOCK = {
+    1: [
+        {"sku": "CAB-1025", "name": "Finolex 1.5 Sqmm Copper Wire (Red)",
+         "group": "Cables & Flexible Wires", "qty": 140.00, "unit": "ROL", "value": 238000.00},
+        {"sku": "CAB-1028", "name": "Polycab 2.5 Sqmm FR Industrial (Yellow)",
+         "group": "Cables & Flexible Wires", "qty": 95.00, "unit": "ROL", "value": 261250.00},
+        {"sku": "SWT-4002", "name": "Schneider 16A 1-Way Modular Switch",
+         "group": "Modular Switches & Sockets", "qty": 1250.00, "unit": "NOS", "value": 143750.00},
+        {"sku": "MCB-2016", "name": "Legrand DX3 32A Double Pole MCB",
+         "group": "Switchgear & Protection", "qty": 320.00, "unit": "NOS", "value": 214400.00},
+        {"sku": "LGT-8012", "name": "Philips 20W LED Slim Batten 4ft Cool Day",
+         "group": "Commercial Lighting", "qty": 410.00, "unit": "NOS", "value": 127100.00},
+    ],
+}
 
 WAREHOUSES = [g["name"] for g in GODOWNS]
 
@@ -120,12 +291,159 @@ RECENT_TXNS = [
 ]
 
 DASHBOARD_KPI = {
-    "todays_sales": 40750.00,
-    "todays_purchases": 95600.00,
-    "cash_in_hand": 34280.00,
-    "receivables_due": 69550.00,
-    "low_stock_count": 2,
+    "todays_sales": 148250.00,
+    "todays_purchases": 86400.00,
+    "cash_in_hand": 119450.00,
+    "receivables_due": 1428400.00,
+    "todays_sales_bills": 18,
+    "sales_growth_pct": 14.2,
+    "purchase_vouchers": 3,
+    "purchase_godown": "Godown: Central Main",
+    "drawer_txns": 42,
+    "drawer_status": "Tally: Reconciled",
+    "active_debtors": 112,
+    "overdue_amount_label": "₹ 83.7k overdue",
+    "purchases_note": "3 Inward Vouchers",
+    "cash_opening": 5000.00,
+    "low_stock_count": 3,
 }
+
+# Stitch — Today's Counter Summary & Cash Split
+COUNTER_SUMMARY = [
+    {
+        "title": "Cash Sales",
+        "amount": 48250.00,
+        "meta": "11 Cash Memos",
+        "badge": "32.5%",
+        "badge_kind": "neutral",
+    },
+    {
+        "title": "Credit Sales",
+        "amount": 100000.00,
+        "meta": "7 Ledger Parties",
+        "badge": "67.5%",
+        "badge_kind": "neutral",
+    },
+    {
+        "title": "Collections Recd",
+        "amount": 35000.00,
+        "meta": "Dr Clearances",
+        "badge": "Reconciled",
+        "badge_kind": "success",
+    },
+]
+
+# Stitch — Fast Item Lookup table
+FAST_LOOKUP_ITEMS = [
+    {
+        "code": "EL-WIR-104",
+        "name": "Finolex 1.5 sq mm Blue FR Wire 90M",
+        "category": "Wires & Cables",
+        "stock": "32 ROL",
+        "low": False,
+        "rate": 1450.00,
+        "unit": "/coil",
+    },
+    {
+        "code": "EL-LED-202",
+        "name": "Philips 20W LED Batten 4ft Cool Day",
+        "category": "LED Fixtures",
+        "stock": "8 NOS (Low)",
+        "low": True,
+        "rate": 240.00,
+        "unit": "/pc",
+    },
+    {
+        "code": "EL-WIR-205",
+        "name": "Polycab 2.5 sq mm Red FR Wire 90M",
+        "category": "Wires & Cables",
+        "stock": "45 ROL",
+        "low": False,
+        "rate": 2200.00,
+        "unit": "/coil",
+    },
+    {
+        "code": "EL-SWT-312",
+        "name": "Schneider 16A 1-Way Modular Switch",
+        "category": "Switches",
+        "stock": "15 NOS",
+        "low": False,
+        "rate": 95.00,
+        "unit": "/pc",
+    },
+    {
+        "code": "EL-MCB-408",
+        "name": "Legrand 32A DP Isolator MCB",
+        "category": "Switchgear",
+        "stock": "28 NOS",
+        "low": False,
+        "rate": 420.00,
+        "unit": "/pc",
+    },
+]
+
+LOW_STOCK_ALERTS = [
+    {
+        "name": "Philips 20W LED Batten 4ft Cool Day",
+        "note": "Godown: Main Shelf B2 · Reorder trigger hit",
+        "stock": "8 NOS (Min: 25)",
+    },
+    {
+        "name": "Finolex 1.5 sq mm Blue FR Wire 90M",
+        "note": "Godown: Cable Bay C1 · Fast moving",
+        "stock": "12 ROL (Min: 30)",
+    },
+    {
+        "name": "Schneider 16A 1-Way Modular Switch",
+        "note": "Godown: Box Rack D4 · Regular order",
+        "stock": "15 NOS (Min: 50)",
+    },
+]
+
+PENDING_OVERDUE = [
+    {
+        "party": "Balaji Electricals",
+        "note": "6 Days Overdue · Inv #791",
+        "amount": 13250.00,
+        "actions": ["Call", "WA"],
+    },
+    {
+        "party": "Venkateshwara Wires",
+        "note": "Due Today · Net 15 terms",
+        "amount": 48500.00,
+        "actions": ["Reminder"],
+    },
+    {
+        "party": "Polycab Local Agency",
+        "note": "3 Days Overdue · Inv #812",
+        "amount": 22000.00,
+        "actions": ["Reminder"],
+    },
+]
+
+# Back-compat aliases used by older dashboard widgets / screens
+TODAYS_INVOICES = [
+    {"doc": "INV-2026-0842", "party": "Sri Venkateshwara Electricals", "amount": 41400.00},
+    {"doc": "INV-2026-0841", "party": "Sai Balaji Electricals", "amount": 12675.00},
+    {"doc": "INV-2026-0840", "party": "Maruthi Power Controls", "amount": 9200.00},
+    {"doc": "INV-2026-0839", "party": "Kiran Infra & Projects", "amount": 8400.00},
+    {"doc": "INV-2026-0838", "party": "S.K. Enterprises (Cash Sale)", "amount": 13750.00},
+]
+
+LOW_STOCK_ITEMS = [
+    {"name": a["name"], "left": 0, "out": False} for a in LOW_STOCK_ALERTS
+]
+
+PENDING_COLLECTIONS = [
+    {"party": p["party"], "note": p["note"], "amount": p["amount"]} for p in PENDING_OVERDUE
+]
+
+TERMINAL_NAME = "Terminal-01 (Main Counter)"
+SERVER_STATUS = "Server: 192.168.1.104 (Connected)"
+SYNC_STATUS = "Sync: Instant"
+DASHBOARD_WELCOME = "Welcome back, Ramesh"
+DASHBOARD_SHIFT = "Main Wholesale Counter · Shift active since 08:30 AM · Auto-sync: Active"
+COUNTER_SHIFT_LABEL = "Shift: 08:30 AM - Ongoing"
 
 TOP_SELLING = [
     {"name": "1.5 sq.mm Copper Wire", "units": 86, "growth": 12.4},
