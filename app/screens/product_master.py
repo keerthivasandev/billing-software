@@ -17,9 +17,9 @@ from app.widgets import stitch_ui as S
 _FILTER_TABS = [
     ("all", "All"),
     ("Wires & Cables", "Wires & Cables"),
-    ("Switches & Sockets", "Switchgear"),
-    ("Lighting", "Lighting"),
-    ("Conduit & Fittings", "Conduits"),
+    ("Switchgear & Modular", "Switchgear"),
+    ("Commercial Lighting", "Lighting"),
+    ("PVC Conduit & Piping", "Conduits"),
 ]
 
 _UNITS = [
