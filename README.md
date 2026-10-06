@@ -44,6 +44,6 @@ See [PACKAGING.md](PACKAGING.md).
 
 **Dashboard** — KPI cards, top sellers, stocked items, channel mix, pending actions, low stock  
 **1. Master Setup** — Company, Parties, Groups, Products, Godowns  
-**2. Operations** — Purchases, Sales, Cash Flow, Billwise Settlement, Estimates  
+**2. Operations** — Purchases, Sales, Cash Flow, Billwise Settlement  
 **3. Reports** — Ledger Statement, Sales/Purchase Registers, AR/AP, Export Tools  
-**4. Settings** — Audit Trail, Users, Change FY, Year Rollover, License  
+**4. Settings** — Audit Trail, Users, A/c Year Management, License  

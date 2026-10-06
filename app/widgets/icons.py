@@ -21,15 +21,13 @@ NAV_ICON = {
     "sales": "file-text",
     "cash_flow": "wallet",
     "billwise": "book",
-    "estimate": "file-text",
     "ledger_stmt": "book",
     "registers": "history",
     "reports_ar_ap": "history",
     "export_tools": "folder",
     "audit_trail": "history",
     "users": "team",
-    "change_fy": "calendar",
-    "rollover": "calendar",
+    "ac_year": "calendar",
     "license": "safety",
 }
 
