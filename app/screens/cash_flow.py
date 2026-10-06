@@ -1,10 +1,10 @@
 """2.3 Cash Flow Register — Stitch-faithful Cash In & Out."""
 
-from PySide6.QtCore import Qt, QDate
-from PySide6.QtGui import QBrush, QColor, QCursor
+from PySide6.QtCore import Qt, QDate, QRectF, QSize
+from PySide6.QtGui import QBrush, QColor, QCursor, QFont, QKeySequence, QPainter, QShortcut
 from PySide6.QtWidgets import (
     QAbstractItemView, QComboBox, QDateEdit, QDoubleSpinBox, QFrame,
-    QHBoxLayout, QHeaderView, QLabel, QLineEdit, QTableWidget,
+    QHBoxLayout, QHeaderView, QLabel, QLineEdit, QSizePolicy, QTableWidget,
     QTableWidgetItem, QVBoxLayout, QWidget,
 )
 
@@ -13,6 +13,10 @@ from app.styles import tokens as T
 from app.widgets import stitch_ui as S
 from app.widgets.helpers import format_inr_indian, toast
 from app.widgets.icons import icon_pixmap
+
+# Stitch MD3 tertiary (Cash In KPI / type / amounts)
+_TERTIARY = "#4e5562"
+_INVERSE_SURFACE = "#2e3132"  # status bar bg-inverse-surface
 
 
 _LEDGERS = [
@@ -23,6 +27,70 @@ _LEDGERS = [
     "Havells India Ltd",
     "General Petty Cash Expense",
 ]
+
+
+class _TypePill(QWidget):
+    """Compact type chip — centered text, tight background, 6px gap after dot."""
+
+    _DOT = 5
+    _GAP = 6
+    _PAD_L = 8
+    _PAD_R = 8
+
+    def __init__(self, is_in: bool, parent=None):
+        super().__init__(parent)
+        self._is_in = is_in
+        self._text = "Cash In" if is_in else "Cash Out"
+        self.setAttribute(Qt.WA_TransparentForMouseEvents, True)
+        self.setFixedHeight(22)
+        font = QFont()
+        font.setPixelSize(11)
+        font.setWeight(QFont.Weight.DemiBold)
+        self.setFont(font)
+        text_w = self.fontMetrics().boundingRect(self._text).width()
+        w = self._PAD_L + self._DOT + self._GAP + text_w + self._PAD_R + 2
+        self.setFixedWidth(w)
+
+    def sizeHint(self):
+        return QSize(self.width(), 22)
+
+    def paintEvent(self, _event):
+        p = QPainter(self)
+        p.setRenderHint(QPainter.Antialiasing, True)
+        p.setRenderHint(QPainter.TextAntialiasing, True)
+
+        if self._is_in:
+            bg = QColor(T.SUCCESS_BG)
+            dot_c = QColor(T.SUCCESS)
+            fg = QColor(T.SUCCESS_FG)
+        else:
+            bg = QColor(T.DANGER_BG)
+            dot_c = QColor(T.DANGER)
+            fg = QColor(T.DANGER)
+
+        # Compact pill height (less background)
+        pill_h = 18
+        pill_rect = QRectF(0.5, (self.height() - pill_h) / 2, self.width() - 1, pill_h)
+        p.setPen(Qt.NoPen)
+        p.setBrush(bg)
+        p.drawRoundedRect(pill_rect, 4, 4)
+
+        content_w = self._DOT + self._GAP + self.fontMetrics().boundingRect(self._text).width()
+        start_x = (self.width() - content_w) / 2
+
+        dy = (self.height() - self._DOT) / 2
+        p.setBrush(dot_c)
+        p.drawEllipse(QRectF(start_x, dy, self._DOT, self._DOT))
+
+        tx = start_x + self._DOT + self._GAP
+        p.setPen(fg)
+        p.setFont(self.font())
+        p.drawText(
+            QRectF(tx, 0, self.width() - tx, self.height()),
+            int(Qt.AlignVCenter | Qt.AlignLeft),
+            self._text,
+        )
+        p.end()
 
 
 class CashFlowScreen(QWidget):
@@ -37,6 +105,7 @@ class CashFlowScreen(QWidget):
         self.setStyleSheet(f"background: {T.BG_CANVAS};")
         self._build()
         self._reload_table()
+        QShortcut(QKeySequence("Return"), self, activated=self._post)
 
     def _build(self):
         root = QVBoxLayout(self)
@@ -56,6 +125,7 @@ class CashFlowScreen(QWidget):
         lay.setContentsMargins(12, 10, 12, 10)
         lay.setSpacing(12)
 
+        # Stitch: w-9 h-9 rounded bg-primary payments icon
         ic = QLabel()
         ic.setFixedSize(36, 36)
         ic.setAlignment(Qt.AlignCenter)
@@ -72,11 +142,18 @@ class CashFlowScreen(QWidget):
         title_row.setSpacing(8)
         ttl = QLabel("2.3 Cash Flow Register")
         ttl.setStyleSheet(
-            f"color: {T.TEXT_PRIMARY}; font-size: 16px; font-weight: 700; "
+            f"color: {T.TEXT_PRIMARY}; font-size: 15px; font-weight: 700; "
             f"border: none; background: transparent;"
         )
         title_row.addWidget(ttl)
-        title_row.addWidget(S.pill("FY 2026-27", "primary"))
+        # Stitch FY: bg-surface-container-high text-primary
+        fy = QLabel("FY 2026-27")
+        fy.setStyleSheet(
+            f"color: {S.PRIMARY}; background: {T.SURFACE_CONTAINER_HIGH}; "
+            f"border: none; border-radius: {S.R}px; padding: 2px 6px; "
+            f"font-size: 10px; font-weight: 700;"
+        )
+        title_row.addWidget(fy)
         title_row.addStretch()
         mid.addLayout(title_row)
         sub = QLabel("Cash Counter Drawer  ·  Date: 20-Sep-2026")
@@ -86,10 +163,34 @@ class CashFlowScreen(QWidget):
         mid.addWidget(sub)
         lay.addLayout(mid, stretch=1)
 
-        lay.addWidget(
-            S.action_btn("Print Register", icon="print", kind="secondary",
-                         on_click=lambda: toast(self, "Printing register…"))
+        # Stitch Print: bg-surface-container (soft), not bordered white
+        print_btn = QFrame()
+        print_btn.setCursor(QCursor(Qt.PointingHandCursor))
+        print_btn.setFixedHeight(28)
+        print_btn.setStyleSheet(
+            f"QFrame {{ background: {T.SURFACE_CONTAINER}; border: none; "
+            f"border-radius: {S.R}px; }}"
+            f"QFrame:hover {{ background: {T.SURFACE_CONTAINER_HIGH}; }}"
         )
+        pl = QHBoxLayout(print_btn)
+        pl.setContentsMargins(10, 0, 10, 0)
+        pl.setSpacing(4)
+        pic = QLabel()
+        pic.setFixedSize(16, 16)
+        pic.setPixmap(icon_pixmap("print", size=16, color=T.TEXT_PRIMARY))
+        pic.setStyleSheet("background: transparent; border: none;")
+        pl.addWidget(pic)
+        pt = QLabel("Print Register")
+        pt.setStyleSheet(
+            f"color: {T.TEXT_PRIMARY}; font-size: 12px; font-weight: 600; "
+            f"border: none; background: transparent;"
+        )
+        pl.addWidget(pt)
+        print_btn.mousePressEvent = (
+            lambda e: toast(self, "Printing register…")
+            if e.button() == Qt.LeftButton else None
+        )
+        lay.addWidget(print_btn)
         return box
 
     # ── KPI cards ────────────────────────────────────────────
@@ -102,24 +203,28 @@ class CashFlowScreen(QWidget):
 
         k = self.kpi
         cards = [
+            # title, amount, icon, icon/title/amt color, hint, filled
             ("Opening Balance", k["opening"], "lock_clock", S.SECONDARY, T.TEXT_PRIMARY,
              "Day start counter float", False),
-            ("Total Cash In", k["cash_in"], "arrow_downward", S.PRIMARY, S.PRIMARY,
+            ("Total Cash In", k["cash_in"], "arrow_downward", T.SUCCESS_FG, T.SUCCESS_FG,
              f"{k['in_count']} Receipts recorded today", False),
             ("Total Cash Out", k["cash_out"], "arrow_upward", T.DANGER, T.DANGER,
              f"{k['out_count']} Payments made today", False),
             ("REMAINING AMOUNT", k["remaining"], "point_of_sale", "white", "white",
              "Available in physical drawer", True),
         ]
-        for title, amt, icon, ic_col, amt_col, hint, filled in cards:
-            lay.addWidget(self._kpi_card(title, amt, icon, ic_col, amt_col, hint, filled), 1)
+        for title, amt, icon, tone, amt_col, hint, filled in cards:
+            lay.addWidget(
+                self._kpi_card(title, amt, icon, tone, amt_col, hint, filled), 1
+            )
         return wrap
 
-    def _kpi_card(self, title, amount, icon, ic_col, amt_col, hint, filled) -> QFrame:
+    def _kpi_card(self, title, amount, icon, tone, amt_col, hint, filled) -> QFrame:
         card = QFrame()
         if filled:
+            # Stitch: bg-primary (MD3 primary deep)
             card.setStyleSheet(
-                f"QFrame {{ background: {S.PRIMARY}; border: none; "
+                f"QFrame {{ background: {T.PRIMARY_DEEP}; border: none; "
                 f"border-radius: {S.CR}px; }}"
             )
         else:
@@ -129,12 +234,12 @@ class CashFlowScreen(QWidget):
             )
         lay = QVBoxLayout(card)
         lay.setContentsMargins(14, 12, 14, 12)
-        lay.setSpacing(6)
+        lay.setSpacing(4)
 
         top = QHBoxLayout()
-        cap = QLabel(title.upper())
+        cap = QLabel(title.upper() if not filled else title)
         cap.setStyleSheet(
-            f"color: {'rgba(255,255,255,0.85)' if filled else S.SECONDARY}; "
+            f"color: {'rgba(238,239,255,0.9)' if filled else tone}; "
             f"font-size: 10px; font-weight: 700; letter-spacing: 0.4px; "
             f"border: none; background: transparent;"
         )
@@ -142,17 +247,31 @@ class CashFlowScreen(QWidget):
         top.addStretch()
         ic = QLabel()
         ic.setFixedSize(18, 18)
-        ic.setPixmap(icon_pixmap(icon, size=18, color=ic_col))
+        ic.setPixmap(icon_pixmap(icon, size=18, color="white" if filled else tone))
         ic.setStyleSheet("background: transparent; border: none;")
         top.addWidget(ic)
         lay.addLayout(top)
 
-        val = QLabel(format_inr_indian(amount))
-        val.setStyleSheet(
-            f"color: {amt_col}; font-size: 22px; font-weight: 700; "
-            f"border: none; background: transparent;"
-        )
+        # Stitch: integer + smaller .00
+        full = format_inr_indian(amount)
+        if "." in full:
+            rupee, dec = full.rsplit(".", 1)
+            val = QLabel(
+                f"<span style='font-size:22px;font-weight:700;color:{amt_col};'>"
+                f"{rupee}</span>"
+                f"<span style='font-size:14px;font-weight:600;color:{amt_col};'>"
+                f".{dec}</span>"
+            )
+        else:
+            val = QLabel(full)
+            val.setStyleSheet(
+                f"color: {amt_col}; font-size: 22px; font-weight: 700; "
+                f"border: none; background: transparent;"
+            )
+        val.setTextFormat(Qt.RichText)
+        val.setStyleSheet("border: none; background: transparent;")
         lay.addWidget(val)
+
         hint_lbl = QLabel(hint)
         hint_lbl.setStyleSheet(
             f"color: {'rgba(255,255,255,0.75)' if filled else S.SECONDARY}; "
@@ -168,7 +287,14 @@ class CashFlowScreen(QWidget):
         lay.setContentsMargins(14, 12, 14, 12)
         lay.setSpacing(10)
 
-        head = QHBoxLayout()
+        # Transaction type row + bottom border (Stitch)
+        head_wrap = QFrame()
+        head_wrap.setStyleSheet(
+            f"QFrame {{ background: transparent; border: none; "
+            f"border-bottom: 1px solid {T.BORDER}; }}"
+        )
+        head = QHBoxLayout(head_wrap)
+        head.setContentsMargins(0, 0, 0, 8)
         head.setSpacing(8)
         cap = QLabel("TRANSACTION TYPE:")
         cap.setStyleSheet(
@@ -177,46 +303,118 @@ class CashFlowScreen(QWidget):
         )
         head.addWidget(cap)
 
+        # Segmented control: bg-surface-container
+        seg = QFrame()
+        seg.setStyleSheet(
+            f"QFrame {{ background: {T.SURFACE_CONTAINER}; border: none; "
+            f"border-radius: {S.R}px; }}"
+        )
+        segl = QHBoxLayout(seg)
+        segl.setContentsMargins(2, 2, 2, 2)
+        segl.setSpacing(0)
         self.btn_in = self._mode_chip("Cash In (Receipt)", "add_circle", True)
         self.btn_out = self._mode_chip("Cash Out (Payment)", "remove_circle", False)
-        self.btn_in.mousePressEvent = lambda e: self._set_kind("In") if e.button() == Qt.LeftButton else None
-        self.btn_out.mousePressEvent = lambda e: self._set_kind("Out") if e.button() == Qt.LeftButton else None
-        head.addWidget(self.btn_in)
-        head.addWidget(self.btn_out)
+        self.btn_in.mousePressEvent = (
+            lambda e: self._set_kind("In") if e.button() == Qt.LeftButton else None
+        )
+        self.btn_out.mousePressEvent = (
+            lambda e: self._set_kind("Out") if e.button() == Qt.LeftButton else None
+        )
+        segl.addWidget(self.btn_in)
+        segl.addWidget(self.btn_out)
+        head.addWidget(seg)
         head.addStretch()
 
-        self.voucher_lbl = QLabel("Next Voucher:  #CSH-IN-049")
+        # Next Voucher with check_circle (Stitch)
+        vrow = QHBoxLayout()
+        vrow.setSpacing(4)
+        vrow.setContentsMargins(0, 0, 0, 0)
+        vic = QLabel()
+        vic.setFixedSize(16, 16)
+        vic.setPixmap(icon_pixmap("check_circle", size=16, color=_TERTIARY))
+        vic.setStyleSheet("background: transparent; border: none;")
+        vrow.addWidget(vic)
+        self.voucher_prefix = QLabel("Next Voucher:")
+        self.voucher_prefix.setStyleSheet(
+            f"color: {S.SECONDARY}; font-size: 12px; border: none; background: transparent;"
+        )
+        vrow.addWidget(self.voucher_prefix)
+        self.voucher_lbl = QLabel("#CSH-IN-049")
         self.voucher_lbl.setStyleSheet(
-            f"color: {S.PRIMARY}; font-size: 12px; font-weight: 700; "
+            f"color: {T.TEXT_PRIMARY}; font-size: 12px; font-weight: 700; "
             f"border: none; background: transparent;"
         )
-        head.addWidget(self.voucher_lbl)
-        lay.addLayout(head)
+        vrow.addWidget(self.voucher_lbl)
+        head.addLayout(vrow)
+        lay.addWidget(head_wrap)
 
         row = QHBoxLayout()
         row.setSpacing(10)
 
         self.date = QDateEdit(QDate(2026, 9, 20))
         self.date.setCalendarPopup(True)
-        self.date.setDisplayFormat("dd-MM-yyyy")
+        self.date.setDisplayFormat("dd-MMM-yyyy")
         self.date.setEnabled(False)
-        row.addWidget(S.labeled_input("Date", self.date), 1)
+        row.addWidget(S.labeled_input("Date", self.date), 2)
+
+        # Party with "+ New Ledger" (Stitch)
+        party_wrap = QWidget()
+        party_wrap.setStyleSheet("background: transparent;")
+        pwl = QVBoxLayout(party_wrap)
+        pwl.setContentsMargins(0, 0, 0, 0)
+        pwl.setSpacing(4)
+        ptop = QHBoxLayout()
+        ptop.setContentsMargins(0, 0, 0, 0)
+        pcap = QLabel("Party / Expense Ledger")
+        pcap.setStyleSheet(
+            f"color: {S.SECONDARY}; font-size: 11px; font-weight: 600; "
+            f"border: none; background: transparent;"
+        )
+        ptop.addWidget(pcap)
+        ptop.addStretch()
+        new_led = QLabel("+ New Ledger")
+        new_led.setCursor(QCursor(Qt.PointingHandCursor))
+        new_led.setStyleSheet(
+            f"color: {S.PRIMARY}; font-size: 10px; font-weight: 600; "
+            f"border: none; background: transparent;"
+        )
+        new_led.mousePressEvent = (
+            lambda e: toast(self, "Open New Ledger…")
+            if e.button() == Qt.LeftButton else None
+        )
+        ptop.addWidget(new_led)
+        pwl.addLayout(ptop)
 
         self.party = QComboBox()
-        self.party.setEditable(True)
-        self.party.addItem("+ Add / Select Ledger...")
+        self.party.setEditable(False)
         for name in _LEDGERS:
             self.party.addItem(name)
-        row.addWidget(S.labeled_input("Party / Expense Ledger", self.party), 3)
+        self.party.addItem("+ Add / Select Ledger...")
+        self.party.setCurrentIndex(0)
+        from app.widgets.icons import combo_dropdown_qss
+        self.party.setStyleSheet(
+            f"""
+            QComboBox {{
+                background: {T.SURFACE}; border: 1px solid {T.BORDER};
+                border-radius: {S.R}px; padding: 6px 28px 6px 10px;
+                min-height: 18px; font-size: 13px; font-weight: 600;
+                color: {T.TEXT_PRIMARY};
+            }}
+            {combo_dropdown_qss(width=22, background=T.SURFACE)}
+            """
+        )
+        pwl.addWidget(self.party)
+        row.addWidget(party_wrap, 5)
 
         self.amount = QDoubleSpinBox()
         self.amount.setRange(0, 9_999_999)
         self.amount.setDecimals(2)
         self.amount.setGroupSeparatorShown(True)
-        row.addWidget(S.labeled_input("Amount (₹)", self.amount), 1)
+        row.addWidget(S.labeled_input("Amount (₹)", self.amount), 2)
 
-        rec = S.action_btn("Record", shortcut="↵", icon="save", kind="primary",
-                           on_click=self._post)
+        rec = S.action_btn(
+            "Record", shortcut="↵", icon="save", kind="primary", on_click=self._post
+        )
         rec.setFixedHeight(32)
         wrap = QWidget()
         wrap.setStyleSheet("background: transparent;")
@@ -235,7 +433,7 @@ class CashFlowScreen(QWidget):
     def _mode_chip(self, text: str, icon: str, active: bool) -> QFrame:
         chip = QFrame()
         chip.setCursor(QCursor(Qt.PointingHandCursor))
-        chip.setFixedHeight(28)
+        chip.setFixedHeight(26)
         lay = QHBoxLayout(chip)
         lay.setContentsMargins(10, 0, 10, 0)
         lay.setSpacing(6)
@@ -246,7 +444,9 @@ class CashFlowScreen(QWidget):
         lay.addWidget(ic)
         lbl = QLabel(text)
         lbl.setObjectName("modeText")
-        lbl.setStyleSheet("border: none; background: transparent; font-size: 12px; font-weight: 600;")
+        lbl.setStyleSheet(
+            "border: none; background: transparent; font-size: 12px; font-weight: 600;"
+        )
         lay.addWidget(lbl)
         self._paint_mode_chip(chip, icon, active, kind="In" if "In" in text else "Out")
         return chip
@@ -254,27 +454,27 @@ class CashFlowScreen(QWidget):
     def _paint_mode_chip(self, chip: QFrame, icon: str, active: bool, kind: str):
         ic = chip.findChild(QLabel, "modeIcon")
         lbl = chip.findChild(QLabel, "modeText")
-        if active and kind == "In":
+        if active:
+            # Stitch: bg-primary-container text-on-primary
             chip.setStyleSheet(
-                f"QFrame {{ background: {S.PRIMARY}; border: none; border-radius: {S.R}px; }}"
-            )
-            fg = "white"
-        elif active and kind == "Out":
-            chip.setStyleSheet(
-                f"QFrame {{ background: {T.DANGER}; border: none; border-radius: {S.R}px; }}"
+                f"QFrame {{ background: {S.PRIMARY}; border: none; "
+                f"border-radius: {S.R}px; }}"
             )
             fg = "white"
         else:
             chip.setStyleSheet(
-                f"QFrame {{ background: transparent; border: none; border-radius: {S.R}px; }}"
+                f"QFrame {{ background: transparent; border: none; "
+                f"border-radius: {S.R}px; }}"
             )
             fg = T.TEXT_PRIMARY
         if ic:
-            ic.setPixmap(icon_pixmap(icon, size=16, color=fg if active else S.SECONDARY))
+            ic.setPixmap(
+                icon_pixmap(icon, size=16, color=fg if active else S.SECONDARY)
+            )
         if lbl:
             lbl.setStyleSheet(
-                f"color: {fg if active else T.TEXT_PRIMARY}; font-size: 12px; "
-                f"font-weight: 600; border: none; background: transparent;"
+                f"color: {fg}; font-size: 12px; font-weight: "
+                f"{'700' if active else '500'}; border: none; background: transparent;"
             )
 
     def _set_kind(self, kind: str):
@@ -282,17 +482,13 @@ class CashFlowScreen(QWidget):
         self._paint_mode_chip(self.btn_in, "add_circle", kind == "In", "In")
         self._paint_mode_chip(self.btn_out, "remove_circle", kind == "Out", "Out")
         if kind == "In":
-            self.voucher_lbl.setText(f"Next Voucher:  #CSH-IN-{self._seq_in:03d}")
-            self.voucher_lbl.setStyleSheet(
-                f"color: {S.PRIMARY}; font-size: 12px; font-weight: 700; "
-                f"border: none; background: transparent;"
-            )
+            self.voucher_lbl.setText(f"#CSH-IN-{self._seq_in:03d}")
         else:
-            self.voucher_lbl.setText(f"Next Voucher:  #CSH-OUT-{self._seq_out:03d}")
-            self.voucher_lbl.setStyleSheet(
-                f"color: {T.DANGER}; font-size: 12px; font-weight: 700; "
-                f"border: none; background: transparent;"
-            )
+            self.voucher_lbl.setText(f"#CSH-OUT-{self._seq_out:03d}")
+        self.voucher_lbl.setStyleSheet(
+            f"color: {T.TEXT_PRIMARY}; font-size: 12px; font-weight: 700; "
+            f"border: none; background: transparent;"
+        )
 
     # ── Table card ───────────────────────────────────────────
     def _table_card(self) -> QFrame:
@@ -312,7 +508,8 @@ class CashFlowScreen(QWidget):
 
         tab_wrap = QFrame()
         tab_wrap.setStyleSheet(
-            f"QFrame {{ background: {T.SURFACE_CONTAINER}; border-radius: {S.R}px; border: none; }}"
+            f"QFrame {{ background: {T.SURFACE_CONTAINER}; border-radius: {S.R}px; "
+            f"border: none; }}"
         )
         tw = QHBoxLayout(tab_wrap)
         tw.setContentsMargins(2, 2, 2, 2)
@@ -325,7 +522,8 @@ class CashFlowScreen(QWidget):
             b.setFixedHeight(26)
             b.setMinimumWidth(64)
             b.mousePressEvent = (
-                lambda e, k=key: self._set_filter(k) if e.button() == Qt.LeftButton else None
+                lambda e, k=key: self._set_filter(k)
+                if e.button() == Qt.LeftButton else None
             )
             self._filter_btns[key] = b
             tw.addWidget(b)
@@ -336,7 +534,8 @@ class CashFlowScreen(QWidget):
         search_wrap = QFrame()
         search_wrap.setFixedWidth(280)
         search_wrap.setStyleSheet(
-            f"QFrame {{ background: {T.INPUT_BG}; border: none; border-radius: {S.R}px; }}"
+            f"QFrame {{ background: {T.INPUT_BG}; border: none; "
+            f"border-radius: {S.R}px; }}"
         )
         sw = QHBoxLayout(search_wrap)
         sw.setContentsMargins(8, 0, 8, 0)
@@ -367,12 +566,17 @@ class CashFlowScreen(QWidget):
         hdr = self.table.horizontalHeader()
         hdr.setSectionResizeMode(0, QHeaderView.ResizeToContents)
         hdr.setSectionResizeMode(1, QHeaderView.ResizeToContents)
-        hdr.setSectionResizeMode(2, QHeaderView.ResizeToContents)
+        # Compact centered type chips
+        hdr.setSectionResizeMode(2, QHeaderView.Fixed)
+        self.table.setColumnWidth(2, 120)
+        hdr.setMinimumSectionSize(80)
         hdr.setSectionResizeMode(3, QHeaderView.Stretch)
-        hdr.setSectionResizeMode(4, QHeaderView.ResizeToContents)
+        hdr.setSectionResizeMode(4, QHeaderView.Fixed)
+        self.table.setColumnWidth(4, 140)
         hdr.setSectionResizeMode(5, QHeaderView.Fixed)
         self.table.setColumnWidth(5, 72)
         S.apply_table_style(self.table)
+        self.table.setTextElideMode(Qt.TextElideMode.ElideNone)
         lay.addWidget(self.table, stretch=1)
 
         foot = QFrame()
@@ -418,9 +622,11 @@ class CashFlowScreen(QWidget):
         self._reload_table()
 
     def _status_bar(self) -> QFrame:
+        # Stitch: bg-inverse-surface
         bar = QFrame()
         bar.setStyleSheet(
-            f"QFrame {{ background: {T.NAV_BG}; border-radius: {S.R}px; border: none; }}"
+            f"QFrame {{ background: {_INVERSE_SURFACE}; border-radius: {S.R}px; "
+            f"border: none; }}"
         )
         lay = QHBoxLayout(bar)
         lay.setContentsMargins(14, 8, 14, 8)
@@ -428,15 +634,16 @@ class CashFlowScreen(QWidget):
         dot.setFixedSize(8, 8)
         dot.setStyleSheet(f"background: {T.SUCCESS}; border-radius: 4px; border: none;")
         lay.addWidget(dot)
-        lbl = QLabel("Cash Drawer:  Active & Ready")
+        lbl = QLabel("Cash Drawer:  <b>Active & Ready</b>")
+        lbl.setTextFormat(Qt.RichText)
         lbl.setStyleSheet(
-            "color: white; font-size: 12px; font-weight: 600; border: none; background: transparent;"
+            "color: #f0f1f3; font-size: 12px; border: none; background: transparent;"
         )
         lay.addWidget(lbl)
         lay.addStretch()
         tip = QLabel("Shortcut: Enter to Record transaction")
         tip.setStyleSheet(
-            f"color: {T.NAV_TEXT}; font-size: 11px; border: none; background: transparent;"
+            "color: #c3c6d7; font-size: 11px; border: none; background: transparent;"
         )
         lay.addWidget(tip)
         return bar
@@ -463,28 +670,30 @@ class CashFlowScreen(QWidget):
         self.table.setRowCount(len(rows))
         for r, e in enumerate(rows):
             is_in = e["kind"] == "In"
-            dt = f"{e.get('date', '')[5:].replace('-', '-') if False else ''}"
-            # Prefer stitch display: 20-Sep · 02:15 PM
             date_s = e.get("date", "")
             try:
                 y, m, d = date_s.split("-")
-                months = ["", "Jan", "Feb", "Mar", "Apr", "May", "Jun",
-                          "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
+                months = [
+                    "", "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+                    "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
+                ]
                 date_disp = f"{int(d):02d}-{months[int(m)]} · {e.get('time', '')}"
             except Exception:
                 date_disp = f"{date_s} · {e.get('time', '')}"
 
             self.table.setItem(r, 0, self._item(date_disp, secondary=True))
 
+            # Cash In = green, Cash Out = red (same as Type pill)
+            in_color = T.SUCCESS_FG
+            out_color = T.DANGER
             vch = QTableWidgetItem(f"#{e['ref']}")
-            vch.setForeground(QBrush(QColor(S.PRIMARY if is_in else T.DANGER)))
+            vch.setForeground(QBrush(QColor(in_color if is_in else out_color)))
             f = vch.font()
             f.setBold(True)
             vch.setFont(f)
             self.table.setItem(r, 1, vch)
 
-            pill = self._type_pill(is_in)
-            self.table.setCellWidget(r, 2, pill)
+            self.table.setCellWidget(r, 2, self._type_pill(is_in))
 
             ledger = QLabel(
                 f"<div style='font-weight:600;color:{T.TEXT_PRIMARY};font-size:12px;'>"
@@ -498,7 +707,7 @@ class CashFlowScreen(QWidget):
             sign = "+ " if is_in else "- "
             amt = QTableWidgetItem(sign + format_inr_indian(e["amount"]))
             amt.setTextAlignment(Qt.AlignRight | Qt.AlignVCenter)
-            amt.setForeground(QBrush(QColor(S.PRIMARY if is_in else T.DANGER)))
+            amt.setForeground(QBrush(QColor(in_color if is_in else out_color)))
             f = amt.font()
             f.setBold(True)
             amt.setFont(f)
@@ -534,9 +743,6 @@ class CashFlowScreen(QWidget):
                 al.addWidget(b)
             self.table.setCellWidget(r, 5, acts)
 
-        self.count_lbl.setText(
-            f"Showing <b style='color:{T.TEXT_PRIMARY}'>{len(rows)} transactions</b>"
-        )
         self.count_lbl.setText(f"Showing {len(rows)} transactions")
         self.net_lbl.setText(format_inr_indian(self.kpi["remaining"]))
 
@@ -553,24 +759,16 @@ class CashFlowScreen(QWidget):
         return it
 
     def _type_pill(self, is_in: bool) -> QWidget:
-        wrap = QWidget()
-        wrap.setStyleSheet("background: transparent;")
-        lay = QHBoxLayout(wrap)
-        lay.setContentsMargins(8, 4, 8, 4)
-        pill = QLabel("Cash In" if is_in else "Cash Out")
-        if is_in:
-            pill.setStyleSheet(
-                f"background: {T.ACCENT_SOFT}; color: {S.PRIMARY}; border: none; "
-                f"border-radius: {S.R}px; padding: 2px 8px; font-size: 11px; font-weight: 700;"
-            )
-        else:
-            pill.setStyleSheet(
-                f"background: {T.DANGER_BG}; color: {T.DANGER}; border: none; "
-                f"border-radius: {S.R}px; padding: 2px 8px; font-size: 11px; font-weight: 700;"
-            )
-        lay.addWidget(pill)
-        lay.addStretch()
-        return wrap
+        """Compact centered type chip."""
+        cell = QWidget()
+        cell.setStyleSheet("background: transparent; border: none;")
+        lay = QHBoxLayout(cell)
+        lay.setContentsMargins(4, 2, 4, 2)
+        lay.setSpacing(0)
+        lay.addStretch(1)
+        lay.addWidget(_TypePill(is_in), 0, Qt.AlignVCenter)
+        lay.addStretch(1)
+        return cell
 
     def _delete(self, row: dict):
         if row in self.entries:
@@ -579,8 +777,10 @@ class CashFlowScreen(QWidget):
             self.kpi["remaining"] -= signed
             if row["kind"] == "In":
                 self.kpi["cash_in"] -= row["amount"]
+                self.kpi["in_count"] = max(0, self.kpi.get("in_count", 1) - 1)
             else:
                 self.kpi["cash_out"] -= row["amount"]
+                self.kpi["out_count"] = max(0, self.kpi.get("out_count", 1) - 1)
             self._reload_table()
             toast(self, f"Deleted #{row['ref']}")
 
