@@ -1,7 +1,7 @@
 """Zoho Inventory QSS — flat, lightweight, token-driven."""
 
 from app.styles import tokens as T
-from app.widgets.icons import icon_url as _icon_url
+from app.widgets.icons import combo_dropdown_qss, icon_url as _icon_url
 
 
 def build_qss() -> str:
@@ -186,17 +186,14 @@ QToolButton::menu-button {{
     width: 22px;
 }}
 
-QComboBox::drop-down, QDateEdit::drop-down {{
-    border: none;
-    border-left: 1px solid {T.BORDER};
-    width: 22px;
-    background: {T.HEADER_BAND};
-    subcontrol-origin: padding;
-    subcontrol-position: top right;
-}}
+{combo_dropdown_qss(width=22, background="transparent", border_left="none")}
 
 QDateEdit {{
-    padding-right: 4px;
+    padding-right: 28px;
+}}
+
+QComboBox {{
+    padding-right: 28px;
 }}
 
 /* Larger, readable spin / date stepper arrows (Ant-style SVG) */
@@ -222,13 +219,13 @@ QAbstractSpinBox::up-button:hover, QAbstractSpinBox::down-button:hover {{
 }}
 
 QAbstractSpinBox::up-arrow {{
-    image: url({_icon_url("caret-up-dark")});
+    image: url("{_icon_url('caret-up-dark')}");
     width: 12px;
     height: 12px;
 }}
 
 QAbstractSpinBox::down-arrow {{
-    image: url({_icon_url("caret-down-dark")});
+    image: url("{_icon_url('caret-down-dark')}");
     width: 12px;
     height: 12px;
 }}

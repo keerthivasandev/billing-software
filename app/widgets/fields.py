@@ -6,7 +6,7 @@ from PySide6.QtWidgets import (
 )
 
 from app.styles import tokens as T
-from app.widgets.icons import icon_pixmap
+from app.widgets.icons import combo_dropdown_qss, icon_pixmap
 
 # Darker than TEXT_SECONDARY — gray icons look washed-out at small sizes.
 _FIELD_ICON_COLOR = "#374151"
@@ -37,11 +37,9 @@ def _strip_control_chrome(widget: QWidget):
             border: none;
             background: transparent;
         }}
-        QComboBox::drop-down, QDateEdit::drop-down {{
-            border: none;
-            border-left: 1px solid {T.BORDER};
-            width: 20px;
-            background: transparent;
+        {combo_dropdown_qss(width=20, background="transparent", border_left=f"1px solid {T.BORDER}")}
+        QComboBox, QDateEdit {{
+            padding-right: 24px;
         }}
         QAbstractSpinBox::up-button, QAbstractSpinBox::down-button {{
             border: none;

@@ -364,6 +364,8 @@ class GodownsScreen(QWidget):
         return col
 
     def _soft_field(self, widget: QWidget):
+        from app.widgets.icons import combo_dropdown_qss
+
         widget.setStyleSheet(
             f"""
             QLineEdit, QTextEdit, QComboBox {{
@@ -372,7 +374,11 @@ class GodownsScreen(QWidget):
                 color: {T.TEXT_PRIMARY};
                 selection-background-color: {S.PRIMARY}; selection-color: white;
             }}
-            QLineEdit:focus, QTextEdit:focus {{
+            QComboBox {{
+                padding-right: 28px;
+            }}
+            {combo_dropdown_qss(width=24, background="transparent")}
+            QLineEdit:focus, QTextEdit:focus, QComboBox:focus {{
                 background: {T.SURFACE}; border: 1px solid {S.PRIMARY};
             }}
             """

@@ -226,9 +226,17 @@ class LedgerEditDialog(QDialog):
         top.addStretch()
         top.addWidget(new_grp)
         gl.addLayout(top)
+        from app.widgets.icons import combo_dropdown_qss
+
         self.group.setStyleSheet(
-            f"QComboBox {{ background: {S.INPUT_BG}; border: none; border-radius: 4px; "
-            f"padding: 8px 10px; min-height: 20px; font-size: 13px; font-weight: 600; }}"
+            f"""
+            QComboBox {{
+                background: {S.INPUT_BG}; border: none; border-radius: 4px;
+                padding: 8px 28px 8px 10px; min-height: 20px;
+                font-size: 13px; font-weight: 600;
+            }}
+            {combo_dropdown_qss(width=24, background="transparent")}
+            """
         )
         gl.addWidget(self.group)
 
