@@ -33,6 +33,29 @@ class TransactionEntryScreen(QWidget):
     def is_sales(self):
         return self.mode == "sales"
 
+    @property
+    def is_estimate(self) -> bool:
+        if not self.is_sales or not hasattr(self, "vtype"):
+            return False
+        return "estimate" in (self.vtype.currentText() or "").lower()
+
+    @property
+    def is_sales_return(self) -> bool:
+        if not self.is_sales or not hasattr(self, "vtype"):
+            return False
+        return "return" in (self.vtype.currentText() or "").lower()
+
+    def _voucher_kind(self) -> str:
+        """sales | return | estimate | purchase | purchase_return"""
+        if not self.is_sales:
+            txt = (self.vtype.currentText() if hasattr(self, "vtype") else "").lower()
+            return "purchase_return" if "return" in txt else "purchase"
+        if self.is_estimate:
+            return "estimate"
+        if self.is_sales_return:
+            return "return"
+        return "sales"
+
     def _build(self):
         self._party_new_mode = False
         self._addr_delivery_wrap = None
@@ -82,6 +105,9 @@ class TransactionEntryScreen(QWidget):
         fl.setSpacing(0)
         fl.addWidget(self._actions())
         outer.addWidget(foot)
+
+        if self.is_sales:
+            self.vtype.currentIndexChanged.connect(self._on_voucher_type_changed)
 
     # ── Title toolbar (Stitch) ───────────────────────────────
     def _title_toolbar(self) -> QFrame:
@@ -155,6 +181,7 @@ class TransactionEntryScreen(QWidget):
             opts = [
                 "Sales Invoice (Standard Wholesale)",
                 "Sales Return (Credit Note / Outward)",
+                "Estimate (Quotation / Proforma)",
             ]
         else:
             opts = [
@@ -460,6 +487,8 @@ class TransactionEntryScreen(QWidget):
                 f"color: {S.SECONDARY}; background: {T.INPUT_BG}; border: 1px solid {T.BORDER}; "
                 f"border-radius: {S.R}px; padding: 6px 10px; font-weight: 600; font-size: 12px;"
             )
+        if hasattr(self, "prev_title"):
+            self._reload_prev_details()
 
     # ── Addresses (sales) — type first, then 1 or 2 boxes ────
     def _address_section(self) -> QWidget:
@@ -590,13 +619,15 @@ class TransactionEntryScreen(QWidget):
         self.disc = QDoubleSpinBox()
         self.disc.setRange(0, 100)
         self.disc.setDecimals(2)
-        lay.addWidget(S.labeled_input("Disc %", self.disc), 1)
+        self.disc_field = S.labeled_input("Disc %", self.disc)
+        lay.addWidget(self.disc_field, 1)
 
         self.gst = QDoubleSpinBox()
         self.gst.setRange(0, 28)
         self.gst.setDecimals(1)
         self.gst.setValue(18)
-        lay.addWidget(S.labeled_input("GST %", self.gst), 1)
+        self.gst_field = S.labeled_input("GST %", self.gst)
+        lay.addWidget(self.gst_field, 1)
 
         self.btn_add = S.action_btn(
             "Add", shortcut="Enter", icon="add", kind="primary", on_click=self._add_line
@@ -794,8 +825,8 @@ class TransactionEntryScreen(QWidget):
             self.qty.value(),
             self.unit.currentText() or data.get("unit", "NOS"),
             self.rate.value(),
-            self.disc.value(),
-            self.gst.value(),
+            0.0 if self.is_estimate else self.disc.value(),
+            0.0 if self.is_estimate else self.gst.value(),
         )
         self._recalc()
         self.item_search.setCurrentIndex(0)
@@ -833,12 +864,6 @@ class TransactionEntryScreen(QWidget):
         lay.setContentsMargins(0, 0, 0, 0)
         lay.setSpacing(0)
 
-        party = self.party.currentText() if hasattr(self, "party") else ""
-        title = (
-            f"Previous Sales Details (Customer: {party or 'Balaji Electricals & Hardware'})"
-            if self.is_sales
-            else f"Previous Purchase Details (Supplier: {party or 'Polycab India Ltd'})"
-        )
         head = QFrame()
         head.setStyleSheet(
             f"QFrame {{ background: {T.SURFACE_CONTAINER_LOW}; border: none; "
@@ -854,12 +879,12 @@ class TransactionEntryScreen(QWidget):
         ic.setPixmap(icon_pixmap("history", size=14, color=S.PRIMARY))
         ic.setStyleSheet("background: transparent; border: none;")
         hl.addWidget(ic)
-        ttl = QLabel(title)
-        ttl.setStyleSheet(
+        self.prev_title = QLabel(self._prev_title_text())
+        self.prev_title.setStyleSheet(
             f"color: {T.TEXT_PRIMARY}; font-size: 11px; font-weight: 700; "
             f"border: none; background: transparent;"
         )
-        hl.addWidget(ttl, stretch=1)
+        hl.addWidget(self.prev_title, stretch=1)
         view_all = QFrame()
         view_all.setCursor(QCursor(Qt.PointingHandCursor))
         view_all.setStyleSheet(
@@ -887,26 +912,67 @@ class TransactionEntryScreen(QWidget):
         hl.addWidget(view_all)
         lay.addWidget(head)
 
-        rows = D.PREV_SALES if self.is_sales else D.PREV_PURCHASES
-        cols = ["Inv. No." if self.is_sales else "Pur. No.", "Date", "Item Name",
-                "Last Rate (₹)", "Qty", "Unit", "Net Amount"]
-        t = QTableWidget(len(rows), len(cols))
-        t.setHorizontalHeaderLabels(cols)
-        t.setEditTriggers(QAbstractItemView.NoEditTriggers)
-        t.setSelectionMode(QAbstractItemView.NoSelection)
-        t.setFocusPolicy(Qt.NoFocus)
-        t.horizontalHeader().setSectionResizeMode(2, QHeaderView.Stretch)
-        # Generous widths so Pur.No / Date / Rate / Net Amount never elide
+        cols = self._prev_col_headers()
+        self.prev_table = QTableWidget(0, len(cols))
+        self.prev_table.setHorizontalHeaderLabels(cols)
+        self.prev_table.setEditTriggers(QAbstractItemView.NoEditTriggers)
+        self.prev_table.setSelectionMode(QAbstractItemView.NoSelection)
+        self.prev_table.setFocusPolicy(Qt.NoFocus)
+        self.prev_table.horizontalHeader().setSectionResizeMode(2, QHeaderView.Stretch)
         for c, w in ((0, 120), (1, 100), (3, 110), (4, 64), (5, 64), (6, 130)):
-            t.horizontalHeader().setSectionResizeMode(c, QHeaderView.Fixed)
-            t.setColumnWidth(c, w)
-        S.apply_table_style(t)
-        t.setTextElideMode(Qt.TextElideMode.ElideNone)
-        t.verticalHeader().setDefaultSectionSize(30)
-        t.horizontalHeader().setFixedHeight(28)
-        # Fit rows without forcing a tall empty box
-        body_h = 28 + 30 * max(len(rows), 1) + 4
-        t.setFixedHeight(min(body_h, 160))
+            self.prev_table.horizontalHeader().setSectionResizeMode(c, QHeaderView.Fixed)
+            self.prev_table.setColumnWidth(c, w)
+        S.apply_table_style(self.prev_table)
+        self.prev_table.setTextElideMode(Qt.TextElideMode.ElideNone)
+        self.prev_table.verticalHeader().setDefaultSectionSize(30)
+        self.prev_table.horizontalHeader().setFixedHeight(28)
+        lay.addWidget(self.prev_table)
+        self._reload_prev_details()
+        return box
+
+    def _prev_title_text(self) -> str:
+        party = ""
+        if hasattr(self, "party"):
+            party = self.party.currentText()
+        if not self.is_sales:
+            return f"Previous Purchase Details (Supplier: {party or 'Polycab India Ltd'})"
+        kind = self._voucher_kind()
+        who = party or "Balaji Electricals & Hardware"
+        if kind == "estimate":
+            return f"Previous Estimate Details (Customer: {who})"
+        if kind == "return":
+            return f"Previous Sales Return Details (Customer: {who})"
+        return f"Previous Sales Details (Customer: {who})"
+
+    def _prev_col_headers(self) -> list:
+        kind = self._voucher_kind() if self.is_sales else "purchase"
+        if kind == "estimate":
+            return ["Est. No.", "Date", "Item Name", "Last Rate (₹)", "Qty", "Unit", "Net Amount"]
+        if kind == "return":
+            return ["SR No.", "Date", "Item Name", "Last Rate (₹)", "Qty", "Unit", "Net Amount"]
+        if kind == "purchase" or kind == "purchase_return":
+            return ["Pur. No.", "Date", "Item Name", "Last Rate (₹)", "Qty", "Unit", "Net Amount"]
+        return ["Inv. No.", "Date", "Item Name", "Last Rate (₹)", "Qty", "Unit", "Net Amount"]
+
+    def _prev_rows(self) -> list:
+        if not self.is_sales:
+            return list(D.PREV_PURCHASES)
+        kind = self._voucher_kind()
+        if kind == "estimate":
+            return list(D.PREV_ESTIMATES)
+        if kind == "return":
+            return list(D.PREV_SALES_RETURNS)
+        return list(D.PREV_SALES)
+
+    def _reload_prev_details(self):
+        if not hasattr(self, "prev_table"):
+            return
+        if hasattr(self, "prev_title"):
+            self.prev_title.setText(self._prev_title_text())
+        cols = self._prev_col_headers()
+        self.prev_table.setHorizontalHeaderLabels(cols)
+        rows = self._prev_rows()
+        self.prev_table.setRowCount(len(rows))
         for r, row in enumerate(rows):
             vals = [
                 row["inv"], row["date"], row["item"],
@@ -919,10 +985,9 @@ class TransactionEntryScreen(QWidget):
                     it.setForeground(QBrush(QColor(S.PRIMARY)))
                 if c in (3, 4, 6):
                     it.setTextAlignment(Qt.AlignRight | Qt.AlignVCenter)
-                t.setItem(r, c, it)
-        lay.addWidget(t)
-        self.prev_table = t
-        return box
+                self.prev_table.setItem(r, c, it)
+        body_h = 28 + 30 * max(len(rows), 1) + 4
+        self.prev_table.setFixedHeight(min(body_h, 160))
 
     def _totals_card(self) -> QFrame:
         """Compact totals + remarks in one card (Stitch: no huge empty gap)."""
@@ -935,16 +1000,17 @@ class TransactionEntryScreen(QWidget):
         self.lbl_gross = QLabel("₹ 0.00")
         self.lbl_gst = QLabel("₹ 0.00")
         self.lbl_net = QLabel("₹ 0.00")
-        rows = [
-            ("Gross Taxable:" if self.is_sales else "Subtotal:", self.lbl_gross, False),
-            ("Total GST (18%):" if self.is_sales else "GST (18%):", self.lbl_gst, False),
-            ("Net Payable:" if self.is_sales else "Net Total:", self.lbl_net, True),
-        ]
-        for label, widget, emphasis in rows:
-            row = QHBoxLayout()
+
+        self.lbl_gross_cap = QLabel("Gross Taxable:" if self.is_sales else "Subtotal:")
+        self.lbl_gst_cap = QLabel("Total GST (18%):" if self.is_sales else "GST (18%):")
+        self.lbl_net_cap = QLabel("Net Payable:" if self.is_sales else "Net Total:")
+
+        def _add_total_row(cap: QLabel, widget: QLabel, emphasis: bool) -> QWidget:
+            row_w = QWidget()
+            row_w.setStyleSheet("background: transparent;")
+            row = QHBoxLayout(row_w)
             row.setContentsMargins(0, 2 if emphasis else 0, 0, 2 if emphasis else 0)
             row.setSpacing(12)
-            cap = QLabel(label)
             cap.setStyleSheet(
                 f"color: {S.SECONDARY}; font-size: {'13px' if emphasis else '12px'}; "
                 f"font-weight: {'700' if emphasis else '600'}; "
@@ -960,7 +1026,12 @@ class TransactionEntryScreen(QWidget):
                 f"border: none; background: transparent; padding-right: 4px;"
             )
             row.addWidget(widget)
-            lay.addLayout(row)
+            return row_w
+
+        lay.addWidget(_add_total_row(self.lbl_gross_cap, self.lbl_gross, False))
+        self._gst_row = _add_total_row(self.lbl_gst_cap, self.lbl_gst, False)
+        lay.addWidget(self._gst_row)
+        lay.addWidget(_add_total_row(self.lbl_net_cap, self.lbl_net, True))
 
         if self.is_sales:
             # Divider then remarks — same card, tight spacing (no collapsed gap)
@@ -1018,8 +1089,15 @@ class TransactionEntryScreen(QWidget):
             party_name = self.party_input.text().strip() or self.party.currentText()
         else:
             party_name = self.party.currentText()
+        hist_mode = self.mode
+        if self.is_sales:
+            kind = self._voucher_kind()
+            if kind == "estimate":
+                hist_mode = "estimate"
+            elif kind == "return":
+                hist_mode = "sales_return"
         dlg = PartyHistoryDialog(
-            mode=self.mode,
+            mode=hist_mode,
             party_name=party_name,
             parent=self.window(),
         )
@@ -1027,6 +1105,43 @@ class TransactionEntryScreen(QWidget):
             self.rate.setValue(float(dlg.selected_rate))
             toast(self, f"Applied rate {format_inr_indian(dlg.selected_rate)}")
             self.qty.setFocus()
+
+    def _on_voucher_type_changed(self, *_):
+        """Toggle Estimate UI: hide Disc/GST, net without tax, swap previous details."""
+        if not self.is_sales:
+            return
+        est = self.is_estimate
+        if hasattr(self, "disc_field"):
+            self.disc_field.setVisible(not est)
+        if hasattr(self, "gst_field"):
+            self.gst_field.setVisible(not est)
+        if hasattr(self, "grid"):
+            self.grid.setColumnHidden(4, est)  # Disc %
+            self.grid.setColumnHidden(5, est)  # GST %
+        if hasattr(self, "_gst_row"):
+            self._gst_row.setVisible(not est)
+        if hasattr(self, "lbl_gross_cap"):
+            self.lbl_gross_cap.setText("Gross Amount:" if est else "Gross Taxable:")
+        if hasattr(self, "lbl_net_cap"):
+            self.lbl_net_cap.setText("Net Amount:" if est else "Net Payable:")
+        # Doc number series by voucher type
+        if hasattr(self, "doc_no"):
+            kind = self._voucher_kind()
+            if kind == "estimate":
+                self.doc_no.setText("EST/26-27/0089")
+            elif kind == "return":
+                self.doc_no.setText("SR/26-27/0043")
+            else:
+                self.doc_no.setText("SLE/26-27/0840")
+        if hasattr(self, "remarks"):
+            ph = (
+                "Optional narration for this estimate…"
+                if est
+                else "Optional narration for this invoice…"
+            )
+            self.remarks.setPlaceholderText(ph)
+        self._reload_prev_details()
+        self._recalc()
 
     # ── Calc / save ──────────────────────────────────────────
     def _parse_qty(self, text: str) -> float:
@@ -1038,6 +1153,7 @@ class TransactionEntryScreen(QWidget):
     def _recalc(self):
         taxable = tax = qty_total = 0.0
         items = 0
+        estimate = self.is_estimate
         for r in range(self.grid.rowCount()):
             name = self.grid.item(r, 1)
             if not name or not name.text().strip():
@@ -1048,14 +1164,18 @@ class TransactionEntryScreen(QWidget):
                 rate = float((self.grid.item(r, 3).text() or "0").replace(",", ""))
             except ValueError:
                 rate = 0.0
-            try:
-                disc = float((self.grid.item(r, 4).text() or "0").replace("%", ""))
-            except ValueError:
+            if estimate:
                 disc = 0.0
-            try:
-                gst = float((self.grid.item(r, 5).text() or "0").replace("%", ""))
-            except ValueError:
                 gst = 0.0
+            else:
+                try:
+                    disc = float((self.grid.item(r, 4).text() or "0").replace("%", ""))
+                except ValueError:
+                    disc = 0.0
+                try:
+                    gst = float((self.grid.item(r, 5).text() or "0").replace("%", ""))
+                except ValueError:
+                    gst = 0.0
             line = qty * rate * (1 - disc / 100)
             taxable += line
             tax += line * gst / 100
@@ -1066,9 +1186,9 @@ class TransactionEntryScreen(QWidget):
                 amt.setText(f"{line:,.2f}")
             self.grid.blockSignals(False)
 
-        net = taxable + tax
+        net = taxable if estimate else (taxable + tax)
         self.lbl_gross.setText(format_inr_indian(taxable))
-        self.lbl_gst.setText(format_inr_indian(tax))
+        self.lbl_gst.setText(format_inr_indian(0.0 if estimate else tax))
         self.lbl_net.setText(format_inr_indian(net))
         self.items_lbl.setText(f"Total Items: {items}")
         unit = "Units"

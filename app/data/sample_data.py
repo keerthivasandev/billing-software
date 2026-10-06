@@ -547,6 +547,30 @@ PREV_PURCHASES = [
      "rate": 925.00, "qty": 50, "unit": "Coil", "amount": 46250.00},
 ]
 
+# Previous estimates shown under Sales Entry when voucher type = Estimate
+PREV_ESTIMATES = [
+    {"inv": "EST/26-27/0088", "date": "28-Aug-2026", "item": "Polycab 2.5 sq mm FR Red",
+     "rate": 1380.00, "qty": 20, "unit": "ROL", "amount": 27600.00},
+    {"inv": "EST/26-27/0084", "date": "12-Aug-2026", "item": "Havells 16A Modular Switch 1-Way",
+     "rate": 78.00, "qty": 150, "unit": "NOS", "amount": 11700.00},
+    {"inv": "EST/26-27/0079", "date": "30-Jul-2026", "item": "Philips 20W LED Batten Tube Light",
+     "rate": 225.00, "qty": 50, "unit": "NOS", "amount": 11250.00},
+    {"inv": "EST/26-27/0072", "date": "15-Jul-2026", "item": "Finolex 1.5 sq mm 90m Copper Wire",
+     "rate": 1050.00, "qty": 25, "unit": "ROL", "amount": 26250.00},
+]
+
+# Previous sales returns (voucher type = Sales Return)
+PREV_SALES_RETURNS = [
+    {"inv": "SR/26-27/0042", "date": "22-Aug-2026", "item": "Polycab 2.5 sq mm FR Red",
+     "rate": 1420.00, "qty": 2, "unit": "ROL", "amount": 2840.00},
+    {"inv": "SR/26-27/0038", "date": "08-Aug-2026", "item": "Havells 16A Modular Switch 1-Way",
+     "rate": 82.00, "qty": 10, "unit": "NOS", "amount": 820.00},
+    {"inv": "SR/26-27/0031", "date": "19-Jul-2026", "item": "Philips 20W LED Batten Tube Light",
+     "rate": 235.00, "qty": 5, "unit": "NOS", "amount": 1175.00},
+    {"inv": "SR/26-27/0025", "date": "02-Jul-2026", "item": "Finolex 1.5 sq mm 90m Copper Wire",
+     "rate": 1090.00, "qty": 3, "unit": "ROL", "amount": 3270.00},
+]
+
 # Stitch Alt+H history modals (Purchase / Sales)
 PURCHASE_HISTORY = [
     {"inv": "PUR-8420", "date": "12-Aug-2026", "party_inv": "PC/INV/8821",

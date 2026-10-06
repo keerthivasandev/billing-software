@@ -89,10 +89,36 @@ class PartyHistoryDialog(QDialog):
             self.reject()
 
     def _is_sales(self):
-        return self.mode == "sales"
+        return self.mode in ("sales", "sales_return", "estimate")
+
+    def _is_estimate(self):
+        return self.mode == "estimate"
+
+    def _is_sales_return(self):
+        return self.mode == "sales_return"
 
     def _rows(self):
-        return list(D.SALES_HISTORY if self._is_sales() else D.PURCHASE_HISTORY)
+        if self._is_estimate():
+            return [
+                {
+                    "inv": r["inv"], "date": r["date"], "vehicle": "—",
+                    "item": r["item"], "qty": r["qty"], "unit": r["unit"],
+                    "rate": r["rate"], "disc": 0.0, "gst": 0.0, "amount": r["amount"],
+                }
+                for r in D.PREV_ESTIMATES
+            ]
+        if self._is_sales_return():
+            return [
+                {
+                    "inv": r["inv"], "date": r["date"], "vehicle": "—",
+                    "item": r["item"], "qty": r["qty"], "unit": r["unit"],
+                    "rate": r["rate"], "disc": 0.0, "gst": 18.0, "amount": r["amount"],
+                }
+                for r in D.PREV_SALES_RETURNS
+            ]
+        if self.mode == "sales":
+            return list(D.SALES_HISTORY)
+        return list(D.PURCHASE_HISTORY)
 
     def _header(self) -> QFrame:
         box = QFrame()
@@ -126,14 +152,29 @@ class PartyHistoryDialog(QDialog):
         title_row.setSpacing(8)
         if self._is_sales():
             name = self.party_name or "Balaji Electricals & Hardware"
-            ttl = QLabel(f"Sales History — {name}")
-            badge = S.pill("Active Customer", "success")
-            meta = (
-                "Customer Code: CUST-0182 · GSTIN: 36ABCDE1234F1Z5 · "
-                "Total Lifetime Invoices: 38 · "
-                f"<span style='color:{T.DANGER};font-weight:700'>Pending Bal: "
-                f"{format_inr_indian(42500)} Dr</span>"
-            )
+            if self._is_estimate():
+                ttl = QLabel(f"Estimate History — {name}")
+                badge = S.pill("Quotations", "neutral")
+                meta = (
+                    "Customer Code: CUST-0182 · GSTIN: 36ABCDE1234F1Z5 · "
+                    "Total Lifetime Estimates: 12 · Amounts shown without GST"
+                )
+            elif self._is_sales_return():
+                ttl = QLabel(f"Sales Return History — {name}")
+                badge = S.pill("Active Customer", "success")
+                meta = (
+                    "Customer Code: CUST-0182 · GSTIN: 36ABCDE1234F1Z5 · "
+                    "Total Credit Notes: 8"
+                )
+            else:
+                ttl = QLabel(f"Sales History — {name}")
+                badge = S.pill("Active Customer", "success")
+                meta = (
+                    "Customer Code: CUST-0182 · GSTIN: 36ABCDE1234F1Z5 · "
+                    "Total Lifetime Invoices: 38 · "
+                    f"<span style='color:{T.DANGER};font-weight:700'>Pending Bal: "
+                    f"{format_inr_indian(42500)} Dr</span>"
+                )
         else:
             name = self.party_name or "Polycab India Ltd (Factory Depot)"
             ttl = QLabel(f"Purchase History — {name}")
@@ -242,7 +283,17 @@ class PartyHistoryDialog(QDialog):
         lay.setContentsMargins(20, 12, 20, 12)
         lay.setSpacing(0)
 
-        if self._is_sales():
+        if self._is_estimate():
+            cols = [
+                "Est. No.", "Date", "Vehicle No.", "Item Description", "Qty", "Unit",
+                "Rate (₹)", "Disc %", "GST %", "Net Amount (₹)",
+            ]
+        elif self._is_sales_return():
+            cols = [
+                "SR No.", "Date", "Vehicle No.", "Item Description", "Qty", "Unit",
+                "Rate (₹)", "Disc %", "GST %", "Net Amount (₹)",
+            ]
+        elif self._is_sales():
             cols = [
                 "Inv. No.", "Date", "Vehicle No.", "Item Description", "Qty", "Unit",
                 "Rate (₹)", "Disc %", "GST %", "Net Amount (₹)",
@@ -262,6 +313,9 @@ class PartyHistoryDialog(QDialog):
         for c in range(len(cols)):
             if c != 3:
                 hdr.setSectionResizeMode(c, QHeaderView.ResizeToContents)
+        if self._is_estimate():
+            self.table.setColumnHidden(7, True)  # Disc %
+            self.table.setColumnHidden(8, True)  # GST %
         S.apply_table_style(self.table)
         # Extra roomy padding for history modal table
         row_h = max(T.GRID_ROW_H + 8, 46)
@@ -298,7 +352,19 @@ class PartyHistoryDialog(QDialog):
 
         rows = self._rows()
         total = sum(r["amount"] for r in rows)
-        if self._is_sales():
+        if self._is_estimate():
+            summary = (
+                f"Showing: {len(rows)} estimates  ·  "
+                f"Quoted Total (ex-GST): <b style='color:{S.PRIMARY}'>"
+                f"{format_inr_indian(total)}</b>"
+            )
+        elif self._is_sales_return():
+            summary = (
+                f"Showing: {len(rows)} returns  ·  "
+                f"Return Total: <b style='color:{S.PRIMARY}'>"
+                f"{format_inr_indian(total)}</b>"
+            )
+        elif self._is_sales():
             summary = (
                 f"Showing: {len(rows)} of 38 records  ·  "
                 f"Customer Total Billed: <b style='color:{S.PRIMARY}'>"
@@ -375,14 +441,26 @@ class PartyHistoryDialog(QDialog):
         n = len(rows)
         if not hasattr(self, "summary"):
             return
-        if self._is_sales():
+        tot = sum(r["amount"] for r in rows)
+        if self._is_estimate():
+            self.summary.setText(
+                f"Showing: {n} estimates  ·  "
+                f"Quoted Total (ex-GST): <b style='color:{S.PRIMARY}'>"
+                f"{format_inr_indian(tot)}</b>"
+            )
+        elif self._is_sales_return():
+            self.summary.setText(
+                f"Showing: {n} returns  ·  "
+                f"Return Total: <b style='color:{S.PRIMARY}'>"
+                f"{format_inr_indian(tot)}</b>"
+            )
+        elif self._is_sales():
             self.summary.setText(
                 f"Showing: {n} of 38 records  ·  "
                 f"Customer Total Billed: <b style='color:{S.PRIMARY}'>"
                 f"{format_inr_indian(582450)}</b>  ·  Avg Payment Cycle: 22 Days"
             )
         else:
-            tot = sum(r["amount"] for r in rows)
             self.summary.setText(
                 f"Showing {n} of 24 records  ·  "
                 f"Supplier Inward Total: <b style='color:{S.PRIMARY}'>"
