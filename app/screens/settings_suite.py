@@ -1,39 +1,18 @@
-"""Settings — Audit Trail, Users, A/c Year Management."""
+"""Settings — Users, A/c Year Management (A/c Log lives in ac_log_customer)."""
 
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import (
-    QAbstractItemView, QCheckBox, QComboBox, QFormLayout, QFrame, QHBoxLayout,
-    QHeaderView, QLabel, QLineEdit, QListWidget, QListWidgetItem, QTableWidget,
-    QTableWidgetItem, QVBoxLayout, QWidget,
+    QCheckBox, QComboBox, QFormLayout, QFrame, QHBoxLayout, QLabel, QLineEdit,
+    QListWidget, QListWidgetItem, QVBoxLayout, QWidget,
 )
 
 from app.data import sample_data as D
+from app.screens.ac_log_customer import AuditTrailScreen  # noqa: F401 — re-export
 from app.styles import tokens as T
 from app.widgets import stitch_ui as S
 from app.widgets.helpers import (
-    card_frame, field_label, make_button, page_title, toast, ui_font,
+    card_frame, field_label, make_button, page_title, toast,
 )
-
-
-class AuditTrailScreen(QWidget):
-    def __init__(self, parent=None):
-        super().__init__(parent)
-        root = QVBoxLayout(self)
-        root.setContentsMargins(12, 12, 12, 12)
-        root.setSpacing(10)
-        root.addWidget(page_title("4.1 Audit Trail / Operator Logs"))
-
-        self.table = QTableWidget(len(D.AUDIT_LOG), 4)
-        self.table.setHorizontalHeaderLabels(["Timestamp", "User", "Module", "Action"])
-        self.table.setEditTriggers(QAbstractItemView.NoEditTriggers)
-        self.table.horizontalHeader().setSectionResizeMode(3, QHeaderView.Stretch)
-        S.apply_table_style(self.table)
-        for r, row in enumerate(D.AUDIT_LOG):
-            for c, key in enumerate(("ts", "user", "module", "action")):
-                it = QTableWidgetItem(row[key])
-                it.setFont(ui_font(T.FONT_SIZE_GRID))
-                self.table.setItem(r, c, it)
-        root.addWidget(self.table, stretch=1)
 
 
 class UsersScreen(QWidget):

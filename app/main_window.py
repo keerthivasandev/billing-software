@@ -648,7 +648,7 @@ class MainWindow(QMainWindow):
             from app.screens.reports_suite import ExportToolsScreen
             return ExportToolsScreen()
         if key == "audit_trail":
-            from app.screens.settings_suite import AuditTrailScreen
+            from app.screens.ac_log_customer import AuditTrailScreen
             return AuditTrailScreen()
         if key == "users":
             from app.screens.settings_suite import UsersScreen
