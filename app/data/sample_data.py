@@ -1010,4 +1010,29 @@ USER_PRIVILEGES = [
 ]
 
 MACHINE_ID = "HW-A7F3-C91E-4B2D-88E0"
-LICENSE_STATUS = "Not Activated"
+LICENSE_STATUS = "Activated"
+LICENSE = {
+    "status": "Active & Valid (Enterprise Node License)",
+    "entity": "Sri Lakshmi Electricals",
+    "entity_loc": "(Ranigunj, Secunderabad)",
+    "edition": "Enterprise Edition v4.8",
+    "product_key": "SLE26-WHLS8-9421A-BK77X-••••-0989Z",
+    "activated_at": "01-Apr-2026 09:30 AM IST",
+    "expires_at": "31-Mar-2027 11:59 PM IST",
+    "grace_days": 15,
+    "features": [
+        "Invoicing & E-Way Generation",
+        "Multi-User LAN (3 Nodes Cap)",
+        "Full Audit Log Trail (Sec 4.1)",
+        "Barcode Printing & Scanner Module",
+    ],
+    "hw_signature": "SLE-WIN11-HYD01-984F-A41C-2026",
+    "hw_matched": True,
+    "ip_binding": "Local LAN: 192.168.1.104 (Static)",
+    "last_verified": "20-Sep-2026 02:45 PM (Offline Check)",
+    "partner": "Deccan Tech Solutions & ERP Services",
+    "partner_address": "5-2-120 Hill Street, Secunderabad, TS - 500003",
+    "helpline": "+91 98480 23411",
+    "hours": "Working Hours: Mon-Sat 09:00 - 20:00 IST",
+    "footer": "Sri Lakshmi Electricals ERP v4.8.2 • Node Lock Active (Hardware Match OK)",
+}

@@ -283,56 +283,79 @@ class AccountYearManagementScreen(QWidget):
     # ══════════════════════════════════════════════════════════
     # LEFT: 4.3 CHANGE ACTIVE ACCOUNTING YEAR
     # ══════════════════════════════════════════════════════════
+    def _panel_header(self, icon: str, title: str, badge: str, *, badge_primary=False) -> QFrame:
+        """Stitch pb-2 border-b — compact header, no extra spacer line."""
+        head = QFrame()
+        head.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
+        head.setStyleSheet(
+            f"QFrame {{ background: transparent; border: none; "
+            f"border-bottom: 1px solid {T.BORDER}; }}"
+        )
+        lay = QHBoxLayout(head)
+        lay.setContentsMargins(0, 0, 0, 8)  # pb-2
+        lay.setSpacing(6)
+        ic = QLabel()
+        ic.setFixedSize(16, 16)
+        ic.setPixmap(icon_pixmap(icon, size=16, color=S.PRIMARY))
+        ic.setStyleSheet("background: transparent; border: none;")
+        lay.addWidget(ic)
+        ttl = QLabel(title)
+        ttl.setStyleSheet(
+            f"color: {T.TEXT_PRIMARY}; font-size: 11px; font-weight: 700; "
+            f"letter-spacing: 0.4px; border: none; background: transparent;"
+        )
+        lay.addWidget(ttl)
+        lay.addStretch(1)
+        pill = QLabel(badge)
+        if badge_primary:
+            pill.setStyleSheet(
+                f"color: {S.PRIMARY}; background: {T.PRIMARY_FIXED}; border: none; "
+                f"border-radius: {S.R}px; padding: 1px 6px; font-size: 10px; font-weight: 700; "
+                f"font-family: Consolas, monospace;"
+            )
+        else:
+            pill.setStyleSheet(
+                f"color: {T.TEXT_SECONDARY}; background: {T.SURFACE_CONTAINER}; border: none; "
+                f"border-radius: {S.R}px; padding: 1px 6px; font-size: 10px; font-weight: 600; "
+                f"font-family: Consolas, monospace;"
+            )
+        lay.addWidget(pill)
+        return head
+
     def _change_panel(self) -> QFrame:
         box = S.card()
         lay = QVBoxLayout(box)
-        lay.setContentsMargins(12, 12, 12, 12)
-        lay.setSpacing(10)
+        lay.setContentsMargins(12, 12, 12, 12)  # p-3
+        lay.setSpacing(10)  # gap-2.5
+        lay.setAlignment(Qt.AlignTop)
 
-        # Header (flat, bottom border — not grey band)
-        head = QHBoxLayout()
-        hl = QHBoxLayout()
-        hl.setSpacing(6)
-        ic = QLabel()
-        ic.setFixedSize(16, 16)
-        ic.setPixmap(icon_pixmap("published_with_changes", size=16, color=S.PRIMARY))
-        ic.setStyleSheet("background: transparent; border: none;")
-        hl.addWidget(ic)
-        ttl = QLabel("4.3 CHANGE ACTIVE ACCOUNTING YEAR")
-        ttl.setStyleSheet(
-            f"color: {T.TEXT_PRIMARY}; font-size: 11px; font-weight: 700; "
-            f"letter-spacing: 0.5px; border: none; background: transparent;"
-        )
-        hl.addWidget(ttl)
-        head.addLayout(hl)
-        head.addStretch()
-        badge = QLabel("3 Partitions Available")
-        badge.setStyleSheet(
-            f"color: {T.TEXT_SECONDARY}; background: {T.SURFACE_CONTAINER}; border: none; "
-            f"border-radius: {S.R}px; padding: 2px 6px; font-size: 10px; font-weight: 600; "
-            f"font-family: Consolas, monospace;"
-        )
-        head.addWidget(badge)
-        lay.addLayout(head)
+        # Top content block (no stretch — prevents balloon gaps)
+        top = QVBoxLayout()
+        top.setContentsMargins(0, 0, 0, 0)
+        top.setSpacing(10)
+        top.setAlignment(Qt.AlignTop)
 
-        line = QFrame()
-        line.setFixedHeight(1)
-        line.setStyleSheet(f"background: {T.BORDER}; border: none;")
-        lay.addWidget(line)
+        top.addWidget(self._panel_header(
+            "published_with_changes",
+            "4.3 CHANGE ACTIVE ACCOUNTING YEAR",
+            "3 Partitions Available",
+        ))
 
         desc = QLabel(
             "Switch working session partition. This reloads your current counter register, "
             "sales ledger, and daily stock tally to the target fiscal period."
         )
         desc.setWordWrap(True)
+        desc.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
         desc.setStyleSheet(
             f"color: {T.TEXT_SECONDARY}; font-size: 12px; "
             f"border: none; background: transparent;"
         )
-        lay.addWidget(desc)
+        top.addWidget(desc)
 
-        # Radio table
+        # Radio table — fixed height rows, no vertical expand
         table = QFrame()
+        table.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Maximum)
         table.setStyleSheet(
             f"QFrame {{ background: {T.SURFACE}; border: 1px solid {T.BORDER}; "
             f"border-radius: {S.R}px; }}"
@@ -350,10 +373,11 @@ class AccountYearManagementScreen(QWidget):
             self._row_host.addWidget(row)
             self._row_frames.append(row)
         tl.addLayout(self._row_host)
-        lay.addWidget(table)
+        top.addWidget(table)
 
         # Session metadata
         meta = QFrame()
+        meta.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
         meta.setStyleSheet(
             f"QFrame {{ background: {T.SURFACE_CONTAINER_LOW}; border: 1px solid {T.BORDER}; "
             f"border-radius: {S.R}px; }}"
@@ -381,10 +405,11 @@ class AccountYearManagementScreen(QWidget):
             )
             r.addWidget(b)
             ml.addLayout(r)
-        lay.addWidget(meta)
+        top.addWidget(meta)
 
         # Partition warning
         note = QFrame()
+        note.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
         note.setStyleSheet(
             f"QFrame {{ background: {_AMBER_50}; border: 1px solid {_AMBER_200}; "
             f"border-radius: {S.R}px; }}"
@@ -407,52 +432,76 @@ class AccountYearManagementScreen(QWidget):
             f"color: {_AMBER_900}; font-size: 11px; border: none; background: transparent;"
         )
         nl.addWidget(ntxt, stretch=1)
-        lay.addWidget(note)
+        top.addWidget(note)
 
-        # Actions
-        sep = QFrame()
-        sep.setFixedHeight(1)
-        sep.setStyleSheet(f"background: {T.BORDER}; border: none;")
-        lay.addWidget(sep)
-        actions = QHBoxLayout()
+        lay.addLayout(top)
+        lay.addStretch(1)  # only gap sits above footer (justify-between)
+
+        # Actions — pt-2 border-t
+        actions_wrap = QFrame()
+        actions_wrap.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
+        actions_wrap.setStyleSheet(
+            f"QFrame {{ background: transparent; border: none; "
+            f"border-top: 1px solid {T.BORDER}; }}"
+        )
+        actions = QHBoxLayout(actions_wrap)
+        actions.setContentsMargins(0, 8, 0, 0)
         actions.setSpacing(8)
         actions.addWidget(self._secondary_btn("Re-check Partition", "sync", self._recheck))
         actions.addStretch()
         actions.addWidget(
             self._primary_btn("Switch Active A/c Year", "check_circle", "Enter", self._switch)
         )
-        lay.addLayout(actions)
+        lay.addWidget(actions_wrap)
         return box
+
+    # Column widths — dense like Stitch table (Select w-8)
+    _COL_SELECT = 36
+    _COL_VOUCHERS = 64
+    _COL_ACCESS = 118
 
     def _table_header(self) -> QFrame:
         hdr = QFrame()
+        hdr.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
         hdr.setStyleSheet(
             f"QFrame {{ background: {T.HEADER_BAND}; border: none; "
             f"border-bottom: 1px solid {T.BORDER}; "
             f"border-top-left-radius: {S.R}px; border-top-right-radius: {S.R}px; }}"
         )
         lay = QHBoxLayout(hdr)
-        lay.setContentsMargins(10, 6, 10, 6)
-        lay.setSpacing(0)
-        for text, stretch, align in (
-            ("SELECT", 1, Qt.AlignCenter),
-            ("FINANCIAL YEAR & STATUS", 4, Qt.AlignLeft),
-            ("FISCAL PERIOD", 3, Qt.AlignLeft),
-            ("VOUCHERS", 2, Qt.AlignRight),
-            ("ACCESS", 2, Qt.AlignRight),
-        ):
-            lab = QLabel(text)
-            lab.setAlignment(align | Qt.AlignVCenter)
-            lab.setStyleSheet(
-                f"color: {T.TEXT_SECONDARY}; font-size: 10px; font-weight: 700; "
-                f"letter-spacing: 0.4px; border: none; background: transparent;"
-            )
-            lay.addWidget(lab, stretch)
+        lay.setContentsMargins(10, 6, 10, 6)  # py-2 px-2.5
+        lay.setSpacing(8)
+        th = (
+            f"color: {T.TEXT_SECONDARY}; font-size: 10px; font-weight: 700; "
+            f"letter-spacing: 0.3px; border: none; background: transparent;"
+        )
+        sel = QLabel("SELECT")
+        sel.setFixedWidth(self._COL_SELECT)
+        sel.setAlignment(Qt.AlignCenter)
+        sel.setStyleSheet(th)
+        lay.addWidget(sel)
+        fy = QLabel("FINANCIAL YEAR & STATUS")
+        fy.setStyleSheet(th)
+        lay.addWidget(fy, 5)
+        period = QLabel("FISCAL PERIOD")
+        period.setStyleSheet(th)
+        lay.addWidget(period, 4)
+        vouch = QLabel("VOUCHERS")
+        vouch.setFixedWidth(self._COL_VOUCHERS)
+        vouch.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
+        vouch.setStyleSheet(th)
+        lay.addWidget(vouch)
+        access = QLabel("ACCESS")
+        access.setFixedWidth(self._COL_ACCESS)
+        access.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
+        access.setStyleSheet(th)
+        lay.addWidget(access)
         return hdr
 
     def _table_row(self, idx: int, p: dict) -> QFrame:
         selected = idx == self._selected
         row = QFrame()
+        row.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
         row.setCursor(QCursor(Qt.PointingHandCursor))
         if selected:
             row.setStyleSheet(
@@ -466,11 +515,13 @@ class AccountYearManagementScreen(QWidget):
                 f"QFrame:hover {{ background: {T.SURFACE_CONTAINER_LOW}; }}"
             )
         lay = QHBoxLayout(row)
-        lay.setContentsMargins(10, 8, 10, 8)
-        lay.setSpacing(0)
+        lay.setContentsMargins(10, 6, 10, 6)  # py-2 compact
+        lay.setSpacing(8)
+        lay.setAlignment(Qt.AlignVCenter)
 
         # Select
         rb_wrap = QWidget()
+        rb_wrap.setFixedWidth(self._COL_SELECT)
         rb_wrap.setStyleSheet("background: transparent;")
         rbl = QHBoxLayout(rb_wrap)
         rbl.setContentsMargins(0, 0, 0, 0)
@@ -494,15 +545,16 @@ class AccountYearManagementScreen(QWidget):
         rb.toggled.connect(lambda on, i=idx: on and self._select_year(i))
         self._radio_group.addButton(rb, idx)
         self._radios.append(rb)
-        rbl.addWidget(rb)
-        lay.addWidget(rb_wrap, 1)
+        rbl.addWidget(rb, 0, Qt.AlignCenter)
+        lay.addWidget(rb_wrap, 0, Qt.AlignVCenter)
 
         # FY + status + partition
         fy_wrap = QWidget()
+        fy_wrap.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
         fy_wrap.setStyleSheet("background: transparent;")
         fyl = QVBoxLayout(fy_wrap)
         fyl.setContentsMargins(0, 0, 0, 0)
-        fyl.setSpacing(2)
+        fyl.setSpacing(1)
         top = QHBoxLayout()
         top.setSpacing(6)
         code_color = S.PRIMARY if selected else T.TEXT_PRIMARY
@@ -532,7 +584,7 @@ class AccountYearManagementScreen(QWidget):
             f"border: none; background: transparent;"
         )
         fyl.addWidget(part)
-        lay.addWidget(fy_wrap, 4)
+        lay.addWidget(fy_wrap, 5)
 
         # Period
         period_color = T.TEXT_PRIMARY if selected else T.TEXT_SECONDARY
@@ -541,19 +593,21 @@ class AccountYearManagementScreen(QWidget):
             f"color: {period_color}; font-size: 11px; font-family: Consolas, monospace; "
             f"border: none; background: transparent;"
         )
-        lay.addWidget(period, 3)
+        lay.addWidget(period, 4)
 
         # Vouchers (right)
         vouch = QLabel(f"{p['vouchers']:,}")
+        vouch.setFixedWidth(self._COL_VOUCHERS)
         vouch.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
         vouch.setStyleSheet(
             f"color: {period_color}; font-size: 12px; font-weight: 700; "
             f"font-family: Consolas, monospace; border: none; background: transparent;"
         )
-        lay.addWidget(vouch, 2)
+        lay.addWidget(vouch)
 
         # Access (right)
         access_wrap = QWidget()
+        access_wrap.setFixedWidth(self._COL_ACCESS)
         access_wrap.setStyleSheet("background: transparent;")
         al = QHBoxLayout(access_wrap)
         al.setContentsMargins(0, 0, 0, 0)
@@ -587,7 +641,7 @@ class AccountYearManagementScreen(QWidget):
                 f"font-family: Consolas, monospace;"
             )
             al.addWidget(at)
-        lay.addWidget(access_wrap, 2)
+        lay.addWidget(access_wrap)
 
         row.mousePressEvent = (
             lambda e, i=idx: self._select_year(i) if e.button() == Qt.LeftButton else None
@@ -620,55 +674,38 @@ class AccountYearManagementScreen(QWidget):
     def _create_panel(self) -> QFrame:
         box = S.card()
         outer = QVBoxLayout(box)
-        outer.setContentsMargins(12, 12, 12, 12)
-        outer.setSpacing(10)
+        outer.setContentsMargins(12, 12, 12, 12)  # p-3
+        outer.setSpacing(10)  # gap-2.5
+        outer.setAlignment(Qt.AlignTop)
 
+        # Packed content — Fixed/Maximum height so stretch cannot inflate gaps
         content = QVBoxLayout()
+        content.setContentsMargins(0, 0, 0, 0)
         content.setSpacing(10)
+        content.setAlignment(Qt.AlignTop)
 
-        head = QHBoxLayout()
-        hl = QHBoxLayout()
-        hl.setSpacing(6)
-        ic = QLabel()
-        ic.setFixedSize(16, 16)
-        ic.setPixmap(icon_pixmap("calendar_add_on", size=16, color=S.PRIMARY))
-        ic.setStyleSheet("background: transparent; border: none;")
-        hl.addWidget(ic)
-        ttl = QLabel("4.4 CREATE & INITIALIZE NEW A/C YEAR")
-        ttl.setStyleSheet(
-            f"color: {T.TEXT_PRIMARY}; font-size: 11px; font-weight: 700; "
-            f"letter-spacing: 0.5px; border: none; background: transparent;"
-        )
-        hl.addWidget(ttl)
-        head.addLayout(hl)
-        head.addStretch()
-        badge = QLabel("Annual Rollover")
-        badge.setStyleSheet(
-            f"color: {S.PRIMARY}; background: {T.PRIMARY_FIXED}; border: none; "
-            f"border-radius: {S.R}px; padding: 2px 6px; font-size: 10px; font-weight: 700; "
-            f"font-family: Consolas, monospace;"
-        )
-        head.addWidget(badge)
-        content.addLayout(head)
-
-        line = QFrame()
-        line.setFixedHeight(1)
-        line.setStyleSheet(f"background: {T.BORDER}; border: none;")
-        content.addWidget(line)
+        content.addWidget(self._panel_header(
+            "calendar_add_on",
+            "4.4 CREATE & INITIALIZE NEW A/C YEAR",
+            "Annual Rollover",
+            badge_primary=True,
+        ))
 
         desc = QLabel(
             "Initialize the next financial year partition. Balances, stock quantities, "
             "and ledgers will be verified and transferred seamlessly without mutative downtime."
         )
         desc.setWordWrap(True)
+        desc.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
         desc.setStyleSheet(
             f"color: {T.TEXT_SECONDARY}; font-size: 12px; "
             f"border: none; background: transparent;"
         )
         content.addWidget(desc)
 
-        # Section 1 — grey container
+        # Section 1 — grey container p-2.5 gap-2
         sec1 = QFrame()
+        sec1.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Maximum)
         sec1.setStyleSheet(
             f"QFrame {{ background: {T.SURFACE_CONTAINER_LOW}; border: 1px solid {T.BORDER}; "
             f"border-radius: {S.R}px; }}"
@@ -698,8 +735,13 @@ class AccountYearManagementScreen(QWidget):
         s1.addLayout(g2)
         content.addWidget(sec1)
 
-        # Section 2
-        content.addWidget(self._sec_label("fact_check", "Section 2: Carry Forward & Schema Integrity Rules"))
+        # Section 2 — gap-1.5 between rule cards (6px)
+        sec2 = QVBoxLayout()
+        sec2.setContentsMargins(0, 0, 0, 0)
+        sec2.setSpacing(6)
+        sec2.addWidget(self._sec_label(
+            "fact_check", "Section 2: Carry Forward & Schema Integrity Rules",
+        ))
         for title, sub in (
             (
                 "Party Ledger Closing Balances",
@@ -714,10 +756,12 @@ class AccountYearManagementScreen(QWidget):
                 "Protect older vouchers against backdated alterations or deletions post rollover",
             ),
         ):
-            content.addWidget(self._rule_row(title, sub))
+            sec2.addWidget(self._rule_row(title, sub))
+        content.addLayout(sec2)
 
-        # Section 3 — surface-container (slightly darker)
+        # Section 3
         sec3 = QFrame()
+        sec3.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Maximum)
         sec3.setStyleSheet(
             f"QFrame {{ background: {T.SURFACE_CONTAINER}; border: 1px solid {T.BORDER}; "
             f"border-radius: {S.R}px; }}"
@@ -774,14 +818,17 @@ class AccountYearManagementScreen(QWidget):
         s3.addLayout(auth)
         content.addWidget(sec3)
 
-        outer.addLayout(content, stretch=1)
+        outer.addLayout(content)
+        outer.addStretch(1)  # single justify-between spacer before footer
 
-        # Footer actions
-        sep = QFrame()
-        sep.setFixedHeight(1)
-        sep.setStyleSheet(f"background: {T.BORDER}; border: none;")
-        outer.addWidget(sep)
-        foot = QHBoxLayout()
+        foot_wrap = QFrame()
+        foot_wrap.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
+        foot_wrap.setStyleSheet(
+            f"QFrame {{ background: transparent; border: none; "
+            f"border-top: 1px solid {T.BORDER}; }}"
+        )
+        foot = QHBoxLayout(foot_wrap)
+        foot.setContentsMargins(0, 8, 0, 0)
         foot.setSpacing(8)
         note = QLabel("Note: Creates new ledger schema without mutating current entries.")
         note.setStyleSheet(
@@ -794,7 +841,7 @@ class AccountYearManagementScreen(QWidget):
                 "Create & Initialize FY 2027–28", "add_task", "F9", self._create,
             )
         )
-        outer.addLayout(foot)
+        outer.addWidget(foot_wrap)
         return box
 
     def _sec_label(self, icon: str, text: str) -> QWidget:
@@ -865,6 +912,7 @@ class AccountYearManagementScreen(QWidget):
 
     def _rule_row(self, title: str, sub: str) -> QFrame:
         cell = QFrame()
+        cell.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
         cell.setCursor(QCursor(Qt.PointingHandCursor))
         cell.setStyleSheet(
             f"QFrame {{ background: {T.SURFACE_CONTAINER_LOW}; border: 1px solid {T.BORDER}; "
@@ -872,7 +920,7 @@ class AccountYearManagementScreen(QWidget):
             f"QFrame:hover {{ background: {T.SURFACE_CONTAINER}; }}"
         )
         lay = QHBoxLayout(cell)
-        lay.setContentsMargins(8, 8, 8, 8)
+        lay.setContentsMargins(8, 8, 8, 8)  # p-2
         lay.setSpacing(8)
         cb = QCheckBox()
         cb.setChecked(True)
