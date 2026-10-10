@@ -5,7 +5,7 @@ import sys
 
 from PySide6.QtGui import QFont, QPalette, QColor
 from PySide6.QtWidgets import QApplication, QStyleFactory
-
+# from app.screens.license_dialog import LicenseActivationDialog
 from app.main_window import MainWindow
 from app.styles import tokens as T
 
@@ -27,6 +27,11 @@ def _apply_windows_like_palette(app: QApplication):
     pal.setColor(QPalette.ColorRole.Link, QColor(T.ACCENT))
     app.setPalette(pal)
 
+# This will show the license dialog first time the app is run
+# app = QApplication(sys.argv)
+# dlg = LicenseActivationDialog()
+# dlg.exec()
+# sys.exit(app.exec())
 
 def main():
     # Qt6 handles High-DPI scaling natively.
