@@ -918,16 +918,7 @@ class UsersScreen(QWidget):
         lay.setAlignment(Qt.AlignVCenter)
         cb = QCheckBox()
         cb.setEnabled(not locked)
-        cb.setStyleSheet(
-            f"""
-            QCheckBox {{
-                background: transparent; border: none; spacing: 0; padding: 0; margin: 0;
-            }}
-            QCheckBox::indicator {{
-                width: 15px; height: 15px;
-            }}
-            """
-        )
+        cb.setStyleSheet("background: transparent; border: none;")
         self._priv_checks[key] = cb
         lay.addWidget(cb, 0, Qt.AlignVCenter)
         col = QVBoxLayout()

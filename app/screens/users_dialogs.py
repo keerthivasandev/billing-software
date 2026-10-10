@@ -558,8 +558,7 @@ class ResetPasswordDialog(_UsersModalBase):
         self.force_change.setChecked(True)
         self.force_change.setStyleSheet(
             f"QCheckBox {{ color: {T.TEXT_PRIMARY}; font-size: 11px; font-weight: 500; "
-            f"border: none; background: transparent; spacing: 8px; }}"
-            f"QCheckBox::indicator {{ width: 14px; height: 14px; }}"
+            f"border: none; background: transparent; }}"
         )
         fl.addWidget(self.force_change)
         bl.addWidget(force)
