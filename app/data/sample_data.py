@@ -474,35 +474,188 @@ PENDING_ACTIONS = {
     "inventory": [("Below Reorder Level", 2)],
 }
 
+# Stitch 2.4 Billwise — Balaji Electricals pending sales invoices
 RECEIVABLES = [
-    {"party": "Anand Traders", "bill": "SI-1042", "date": date.today().isoformat(),
-     "due": (date.today() + timedelta(days=30)).isoformat(), "amount": 28450.00, "balance": 28450.00, "days": 0},
-    {"party": "Ganesh Hardware", "bill": "SI-1041", "date": (date.today() - timedelta(days=1)).isoformat(),
-     "due": (date.today() + timedelta(days=20)).isoformat(), "amount": 12300.00, "balance": 12300.00, "days": 1},
-    {"party": "Eastern Power Co", "bill": "SI-1035", "date": (date.today() - timedelta(days=12)).isoformat(),
-     "due": (date.today() - timedelta(days=5)).isoformat(), "amount": 8750.00, "balance": 8750.00, "days": 12},
-    {"party": "Bharat Electricals", "bill": "SI-1028", "date": (date.today() - timedelta(days=40)).isoformat(),
-     "due": (date.today() - timedelta(days=25)).isoformat(), "amount": 15600.00, "balance": 0.00, "days": 40},
+    # Stitch 2.4 Billwise — Balaji demo rows (exact invoice nos / amounts)
+    {"party": "Balaji Electricals & Hardware", "bill": "SLE/26-27/0742",
+     "date": "2026-08-15", "due": "2026-09-14",
+     "amount": 18250.00, "balance": 13250.00, "days": 36, "overdue": True},
+    {"party": "Balaji Electricals & Hardware", "bill": "SLE/26-27/0799",
+     "date": "2026-09-02", "due": "2026-10-02",
+     "amount": 20400.00, "balance": 20400.00, "days": 18, "overdue": False},
+    {"party": "Balaji Electricals & Hardware", "bill": "SLE/26-27/0843",
+     "date": "2026-09-20", "due": "2026-10-20",
+     "amount": 8850.00, "balance": 8850.00, "days": 0, "overdue": False},
+    {"party": "Venkateshwara Electricals & Hardware", "bill": "SLE/26-27/0801",
+     "date": "2026-08-22", "due": "2026-09-12",
+     "amount": 28500.00, "balance": 28500.00, "days": 29, "overdue": True},
+    {"party": "Venkateshwara Electricals & Hardware", "bill": "SLE/26-27/0825",
+     "date": "2026-09-10", "due": "2026-10-01",
+     "amount": 20000.00, "balance": 20000.00, "days": 10, "overdue": False},
+    {"party": "Sri Sai Builders & Infra Pvt Ltd", "bill": "SLE/26-27/0790",
+     "date": "2026-08-05", "due": "2026-09-04",
+     "amount": 75000.00, "balance": 62000.00, "days": 46, "overdue": True},
+    {"party": "Sri Sai Builders & Infra Pvt Ltd", "bill": "SLE/26-27/0840",
+     "date": "2026-09-18", "due": "2026-10-18",
+     "amount": 50000.00, "balance": 50000.00, "days": 2, "overdue": False},
+    {"party": "Meenakshi Enterprises", "bill": "SLE/26-27/0835",
+     "date": "2026-09-15", "due": "2026-09-30",
+     "amount": 14350.00, "balance": 14350.00, "days": 5, "overdue": False},
 ]
 
 PAYABLES = [
-    {"party": "Cauvery Agencies", "bill": "PI-0388", "date": date.today().isoformat(),
-     "due": (date.today() + timedelta(days=45)).isoformat(), "amount": 95600.00, "balance": 95600.00, "days": 0},
-    {"party": "Falcon Cables Ltd", "bill": "PI-0380", "date": (date.today() - timedelta(days=18)).isoformat(),
-     "due": (date.today() + timedelta(days=12)).isoformat(), "amount": 45000.00, "balance": 22000.00, "days": 18},
-    {"party": "Delta Switchgear", "bill": "PI-0375", "date": (date.today() - timedelta(days=35)).isoformat(),
-     "due": (date.today() - timedelta(days=5)).isoformat(), "amount": 31200.00, "balance": 0.00, "days": 35},
+    # Default supplier view — Polycab (same pattern as Balaji receivables)
+    {"party": "Polycab India Ltd", "bill": "PI/26-27/0362",
+     "date": "2026-08-10", "due": "2026-09-24",
+     "amount": 48200.00, "balance": 22000.00, "days": 41, "overdue": True},
+    {"party": "Polycab India Ltd", "bill": "PI/26-27/0379",
+     "date": "2026-08-28", "due": "2026-10-12",
+     "amount": 38500.00, "balance": 38500.00, "days": 23, "overdue": False},
+    {"party": "Polycab India Ltd", "bill": "PI/26-27/0388",
+     "date": "2026-09-12", "due": "2026-10-27",
+     "amount": 57100.00, "balance": 57100.00, "days": 8, "overdue": False},
+    {"party": "Havells India Limited", "bill": "PI/26-27/0380",
+     "date": "2026-08-28", "due": "2026-09-27",
+     "amount": 45000.00, "balance": 22000.00, "days": 23, "overdue": True},
+    {"party": "Havells India Limited", "bill": "PI/26-27/0391",
+     "date": "2026-09-14", "due": "2026-10-29",
+     "amount": 68000.00, "balance": 68000.00, "days": 6, "overdue": False},
+    {"party": "Polycab Wires Pvt Ltd", "bill": "PI/26-27/0371",
+     "date": "2026-08-20", "due": "2026-09-19",
+     "amount": 92000.00, "balance": 54000.00, "days": 31, "overdue": True},
+    {"party": "Polycab Wires Pvt Ltd", "bill": "PI/26-27/0395",
+     "date": "2026-09-16", "due": "2026-10-16",
+     "amount": 41200.00, "balance": 41200.00, "days": 4, "overdue": False},
+    {"party": "Finolex Cables", "bill": "PI/26-27/0375",
+     "date": "2026-08-15", "due": "2026-09-14",
+     "amount": 31200.00, "balance": 0.00, "days": 36, "overdue": False},
 ]
 
+# Stitch 2.3 Cash Flow Register sample rows
 CASH_ENTRIES = [
-    {"date": date.today().isoformat(), "kind": "In", "mode": "Cash", "ref": "RC-0211",
-     "purpose": "Customer receipt", "amount": 5000.00},
-    {"date": date.today().isoformat(), "kind": "Out", "mode": "Cash", "ref": "PY-0156",
-     "purpose": "Petty cash — courier", "amount": 350.00},
-    {"date": (date.today() - timedelta(days=1)).isoformat(), "kind": "In", "mode": "Bank Transfer",
-     "ref": "NEFT-8821", "purpose": "Eastern Power Co", "amount": 8750.00},
-    {"date": (date.today() - timedelta(days=1)).isoformat(), "kind": "Out", "mode": "Bank Transfer",
-     "ref": "PY-0155", "purpose": "Falcon Cables Ltd", "amount": 22000.00},
+    {"date": "2026-09-20", "time": "02:15 PM", "kind": "In", "mode": "Cash",
+     "ref": "CSH-IN-048", "party": "Balaji Electricals & Hardwares",
+     "purpose": "Debtors Collection · Against Bill #SLE/26-27/0839", "amount": 18500.00},
+    {"date": "2026-09-20", "time": "01:40 PM", "kind": "Out", "mode": "Cash",
+     "ref": "CSH-OUT-019", "party": "Hamali & Loading Charges",
+     "purpose": "Warehouse Expense · Tempo TS09-UB-4421 unloading", "amount": 850.00},
+    {"date": "2026-09-20", "time": "12:30 PM", "kind": "In", "mode": "Cash",
+     "ref": "CSH-IN-047", "party": "Counter Cash Sale (Walk-in)",
+     "purpose": "Direct Retail Bill · 2 Rolls 1.5mm Wire (Slip #104)", "amount": 2450.00},
+    {"date": "2026-09-20", "time": "11:15 AM", "kind": "Out", "mode": "Cash",
+     "ref": "CSH-OUT-018", "party": "Polycab India Limited",
+     "purpose": "Supplier Advance · Urgent booking #882", "amount": 35000.00},
+]
+
+CASH_FLOW_KPI = {
+    "opening": 15000.00,
+    "cash_in": 142850.00,
+    "cash_out": 38400.00,
+    "remaining": 119450.00,
+    "in_count": 28,
+    "out_count": 14,
+}
+
+# Stitch previous-history tables under Sales / Purchase entry
+PREV_SALES = [
+    {"inv": "SLE/26-27/0710", "date": "10-Aug-2026", "item": "Polycab 2.5 sq mm FR Red",
+     "rate": 1420.00, "qty": 15, "unit": "ROL", "amount": 21300.00},
+    {"inv": "SLE/26-27/0688", "date": "24-Jul-2026", "item": "Havells 16A Modular Switch 1-Way",
+     "rate": 82.00, "qty": 120, "unit": "NOS", "amount": 9840.00},
+    {"inv": "SLE/26-27/0651", "date": "05-Jul-2026", "item": "Philips 20W LED Batten Tube Light",
+     "rate": 235.00, "qty": 40, "unit": "NOS", "amount": 9400.00},
+    {"inv": "SLE/26-27/0612", "date": "18-Jun-2026", "item": "Finolex 1.5 sq mm 90m Copper Wire",
+     "rate": 1090.00, "qty": 20, "unit": "ROL", "amount": 21800.00},
+]
+
+PREV_PURCHASES = [
+    {"inv": "PI/26-27/0340", "date": "12-Aug-2026", "item": "Polycab 2.5 sq mm FR Red",
+     "rate": 1210.00, "qty": 40, "unit": "Coil", "amount": 48400.00},
+    {"inv": "PI/26-27/0318", "date": "28-Jul-2026", "item": "Polycab 4.0 sq mm FR Green",
+     "rate": 1880.00, "qty": 25, "unit": "Coil", "amount": 47000.00},
+    {"inv": "PI/26-27/0295", "date": "15-Jul-2026", "item": "Havells 16A Modular Switch Crabtree",
+     "rate": 66.50, "qty": 150, "unit": "Pcs", "amount": 9975.00},
+    {"inv": "PI/26-27/0271", "date": "02-Jun-2026", "item": "Finolex 1.5 sq mm Blue FR",
+     "rate": 925.00, "qty": 50, "unit": "Coil", "amount": 46250.00},
+]
+
+# Previous estimates shown under Sales Entry when voucher type = Estimate
+PREV_ESTIMATES = [
+    {"inv": "EST/26-27/0088", "date": "28-Aug-2026", "item": "Polycab 2.5 sq mm FR Red",
+     "rate": 1380.00, "qty": 20, "unit": "ROL", "amount": 27600.00},
+    {"inv": "EST/26-27/0084", "date": "12-Aug-2026", "item": "Havells 16A Modular Switch 1-Way",
+     "rate": 78.00, "qty": 150, "unit": "NOS", "amount": 11700.00},
+    {"inv": "EST/26-27/0079", "date": "30-Jul-2026", "item": "Philips 20W LED Batten Tube Light",
+     "rate": 225.00, "qty": 50, "unit": "NOS", "amount": 11250.00},
+    {"inv": "EST/26-27/0072", "date": "15-Jul-2026", "item": "Finolex 1.5 sq mm 90m Copper Wire",
+     "rate": 1050.00, "qty": 25, "unit": "ROL", "amount": 26250.00},
+]
+
+# Previous sales returns (voucher type = Sales Return)
+PREV_SALES_RETURNS = [
+    {"inv": "SR/26-27/0042", "date": "22-Aug-2026", "item": "Polycab 2.5 sq mm FR Red",
+     "rate": 1420.00, "qty": 2, "unit": "ROL", "amount": 2840.00},
+    {"inv": "SR/26-27/0038", "date": "08-Aug-2026", "item": "Havells 16A Modular Switch 1-Way",
+     "rate": 82.00, "qty": 10, "unit": "NOS", "amount": 820.00},
+    {"inv": "SR/26-27/0031", "date": "19-Jul-2026", "item": "Philips 20W LED Batten Tube Light",
+     "rate": 235.00, "qty": 5, "unit": "NOS", "amount": 1175.00},
+    {"inv": "SR/26-27/0025", "date": "02-Jul-2026", "item": "Finolex 1.5 sq mm 90m Copper Wire",
+     "rate": 1090.00, "qty": 3, "unit": "ROL", "amount": 3270.00},
+]
+
+# Stitch Alt+H history modals (Purchase / Sales)
+PURCHASE_HISTORY = [
+    {"inv": "PUR-8420", "date": "12-Aug-2026", "party_inv": "PC/INV/8821",
+     "item": "Polycab 2.5 sq mm FR Red", "qty": 40, "unit": "Coil",
+     "rate": 1210.00, "disc": 0.0, "gst": 18.0, "amount": 48400.00, "status": "Received"},
+    {"inv": "PUR-8219", "date": "28-Jul-2026", "party_inv": "PC/INV/8710",
+     "item": "Polycab 4.0 sq mm FR Green", "qty": 25, "unit": "Coil",
+     "rate": 1880.00, "disc": 0.0, "gst": 18.0, "amount": 47000.00, "status": "Received"},
+    {"inv": "PUR-7984", "date": "15-Jul-2026", "party_inv": "HV/882",
+     "item": "Havells 16A Modular Switch Crabtree", "qty": 150, "unit": "Pcs",
+     "rate": 66.50, "disc": 0.0, "gst": 18.0, "amount": 9975.00, "status": "Received"},
+    {"inv": "PUR-7702", "date": "02-Jun-2026", "party_inv": "FX/4410",
+     "item": "Finolex 1.5 sq mm Blue FR", "qty": 50, "unit": "Coil",
+     "rate": 925.00, "disc": 0.0, "gst": 18.0, "amount": 46250.00, "status": "Received"},
+    {"inv": "PUR-7510", "date": "18-May-2026", "party_inv": "PC/INV/8502",
+     "item": "Polycab 1.0 sq mm FR Yellow", "qty": 80, "unit": "Coil",
+     "rate": 680.00, "disc": 2.0, "gst": 18.0, "amount": 53312.00, "status": "Received"},
+    {"inv": "PUR-7340", "date": "04-May-2026", "party_inv": "PC/INV/8411",
+     "item": "Polycab 6.0 sq mm FR Black", "qty": 30, "unit": "Coil",
+     "rate": 2850.00, "disc": 0.0, "gst": 18.0, "amount": 85500.00, "status": "Verified"},
+    {"inv": "PUR-7102", "date": "21-Apr-2026", "party_inv": "PC/INV/8300",
+     "item": "Polycab 2.5 sq mm FR Red", "qty": 60, "unit": "Coil",
+     "rate": 1195.00, "disc": 0.0, "gst": 18.0, "amount": 71700.00, "status": "Verified"},
+    {"inv": "PUR-6901", "date": "08-Apr-2026", "party_inv": "HV/801",
+     "item": "Havells 16A Modular Switch Crabtree", "qty": 200, "unit": "Pcs",
+     "rate": 64.00, "disc": 0.0, "gst": 18.0, "amount": 12800.00, "status": "Received"},
+]
+
+SALES_HISTORY = [
+    {"inv": "SLE-8102", "date": "10-Aug-2026", "vehicle": "TS09 UB 2211",
+     "item": "Polycab 2.5 sq mm FR Red Wire", "qty": 15, "unit": "ROL",
+     "rate": 1420.00, "disc": 0.0, "gst": 18.0, "amount": 21300.00, "status": "Paid"},
+    {"inv": "SLE-7984", "date": "24-Jul-2026", "vehicle": "—",
+     "item": "Havells 16A Modular Switch 1-Way Crabtree", "qty": 120, "unit": "NOS",
+     "rate": 82.00, "disc": 0.0, "gst": 18.0, "amount": 9840.00, "status": "Paid"},
+    {"inv": "SLE-7811", "date": "05-Jul-2026", "vehicle": "TS07 EN 1092",
+     "item": "Philips 20W LED Batten Tube Light 6500K", "qty": 40, "unit": "NOS",
+     "rate": 235.00, "disc": 0.0, "gst": 18.0, "amount": 9400.00, "status": "Paid"},
+    {"inv": "SLE-7640", "date": "18-Jun-2026", "vehicle": "—",
+     "item": "Finolex 1.5 sq mm 90m Copper Wire (Blue)", "qty": 20, "unit": "ROL",
+     "rate": 1090.00, "disc": 0.0, "gst": 18.0, "amount": 21800.00, "status": "Paid"},
+    {"inv": "SLE-7512", "date": "28-May-2026", "vehicle": "TS09 AB 4410",
+     "item": "Polycab 4.0 sq mm FR Green Wire", "qty": 10, "unit": "ROL",
+     "rate": 2150.00, "disc": 0.0, "gst": 18.0, "amount": 21500.00, "status": "Paid"},
+    {"inv": "SLE-7390", "date": "12-May-2026", "vehicle": "—",
+     "item": "Havells 6A Modular Socket", "qty": 200, "unit": "NOS",
+     "rate": 34.00, "disc": 0.0, "gst": 18.0, "amount": 6800.00, "status": "Paid"},
+    {"inv": "SLE-7288", "date": "02-May-2026", "vehicle": "TS08 CD 1199",
+     "item": "Polycab 2.5 sq mm FR Red Wire", "qty": 12, "unit": "ROL",
+     "rate": 1410.00, "disc": 1.0, "gst": 18.0, "amount": 16729.00, "status": "Paid"},
+    {"inv": "SLE-7105", "date": "18-Apr-2026", "vehicle": "—",
+     "item": "Philips 20W LED Batten Tube Light 6500K", "qty": 25, "unit": "NOS",
+     "rate": 230.00, "disc": 0.0, "gst": 18.0, "amount": 5750.00, "status": "Paid"},
 ]
 
 ESTIMATES = [

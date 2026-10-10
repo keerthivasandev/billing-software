@@ -615,6 +615,8 @@ class GroupsScreen(QWidget):
 
     def _style_field(self, widget: QWidget):
         widget.setFixedHeight(32)
+        from app.widgets.icons import combo_dropdown_qss
+
         widget.setStyleSheet(
             f"""
             QLineEdit, QComboBox {{
@@ -623,7 +625,10 @@ class GroupsScreen(QWidget):
                 color: {T.TEXT_PRIMARY};
                 selection-background-color: {S.PRIMARY}; selection-color: white;
             }}
-            QComboBox::drop-down {{ border: none; width: 22px; }}
+            QComboBox {{
+                padding-right: 26px;
+            }}
+            {combo_dropdown_qss(width=22, background="transparent")}
             QLineEdit:focus, QComboBox:focus {{
                 border: 1px solid {S.PRIMARY};
             }}

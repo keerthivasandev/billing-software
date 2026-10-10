@@ -27,8 +27,7 @@ NAV_GROUPS = [
         ("purchase", "2.1 Purchase", "F3", "Operations / Purchase Entry"),
         ("sales", "2.2 Sales", "F2", "Operations / Sales & Distribution"),
         ("cash_flow", "2.3 Cash Flow", "", "Operations / Cash Flow"),
-        ("billwise", "2.4 Billwise Payment", "", "Operations / Billwise Payment"),
-        ("estimate", "2.5 Estimate", "", "Operations / Estimate"),
+        ("billwise", "2.4 Billwise Settlement", "", "Operations / Billwise Settlement"),
     ]),
     ("reports", "3. REPORTS", [
         ("reports_ar_ap", "Stock Summary", "", "Reports / Stock Summary"),
@@ -39,8 +38,7 @@ NAV_GROUPS = [
     ("settings", "4. SETTINGS / A/C YEAR", [
         ("audit_trail", "4.1 A/c Log Customer", "", "Settings / A/c Log"),
         ("users", "4.2 Users", "", "Settings / Users"),
-        ("change_fy", "4.3 Change A/c Year", "", "Settings / Change A/c Year"),
-        ("rollover", "4.4 Create A/c Year", "", "Settings / Create A/c Year"),
+        ("ac_year", "4.3 A/c Year Management", "", "Settings / A/c Year Management"),
         ("license", "License & Activation", "", "Settings / License & Activation"),
     ]),
 ]
@@ -56,15 +54,13 @@ NAV_SHORT = {
     "sales": "Sa",
     "cash_flow": "Cf",
     "billwise": "Bw",
-    "estimate": "Qt",
     "ledger_stmt": "Ls",
     "registers": "Rg",
     "reports_ar_ap": "St",
     "export_tools": "Ex",
     "audit_trail": "Au",
     "users": "Ur",
-    "change_fy": "FY",
-    "rollover": "Ro",
+    "ac_year": "FY",
     "license": "Lc",
 }
 
@@ -378,7 +374,7 @@ class MainWindow(QMainWindow):
         self.fy_badge.setToolTip("Click to change fiscal year")
         self.fy_badge.setFixedHeight(22)
         self.fy_badge.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
-        self.fy_badge.mousePressEvent = lambda e: self.navigate("change_fy")
+        self.fy_badge.mousePressEvent = lambda e: self.navigate("ac_year")
         self.fy_badge.setStyleSheet(
             f"color: {T.PRIMARY_CONTAINER}; background: {T.ACCENT_SOFT}; "
             f"border: 1px solid {T.BORDER}; border-radius: 4px; "
@@ -639,9 +635,6 @@ class MainWindow(QMainWindow):
         if key == "billwise":
             from app.screens.billwise import BillwiseScreen
             return BillwiseScreen(mode="receipt")
-        if key == "estimate":
-            from app.screens.estimate import EstimateScreen
-            return EstimateScreen(navigate_cb=self.navigate)
         if key == "ledger_stmt":
             from app.screens.reports_suite import LedgerStatementScreen
             return LedgerStatementScreen()
@@ -660,12 +653,9 @@ class MainWindow(QMainWindow):
         if key == "users":
             from app.screens.settings_suite import UsersScreen
             return UsersScreen()
-        if key == "change_fy":
-            from app.screens.settings_suite import FiscalYearScreen
-            return FiscalYearScreen(on_fy_change=self._on_fy_change)
-        if key == "rollover":
-            from app.screens.settings_suite import RolloverScreen
-            return RolloverScreen()
+        if key == "ac_year":
+            from app.screens.settings_suite import AccountYearManagementScreen
+            return AccountYearManagementScreen(on_fy_change=self._on_fy_change)
         raise KeyError(f"Unknown screen: {key}")
 
     def _ensure_screen(self, key: str):
@@ -774,7 +764,7 @@ class MainWindow(QMainWindow):
         QShortcut(QKeySequence("F1"), self, activated=lambda: self.navigate("cash_flow"))
         QShortcut(QKeySequence("F2"), self, activated=lambda: self.navigate("sales"))
         QShortcut(QKeySequence("F3"), self, activated=lambda: self.navigate("purchase"))
-        QShortcut(QKeySequence("F4"), self, activated=lambda: self.navigate("parties"))
+        QShortcut(QKeySequence("F4"), self, activated=self._on_f4)
         QShortcut(QKeySequence("F6"), self, activated=lambda: self.navigate("cash_flow"))
         QShortcut(QKeySequence("F10"), self, activated=lambda: self.navigate("dashboard"))
         QShortcut(QKeySequence("Alt+1"), self, activated=lambda: self._open_group("masters"))
@@ -782,6 +772,14 @@ class MainWindow(QMainWindow):
         QShortcut(QKeySequence("Alt+3"), self, activated=lambda: self.navigate("purchase"))
         QShortcut(QKeySequence("Alt+4"), self, activated=lambda: self.navigate("cash_flow"))
         QShortcut(QKeySequence("Esc"), self, activated=self._esc)
+
+    def _on_f4(self):
+        """F4: Party Lookup on Billwise; otherwise open Ledger master."""
+        widget = self.stack.currentWidget()
+        if widget is not None and hasattr(widget, "_open_party_lookup"):
+            widget._open_party_lookup()
+            return
+        self.navigate("parties")
 
     def _focus_search(self):
         self.search.setFocus()

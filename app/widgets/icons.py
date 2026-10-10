@@ -21,15 +21,13 @@ NAV_ICON = {
     "sales": "file-text",
     "cash_flow": "wallet",
     "billwise": "book",
-    "estimate": "file-text",
     "ledger_stmt": "book",
     "registers": "history",
     "reports_ar_ap": "history",
     "export_tools": "folder",
     "audit_trail": "history",
     "users": "team",
-    "change_fy": "calendar",
-    "rollover": "calendar",
+    "ac_year": "calendar",
     "license": "safety",
 }
 
@@ -39,11 +37,82 @@ def icon_path(name: str) -> Path:
 
 
 def icon_url(name: str) -> str:
-    """file:/// URL for QSS image: url(...)."""
-    path = icon_path(name).resolve().as_posix()
-    if not path.startswith("/"):
-        path = "/" + path
-    return f"file://{path}"
+    """Absolute path for QSS ``image: url(...)``.
+
+    On Windows, Qt stylesheets paint reliably with a bare forward-slash path
+    (``D:/app/assets/icons/x.png``). The ``file:///`` form silently fails and
+    leaves combo/date arrows blank — that was the global missing-arrow bug.
+    Prefers PNG when present (SVG can also fail to paint via QSS).
+    """
+    png = ICONS_DIR / f"{name}.png"
+    path = (png if png.exists() else icon_path(name)).resolve().as_posix()
+    return path
+
+
+def combo_dropdown_qss(
+    *,
+    width: int = 24,
+    background: str = "transparent",
+    border_left: str = "none",
+) -> str:
+    """Shared QComboBox / QDateEdit drop-down + filled down-arrow caret.
+
+    Uses a bare ``D:/...png`` path (quoted). ``file:///`` URLs do not paint on
+    Windows/Qt stylesheets and were the cause of blank global dropdown arrows.
+    """
+    arrow = icon_url("caret-down-dark")
+    return f"""
+    QComboBox::drop-down, QDateEdit::drop-down {{
+        subcontrol-origin: padding;
+        subcontrol-position: center right;
+        width: {width}px;
+        border: none;
+        border-left: {border_left};
+        background: {background};
+    }}
+    QComboBox::down-arrow, QDateEdit::down-arrow {{
+        image: url("{arrow}");
+        width: 12px;
+        height: 12px;
+    }}
+    QComboBox::down-arrow:on, QDateEdit::down-arrow:on {{
+        image: url("{arrow}");
+    }}
+    QComboBox, QDateEdit {{
+        padding-right: {width + 6}px;
+    }}
+    """
+
+
+def apply_combo_arrow(widget) -> None:
+    """Ensure a combo/date edit keeps a visible dropdown caret (merge into stylesheet)."""
+    if widget.property("_caretOk"):
+        return
+    existing = widget.styleSheet() or ""
+    # Already has a working (non file://) caret rule
+    if "caret-down-dark" in existing and "file:" not in existing and "down-arrow" in existing:
+        widget.setProperty("_caretOk", True)
+        return
+    widget.setStyleSheet(existing + "\n" + combo_dropdown_qss())
+    widget.setProperty("_caretOk", True)
+
+
+def install_global_combo_arrows(app) -> None:
+    """Force a visible caret on every QComboBox / QDateEdit (app-wide)."""
+    from PySide6.QtCore import QEvent, QObject
+    from PySide6.QtWidgets import QComboBox, QDateEdit
+
+    class _ComboArrowPolish(QObject):
+        def eventFilter(self, obj, event):
+            if event.type() not in (QEvent.Type.Polish, QEvent.Type.Show):
+                return False
+            if isinstance(obj, (QComboBox, QDateEdit)):
+                apply_combo_arrow(obj)
+            return False
+
+    filt = _ComboArrowPolish(app)
+    app.installEventFilter(filt)
+    app.setProperty("_comboArrowPolish", filt)  # keep alive
 
 
 def _device_pixel_ratio() -> float:

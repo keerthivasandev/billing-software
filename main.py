@@ -42,6 +42,9 @@ def main():
     from app.styles.theme import get_qss
     app.setStyleSheet(get_qss())
 
+    from app.widgets.icons import install_global_combo_arrows
+    install_global_combo_arrows(app)
+
     window = MainWindow()
     window.show()
     sys.exit(app.exec())
