@@ -4,8 +4,9 @@
 import sys
 
 from PySide6.QtGui import QFont, QPalette, QColor
-from PySide6.QtWidgets import QApplication, QStyleFactory
+from PySide6.QtWidgets import QApplication, QDialog, QStyleFactory
 # from app.screens.license_dialog import LicenseActivationDialog
+# from app.screens.admin_setup import AdminSetupDialog
 from app.main_window import MainWindow
 from app.styles import tokens as T
 
@@ -33,6 +34,7 @@ def _apply_windows_like_palette(app: QApplication):
 # dlg.exec()
 # sys.exit(app.exec())
 
+
 def main():
     # Qt6 handles High-DPI scaling natively.
     app = QApplication(sys.argv)
@@ -50,6 +52,16 @@ def main():
     from app.widgets.icons import install_global_combo_arrows
     install_global_combo_arrows(app)
 
+    # When Admin Setup Dialog is opened, the app will be closed
+    # dlg = AdminSetupDialog()
+    # dlg.exec()
+    # sys.exit(app.exec())
+    
+    # Blocking sign-in gate (must be after QApplication exists)
+    from app.screens.login_dialog import LoginDialog
+    login = LoginDialog()
+    if login.exec() != QDialog.Accepted:
+        sys.exit(0)
     window = MainWindow()
     window.show()
     sys.exit(app.exec())
