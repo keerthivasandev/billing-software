@@ -58,10 +58,10 @@ def main():
     # sys.exit(app.exec())
     
     # Blocking sign-in gate (must be after QApplication exists)
-    from app.screens.login_dialog import LoginDialog
-    login = LoginDialog()
-    if login.exec() != QDialog.Accepted:
-        sys.exit(0)
+    # from app.screens.login_dialog import LoginDialog
+    # login = LoginDialog()
+    # if login.exec() != QDialog.Accepted:
+    #     sys.exit(0)
     window = MainWindow()
     window.show()
     sys.exit(app.exec())
