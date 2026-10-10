@@ -764,7 +764,7 @@ class MainWindow(QMainWindow):
         QShortcut(QKeySequence("F1"), self, activated=lambda: self.navigate("cash_flow"))
         QShortcut(QKeySequence("F2"), self, activated=lambda: self.navigate("sales"))
         QShortcut(QKeySequence("F3"), self, activated=lambda: self.navigate("purchase"))
-        QShortcut(QKeySequence("F4"), self, activated=lambda: self.navigate("parties"))
+        QShortcut(QKeySequence("F4"), self, activated=self._on_f4)
         QShortcut(QKeySequence("F6"), self, activated=lambda: self.navigate("cash_flow"))
         QShortcut(QKeySequence("F10"), self, activated=lambda: self.navigate("dashboard"))
         QShortcut(QKeySequence("Alt+1"), self, activated=lambda: self._open_group("masters"))
@@ -772,6 +772,14 @@ class MainWindow(QMainWindow):
         QShortcut(QKeySequence("Alt+3"), self, activated=lambda: self.navigate("purchase"))
         QShortcut(QKeySequence("Alt+4"), self, activated=lambda: self.navigate("cash_flow"))
         QShortcut(QKeySequence("Esc"), self, activated=self._esc)
+
+    def _on_f4(self):
+        """F4: Party Lookup on Billwise; otherwise open Ledger master."""
+        widget = self.stack.currentWidget()
+        if widget is not None and hasattr(widget, "_open_party_lookup"):
+            widget._open_party_lookup()
+            return
+        self.navigate("parties")
 
     def _focus_search(self):
         self.search.setFocus()
