@@ -9,6 +9,51 @@ FISCAL_YEARS = ["FY 2024–25", "FY 2025–26", "FY 2026–27"]
 CURRENT_USER = "Ramesh"
 CURRENT_ROLE = "Billing Clerk"
 
+# 4.3 / 4.4 A/c Year Management (Stitch)
+AC_YEAR_ACTIVE = {
+    "code": "FY 2026–27",
+    "period": "01-Apr-2026 to 31-Mar-2027",
+    "partition": "SLE_DATA_2026_V1",
+    "vouchers": 1482,
+    "schema": "Sri Lakshmi Wholesale FY26-27",
+    "terminal": "Terminal-01 (Main Counter)",
+}
+AC_YEAR_PARTITIONS = [
+    {
+        "code": "FY 2026–27",
+        "status": "Current",
+        "partition": "SLE_DATA_2026_V1",
+        "period": "01-Apr-2026 – 31-Mar-2027",
+        "vouchers": 1482,
+        "access": "Unlocked (Active)",
+        "locked": False,
+    },
+    {
+        "code": "FY 2025–26",
+        "status": "Archived",
+        "partition": "SLE_DATA_2025_FINAL",
+        "period": "01-Apr-2025 – 31-Mar-2026",
+        "vouchers": 8924,
+        "access": "Locked (Audit)",
+        "locked": True,
+    },
+    {
+        "code": "FY 2024–25",
+        "status": "Archived",
+        "partition": "SLE_DATA_2024_FINAL",
+        "period": "01-Apr-2024 – 31-Mar-2025",
+        "vouchers": 7610,
+        "access": "Locked (Audit)",
+        "locked": True,
+    },
+]
+AC_YEAR_NEW = {
+    "code": "FY 2027–28",
+    "period": "01-Apr-2027 to 31-Mar-2028",
+    "sales_prefix": "SLE/27-28/",
+    "purchase_prefix": "PUR/27-28/",
+}
+
 COMPANY = {
     "legal_name": "Sri Lakshmi Electricals",
     "trade_name": "Sri Lakshmi Electricals",

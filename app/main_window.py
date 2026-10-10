@@ -654,7 +654,7 @@ class MainWindow(QMainWindow):
             from app.screens.users import UsersScreen
             return UsersScreen()
         if key == "ac_year":
-            from app.screens.settings_suite import AccountYearManagementScreen
+            from app.screens.ac_year import AccountYearManagementScreen
             return AccountYearManagementScreen(on_fy_change=self._on_fy_change)
         raise KeyError(f"Unknown screen: {key}")
 
