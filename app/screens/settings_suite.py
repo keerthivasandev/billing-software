@@ -1,96 +1,17 @@
-"""Settings — Users, A/c Year Management (A/c Log lives in ac_log_customer)."""
+"""Settings — A/c Year Management (Users lives in users.py; A/c Log in ac_log_customer)."""
 
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import (
-    QCheckBox, QComboBox, QFormLayout, QFrame, QHBoxLayout, QLabel, QLineEdit,
-    QListWidget, QListWidgetItem, QVBoxLayout, QWidget,
+    QComboBox, QFrame, QLabel, QVBoxLayout, QWidget,
 )
 
 from app.data import sample_data as D
 from app.screens.ac_log_customer import AuditTrailScreen  # noqa: F401 — re-export
+from app.screens.users import UsersScreen  # noqa: F401 — re-export
 from app.styles import tokens as T
-from app.widgets import stitch_ui as S
 from app.widgets.helpers import (
     card_frame, field_label, make_button, page_title, toast,
 )
-
-
-class UsersScreen(QWidget):
-    def __init__(self, parent=None):
-        super().__init__(parent)
-        self.users = [dict(u) for u in D.USERS]
-        root = QVBoxLayout(self)
-        root.setContentsMargins(12, 12, 12, 12)
-        root.setSpacing(10)
-
-        bar = QHBoxLayout()
-        bar.addWidget(page_title("4.2 User Management"))
-        bar.addStretch()
-        save = make_button("Save User", "primary")
-        save.clicked.connect(self._save)
-        bar.addWidget(save)
-        root.addLayout(bar)
-
-        split = QHBoxLayout()
-        left = card_frame()
-        left.setFixedWidth(240)
-        ll = QVBoxLayout(left)
-        self.list = QListWidget()
-        self.list.setSpacing(2)
-        self.list.setUniformItemSizes(True)
-        self.list.currentRowChanged.connect(self._load)
-        ll.addWidget(self.list)
-        split.addWidget(left)
-
-        right = card_frame()
-        fl = QFormLayout(right)
-        fl.setContentsMargins(16, 16, 16, 16)
-        fl.setSpacing(8)
-        fl.setLabelAlignment(Qt.AlignRight)
-        self.name = QLineEdit()
-        self.username = QLineEdit()
-        self.role = QComboBox()
-        self.role.addItems(["Admin", "Billing Clerk", "Inventory Manager"])
-        self.active = QCheckBox("Active")
-        fl.addRow(field_label("Display Name"), self.name)
-        fl.addRow(field_label("Username"), self.username)
-        fl.addRow(field_label("Role"), self.role)
-        fl.addRow(QLabel(""), self.active)
-        split.addWidget(right, stretch=1)
-        root.addLayout(split, stretch=1)
-        self._refresh()
-        if self.list.count():
-            self.list.setCurrentRow(0)
-
-    def _refresh(self):
-        self.list.clear()
-        for u in self.users:
-            status = "" if u["active"] else " (inactive)"
-            self.list.addItem(QListWidgetItem(f"{u['name']} · {u['role']}{status}"))
-
-    def _load(self, row: int):
-        if row < 0:
-            return
-        u = self.users[row]
-        self.name.setText(u["name"])
-        self.username.setText(u["username"])
-        self.role.setCurrentText(u["role"])
-        self.active.setChecked(u["active"])
-
-    def _save(self):
-        row = self.list.currentRow()
-        if row < 0:
-            return
-        u = self.users[row]
-        u.update({
-            "name": self.name.text().strip() or u["name"],
-            "username": self.username.text().strip() or u["username"],
-            "role": self.role.currentText(),
-            "active": self.active.isChecked(),
-        })
-        self._refresh()
-        self.list.setCurrentRow(row)
-        toast(self, "User permissions saved.")
 
 
 class AccountYearManagementScreen(QWidget):

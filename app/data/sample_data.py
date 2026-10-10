@@ -885,10 +885,83 @@ AC_LOG_EVENTS = [
 ]
 
 USERS = [
-    {"id": 1, "name": "Admin", "username": "admin", "role": "Admin", "active": True},
-    {"id": 2, "name": "Ramesh", "username": "ramesh", "role": "Billing Clerk", "active": True},
-    {"id": 3, "name": "Priya", "username": "priya", "role": "Inventory Manager", "active": True},
-    {"id": 4, "name": "Karthik", "username": "karthik", "role": "Billing Clerk", "active": False},
+    {
+        "id": 1,
+        "initials": "RK",
+        "username": "ramesh_clerk",
+        "name": "Ramesh Kumar",
+        "role": "Billing Clerk",
+        "role_label": "Billing Clerk",
+        "role_full": "Billing Clerk (POS Counter & Invoicing)",
+        "terminal": "Terminal-01 (Main Counter)",
+        "terminal_short": "T-01 Main Counter",
+        "terminal_icon": "desktop_windows",
+        "mobile": "+91 98480 23411",
+        "last_login": "Login: 20-Sep 09:15 AM",
+        "active": True,
+        "privileges": ["sales", "purchase", "cash"],
+    },
+    {
+        "id": 2,
+        "initials": "LN",
+        "username": "admin_lakshmi",
+        "name": "K. Lakshmi Narayan (Managing Partner)",
+        "role": "Admin",
+        "role_label": "Admin",
+        "role_full": "Admin (Full System Access)",
+        "terminal": "Terminal-02 (Back Office)",
+        "terminal_short": "T-02 Back Office",
+        "terminal_icon": "laptop_mac",
+        "mobile": "+91 98480 10001",
+        "last_login": "Login: 20-Sep 08:30 AM",
+        "active": True,
+        "privileges": ["sales", "purchase", "cash", "master", "fy", "delete"],
+    },
+    {
+        "id": 3,
+        "initials": "SN",
+        "username": "godown_suresh",
+        "name": "Suresh Naidu",
+        "role": "Inventory Manager",
+        "role_label": "Inventory Mgr",
+        "role_full": "Inventory Manager (Godown Inward/Stock)",
+        "terminal": "Godown Desk (Stationary)",
+        "terminal_short": "Godown Desk (Disabled)",
+        "terminal_icon": "warehouse",
+        "mobile": "+91 98480 33445",
+        "last_login": "Login: 18-Sep 06:10 PM",
+        "active": False,
+        "privileges": ["purchase"],
+    },
+]
+
+USER_ROLES = [
+    "Billing Clerk (POS Counter & Invoicing)",
+    "Admin (Full System Access)",
+    "Inventory Manager (Godown Inward/Stock)",
+    "Custom Operator",
+]
+
+USER_TERMINALS = [
+    "Terminal-01 (Main Counter)",
+    "Terminal-02 (Back Office)",
+    "Godown Desk (Stationary)",
+    "Floating / Any Authorized Terminal",
+]
+
+USER_PRIVILEGES = [
+    ("sales", "Create & Print Sales Invoices (F2)",
+     "Counter POS billing and print duplicate receipts", False),
+    ("purchase", "Inward Purchase Entry & GRN (F3)",
+     "Enter supplier vouchers and godown receipts", False),
+    ("cash", "Record Cash Flow & Receipt Slips",
+     "Counter cash drawer settlement & voucher logging", False),
+    ("master", "Modify Master Company GSTIN / Bank",
+     "[Admin Only - Locked]", True),
+    ("fy", "Create / Close Accounting Fiscal Year",
+     "[Admin Only - Locked]", True),
+    ("delete", "Delete Invoices / Adjust Stock Ledgers",
+     "[Admin Only - Locked]", True),
 ]
 
 MACHINE_ID = "HW-A7F3-C91E-4B2D-88E0"

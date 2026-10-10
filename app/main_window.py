@@ -651,7 +651,7 @@ class MainWindow(QMainWindow):
             from app.screens.ac_log_customer import AuditTrailScreen
             return AuditTrailScreen()
         if key == "users":
-            from app.screens.settings_suite import UsersScreen
+            from app.screens.users import UsersScreen
             return UsersScreen()
         if key == "ac_year":
             from app.screens.settings_suite import AccountYearManagementScreen
