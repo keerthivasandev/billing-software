@@ -13,6 +13,19 @@ from app.widgets import stitch_ui as S
 from app.widgets.helpers import toast
 from app.widgets.icons import icon_pixmap
 
+def _parse_fy_date(text: str) -> str | None:
+    """Accept ISO or dd-Mon-YYYY → YYYY-MM-DD."""
+    from datetime import datetime
+
+    text = (text or "").strip()
+    for fmt in ("%Y-%m-%d", "%d-%b-%Y", "%d-%B-%Y", "%d/%m/%Y"):
+        try:
+            return datetime.strptime(text, fmt).strftime("%Y-%m-%d")
+        except ValueError:
+            continue
+    return None
+
+
 # Stitch amber / emerald tokens from screen HTML
 _AMBER_50 = "#fffbeb"
 _AMBER_100 = "#fef3c7"
@@ -1081,13 +1094,25 @@ class AccountYearManagementScreen(QWidget):
         toast(self, "Partition checksum verified.")
 
     def _switch(self):
+        from app.db.connection import get_connection
+
+        if not self.partitions:
+            toast(self, "No accounting year to switch.")
+            return
         p = self.partitions[self._selected]
         year = p["code"]
-        D.FINANCIAL_YEAR = year
-        self.active["code"] = year
-        self.active["period"] = p["period"].replace(" – ", " to ").replace(" –", " to")
-        self.active["partition"] = p["partition"]
-        self.active["vouchers"] = p["vouchers"]
+        with get_connection() as conn:
+            conn.execute(
+                "UPDATE accounting_year SET status = 'archived', is_locked = 1"
+            )
+            conn.execute(
+                "UPDATE accounting_year SET status = 'current', is_locked = 0 WHERE id = ?",
+                (p["id"],),
+            )
+            conn.commit()
+        D.reload()
+        self.partitions = [dict(x) for x in D.AC_YEAR_PARTITIONS]
+        self.active = dict(D.AC_YEAR_ACTIVE)
         self._set_active_title(year)
         self._set_active_sub()
         self.kpi_entries._val.setText(f"{p['vouchers']:,} Vouchers")
@@ -1097,8 +1122,45 @@ class AccountYearManagementScreen(QWidget):
         toast(self, f"Switched to {year} ({mode}).")
 
     def _create(self):
+        from app.services import years as years_svc
+        from app import session
+        from app.services import users as users_svc
+
         if not self.admin_pwd.text().strip():
             toast(self, "Admin password required to authorize rollover.")
             return
-        code = self.fy_code.text().strip() or D.AC_YEAR_NEW["code"]
-        toast(self, f"Create & Initialize {code} queued (demo).")
+        user = session.current_user()
+        uname = (user or {}).get("username") or ""
+        if not users_svc.authenticate(uname, self.admin_pwd.text()):
+            # also allow any admin username matching current
+            admins = [u for u in D.USERS if u.get("role") == "Admin"]
+            ok = False
+            for a in admins:
+                if users_svc.authenticate(a["username"], self.admin_pwd.text()):
+                    ok = True
+                    break
+            if not ok:
+                toast(self, "Admin password incorrect.")
+                return
+        code = self.fy_code.text().strip()
+        period = self.fy_period.text().strip()
+        if not code:
+            toast(self, "Enter FY code (e.g. FY 2026–27).")
+            return
+        # Parse "01-Apr-2026 to 31-Mar-2027" or ISO
+        start, end = "2026-04-01", "2027-03-31"
+        if " to " in period:
+            left, right = period.split(" to ", 1)
+            start = _parse_fy_date(left.strip()) or start
+            end = _parse_fy_date(right.strip()) or end
+        partition = f"DATA_{code.replace(' ', '_')}"
+        years_svc.ensure_current_year(code, start, end, partition)
+        D.reload()
+        self.partitions = [dict(x) for x in D.AC_YEAR_PARTITIONS]
+        self.active = dict(D.AC_YEAR_ACTIVE)
+        self._selected = 0
+        self._set_active_title(code)
+        self._set_active_sub()
+        if callable(self.on_fy_change):
+            self.on_fy_change(code)
+        toast(self, f"Created & activated {code}.")

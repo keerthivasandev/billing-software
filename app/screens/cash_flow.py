@@ -19,16 +19,6 @@ _TERTIARY = "#4e5562"
 _INVERSE_SURFACE = "#2e3132"  # status bar bg-inverse-surface
 
 
-_LEDGERS = [
-    "Sri Balaji Hardware & Electricals",
-    "Polycab India Limited",
-    "Counter Cash Sale (Walk-in)",
-    "Hamali & Loading Charges",
-    "Havells India Ltd",
-    "General Petty Cash Expense",
-]
-
-
 class _TypePill(QWidget):
     """Compact type chip — centered text, tight background, 6px gap after dot."""
 
@@ -98,10 +88,12 @@ class CashFlowScreen(QWidget):
         super().__init__(parent)
         self.entries = [dict(e) for e in D.CASH_ENTRIES]
         self.kpi = dict(D.CASH_FLOW_KPI)
+        self.kpi.setdefault("in_count", sum(1 for e in self.entries if e.get("kind") == "In"))
+        self.kpi.setdefault("out_count", sum(1 for e in self.entries if e.get("kind") == "Out"))
         self._kind = "In"
         self._filter = "all"
-        self._seq_in = 49
-        self._seq_out = 20
+        self._seq_in = 1
+        self._seq_out = 1
         self.setStyleSheet(f"background: {T.BG_CANVAS};")
         self._build()
         self._reload_table()
@@ -387,8 +379,8 @@ class CashFlowScreen(QWidget):
 
         self.party = QComboBox()
         self.party.setEditable(False)
-        for name in _LEDGERS:
-            self.party.addItem(name)
+        for p in D.PARTIES:
+            self.party.addItem(p["name"])
         self.party.addItem("+ Add / Select Ledger...")
         self.party.setCurrentIndex(0)
         from app.widgets.icons import combo_dropdown_qss
@@ -785,6 +777,9 @@ class CashFlowScreen(QWidget):
             toast(self, f"Deleted #{row['ref']}")
 
     def _post(self):
+        from app.services import cash as cash_svc
+        from app import session
+
         amt = float(self.amount.value())
         if amt <= 0:
             toast(self, "Enter a valid amount.")
@@ -793,30 +788,30 @@ class CashFlowScreen(QWidget):
         if not party or party.startswith("+"):
             toast(self, "Select a party / ledger.")
             return
-        if self._kind == "In":
-            ref = f"CSH-IN-{self._seq_in:03d}"
-            self._seq_in += 1
-            self.kpi["cash_in"] += amt
-            self.kpi["remaining"] += amt
-            self.kpi["in_count"] += 1
-        else:
-            ref = f"CSH-OUT-{self._seq_out:03d}"
-            self._seq_out += 1
-            self.kpi["cash_out"] += amt
-            self.kpi["remaining"] -= amt
-            self.kpi["out_count"] += 1
-
-        self.entries.insert(0, {
-            "date": self.date.date().toString("yyyy-MM-dd"),
-            "time": "Just now",
-            "kind": self._kind,
-            "mode": "Cash",
-            "ref": ref,
-            "party": party,
-            "purpose": "Manual counter entry",
-            "amount": amt,
-        })
+        ledger = next((p for p in D.PARTIES if p["name"] == party), None)
+        user = session.current_user()
+        try:
+            saved = cash_svc.create_entry(
+                {
+                    "kind": self._kind,
+                    "date": self.date.date().toString("yyyy-MM-dd"),
+                    "party": party,
+                    "ledger_id": ledger["id"] if ledger else None,
+                    "purpose": "Manual counter entry",
+                    "amount": amt,
+                    "mode": "Cash",
+                },
+                created_by=user["id"] if user else None,
+            )
+        except Exception as exc:
+            toast(self, f"Post failed: {exc}")
+            return
+        D.reload()
+        self.entries = [dict(e) for e in D.CASH_ENTRIES]
+        self.kpi = dict(D.CASH_FLOW_KPI)
+        self.kpi.setdefault("in_count", sum(1 for e in self.entries if e["kind"] == "In"))
+        self.kpi.setdefault("out_count", sum(1 for e in self.entries if e["kind"] == "Out"))
         self.amount.setValue(0)
         self._set_kind(self._kind)
         self._reload_table()
-        toast(self, f"Recorded #{ref}")
+        toast(self, f"Recorded #{saved['ref']}")

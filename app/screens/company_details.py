@@ -288,7 +288,55 @@ class CompanyDetailsScreen(QWidget):
     def _save_changes(self):
         if not self._editing:
             return
+        from app.services import company as company_svc
+
+        trade = self.trade_name.text().strip()
+        city_raw = self.city.text().strip()
+        city, district = city_raw, ""
+        if "," in city_raw:
+            parts = [p.strip() for p in city_raw.split(",", 1)]
+            city = parts[0]
+            district = parts[1].replace("District", "").strip()
+
+        payload = {
+            "legal_name": trade or "My Company",
+            "trade_name": trade,
+            "entity_type": self.entity_type.text().strip(),
+            "gstin": self.gstin.text().strip(),
+            "pan": self.pan.text().strip(),
+            "state_code": self.state_code.text().strip(),
+            "business_activity": self.activity.text().strip(),
+            "address": self.address.text().strip(),
+            "landmark": self.landmark.text().strip(),
+            "city": city,
+            "district": district,
+            "pincode": self.pincode.text().strip(),
+            "contact_person": self.contact_person.text().strip(),
+            "mobile": self.mobile.text().strip(),
+            "phone": self.mobile.text().strip(),
+            "landline": self.landline.text().strip(),
+            "email": self.email.text().strip(),
+            "bank_name": self.bank.text().strip(),
+            "beneficiary": self.beneficiary.text().strip(),
+            "account_no": self.ac_no.text().strip(),
+            "account_type": self.ac_type.text().strip(),
+            "ifsc": self.ifsc.text().strip(),
+            "branch": self.branch.text().strip(),
+            "upi": self.upi.text().strip(),
+            "invoice_note": self.invoice_note.toPlainText().strip(),
+            "gst_filing_status": D.COMPANY.get("gst_filing_status") or "",
+            "einvoice_status": D.COMPANY.get("einvoice_status") or "",
+            "terminal_id": D.COMPANY.get("terminal_id") or "",
+        }
+        company_svc.save_company(payload)
+        D.reload()
         self._set_editing(False)
+        win = self.window()
+        if hasattr(win, "_company_label"):
+            win._company_label.setText(D.COMPANY_NAME)
+        if hasattr(win, "_gst_badge"):
+            gstin = (D.COMPANY.get("gstin") or "").strip()
+            win._gst_badge.setText(f"GST: {gstin}" if gstin else "GST: —")
         toast(self, "Company details saved.")
 
     # ── Page header ──────────────────────────────────────────
@@ -398,11 +446,12 @@ class CompanyDetailsScreen(QWidget):
         grid.setContentsMargins(0, 0, 0, 0)
         grid.setSpacing(10)
         # Icons match Stitch Material Symbols exactly
+        fy = D.FINANCIAL_YEAR if D.FINANCIAL_YEAR and D.FINANCIAL_YEAR != "—" else "—"
         items = [
-            ("GST Filing Status", D.COMPANY["gst_filing_status"], "verified"),
-            ("Current FY Locked", "2026–27 (Active)", "schedule"),
-            ("E-Invoice & E-Way Ready", D.COMPANY["einvoice_status"], "qr_code_2"),
-            ("Terminal ID", D.COMPANY["terminal_id"], "terminal"),
+            ("GST Filing Status", D.COMPANY.get("gst_filing_status") or "—", "verified"),
+            ("Current FY Locked", fy, "schedule"),
+            ("E-Invoice & E-Way Ready", D.COMPANY.get("einvoice_status") or "—", "qr_code_2"),
+            ("Terminal ID", D.COMPANY.get("terminal_id") or "—", "terminal"),
         ]
         for i, (title, value, icon) in enumerate(items):
             grid.addWidget(self._status_card(title, value, icon), 0, i)
@@ -515,15 +564,15 @@ class CompanyDetailsScreen(QWidget):
             tag="Core Entity",
         )
 
-        self.trade_name = QLineEdit(c.get("trade_name", c["legal_name"]))
-        self.entity_type = QLineEdit(c.get("entity_type", "Proprietorship / Partnership Firm"))
-        self.gstin = QLineEdit(c["gstin"])
-        self.pan = QLineEdit(c.get("pan", ""))
-        self.state_code = QLineEdit(c.get("state_code", ""))
+        self.trade_name = QLineEdit(c.get("trade_name") or c.get("legal_name") or "")
+        self.entity_type = QLineEdit(c.get("entity_type") or "")
+        self.gstin = QLineEdit(c.get("gstin") or "")
+        self.pan = QLineEdit(c.get("pan") or "")
+        self.state_code = QLineEdit(c.get("state_code") or "")
         self.fy = QLineEdit(
-            c.get("fy_display", f"{c.get('financial_year', D.FINANCIAL_YEAR)}")
+            c.get("fy_display") or c.get("financial_year") or D.FINANCIAL_YEAR or ""
         )
-        self.activity = QLineEdit(c.get("business_activity", ""))
+        self.activity = QLineEdit(c.get("business_activity") or "")
 
         body.addWidget(
             self._row(
@@ -572,14 +621,16 @@ class CompanyDetailsScreen(QWidget):
             tag="Dispatch Origin (Place of Dispatch)",
             tag_plain=True,
         )
-        self.address = QLineEdit(c["address"])
-        self.landmark = QLineEdit(c.get("landmark", ""))
-        self.city = QLineEdit(c.get("city_display", c.get("district", c["city"])))
-        self.pincode = QLineEdit(c.get("pincode", ""))
-        self.contact_person = QLineEdit(c.get("contact_person", ""))
-        self.mobile = QLineEdit(c.get("mobile", c["phone"]))
-        self.landline = QLineEdit(c.get("landline", c["phone"]))
-        self.email = QLineEdit(c.get("email", ""))
+        self.address = QLineEdit(c.get("address") or "")
+        self.landmark = QLineEdit(c.get("landmark") or "")
+        self.city = QLineEdit(
+            c.get("city_display") or c.get("district") or c.get("city") or ""
+        )
+        self.pincode = QLineEdit(c.get("pincode") or "")
+        self.contact_person = QLineEdit(c.get("contact_person") or "")
+        self.mobile = QLineEdit(c.get("mobile") or c.get("phone") or "")
+        self.landline = QLineEdit(c.get("landline") or c.get("phone") or "")
+        self.email = QLineEdit(c.get("email") or "")
 
         body.addWidget(_form_field("Shop / Principal Godown Address", self.address))
         body.addWidget(
@@ -614,15 +665,15 @@ class CompanyDetailsScreen(QWidget):
             "account_balance",
             tag="Auto-Embed in Voucher Footer",
         )
-        self.bank = QLineEdit(c["bank_name"])
-        self.beneficiary = QLineEdit(c.get("beneficiary", c["legal_name"]))
-        self.ac_no = QLineEdit(c["account_no"])
-        self.ac_type = QLineEdit(c.get("account_type", "Current Account"))
-        self.ifsc = QLineEdit(c["ifsc"])
-        self.branch = QLineEdit(c.get("branch", ""))
-        self.upi = QLineEdit(c.get("upi", ""))
+        self.bank = QLineEdit(c.get("bank_name") or "")
+        self.beneficiary = QLineEdit(c.get("beneficiary") or c.get("legal_name") or "")
+        self.ac_no = QLineEdit(c.get("account_no") or "")
+        self.ac_type = QLineEdit(c.get("account_type") or "")
+        self.ifsc = QLineEdit(c.get("ifsc") or "")
+        self.branch = QLineEdit(c.get("branch") or "")
+        self.upi = QLineEdit(c.get("upi") or "")
         self.invoice_note = QTextEdit()
-        self.invoice_note.setPlainText(c.get("invoice_note", ""))
+        self.invoice_note.setPlainText(c.get("invoice_note") or "")
         self.invoice_note.setFixedHeight(64)
 
         body.addWidget(

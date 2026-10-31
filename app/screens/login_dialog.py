@@ -589,35 +589,18 @@ class LoginDialog(QDialog):
             toast(self, "Enter username and password.")
             return
 
-        match = None
-        for u in D.USERS:
-            if u.get("username", "").lower() == user.lower():
-                match = u
-                break
+        from app.services import users as users_svc
 
-        # Demo stub: known active user with any password ≥ 4, or any non-empty pair ≥ 4
-        ok = False
-        if match is not None:
-            ok = bool(match.get("active")) and len(pwd) >= 4
-        else:
-            ok = len(pwd) >= 4  # allow counter.lead demo login
-
-        if not ok:
+        match = users_svc.authenticate(user, pwd)
+        if match is None:
             self.error_banner.setVisible(True)
             self.password.clear()
             self.password.setFocus()
             return
 
         self.error_banner.hide()
-        self.result_user = dict(match) if match else {
-            "username": user,
-            "name": user,
-            "role": "Billing Clerk",
-            "terminal": "T-01 Main Counter",
-            "active": True,
-        }
+        self.result_user = dict(match)
         if self.remember.isChecked():
-            # stub: remembered terminal preference
             pass
         toast(self, f"Signed in as {self.result_user.get('name', user)}")
         self.accept()

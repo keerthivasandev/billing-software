@@ -26,7 +26,6 @@ class TransactionEntryScreen(QWidget):
         self.setStyleSheet(f"background: {T.BG_CANVAS};")
         self._build()
         self._wire_shortcuts()
-        self._seed_demo_lines()
         self._recalc()
 
     @property
@@ -301,7 +300,8 @@ class TransactionEntryScreen(QWidget):
         self.party.currentTextChanged.connect(self._on_party_changed)
         row1.addWidget(S.labeled_input("Customer / Party Name", self.party), 6)
 
-        self.doc_no = QLineEdit("PUR/26-27/0390")
+        from app.services import vouchers as vouchers_svc
+        self.doc_no = QLineEdit(vouchers_svc.next_doc_no("purchase"))
         row1.addWidget(S.labeled_input("Invoice No", self.doc_no), 3)
 
         self.doc_date = QDateEdit(QDate(2026, 9, 20))
@@ -318,7 +318,8 @@ class TransactionEntryScreen(QWidget):
         row1 = QHBoxLayout()
         row1.setSpacing(10)
 
-        self.doc_no = QLineEdit("SLE/26-27/0840")
+        from app.services import vouchers as vouchers_svc
+        self.doc_no = QLineEdit(vouchers_svc.next_doc_no("sale"))
         row1.addWidget(S.labeled_input("Invoice No", self.doc_no), 1)
 
         self.doc_date = QDateEdit(QDate(2026, 9, 20))
@@ -466,7 +467,7 @@ class TransactionEntryScreen(QWidget):
         return p["type"] in ("Supplier", "Both")
 
     def _on_party_changed(self, name):
-        bal = self._party_balances.get(name, 42500.0 if self.is_sales else 0.0)
+        bal = self._party_balances.get(name, 0.0)
         if not hasattr(self, "balance_lbl"):
             return
         if bal > 0:
@@ -1195,9 +1196,84 @@ class TransactionEntryScreen(QWidget):
         self.qty_lbl.setText(f"Total Quantity: {qty_total:g} {unit}")
 
     def _save(self, kind):
-        toast(self, f"Saved {self.doc_no.text()} ({kind}) · {self.lbl_net.text()}")
+        from app.services import vouchers as vouchers_svc
+        from app import session
+
+        party_name = ""
+        if hasattr(self, "party") and self.party.isVisible():
+            party_name = self.party.currentText().strip()
+        elif hasattr(self, "party_input") and self.party_input.isVisible():
+            party_name = self.party_input.text().strip()
+        party = next((p for p in D.PARTIES if p["name"] == party_name), None)
+        if party is None:
+            toast(self, "Select a party/ledger before saving.")
+            return
+
+        lines = []
+        for r in range(self.grid.rowCount()):
+            name_item = self.grid.item(r, 1)
+            if not name_item:
+                continue
+            pname = name_item.text().strip()
+            prod = next((p for p in D.PRODUCTS if p["name"] == pname), None)
+            if prod is None:
+                continue
+            qty_txt = (self.grid.item(r, 2).text() if self.grid.item(r, 2) else "0").split()[0]
+            rate_txt = (self.grid.item(r, 3).text() if self.grid.item(r, 3) else "0").replace(",", "")
+            disc_txt = (self.grid.item(r, 4).text() if self.grid.item(r, 4) else "0")
+            gst_txt = (self.grid.item(r, 5).text() if self.grid.item(r, 5) else "0").replace("%", "")
+            try:
+                qty = float(qty_txt or 0)
+                rate = float(rate_txt or 0)
+                disc = float(disc_txt or 0)
+                gst = float(gst_txt or 0)
+            except ValueError:
+                continue
+            lines.append(
+                {
+                    "product_id": prod["id"],
+                    "qty": qty,
+                    "unit": prod.get("unit") or "Pcs",
+                    "rate": rate,
+                    "discount_pct": disc,
+                    "gst_pct": gst,
+                    "line_amount": qty * rate * (1 - disc / 100),
+                }
+            )
+        if not lines:
+            toast(self, "Add at least one product line.")
+            return
+
+        vtype = {
+            "sales": "sale",
+            "return": "sales_return",
+            "estimate": "estimate",
+            "purchase": "purchase",
+            "purchase_return": "purchase_return",
+        }.get(self._voucher_kind(), "sale")
+
+        godown_id = None
+        if D.GODOWNS:
+            godown_id = D.GODOWNS[0]["id"]
+        user = session.current_user()
+        try:
+            saved = vouchers_svc.create_voucher(
+                voucher_type=vtype,
+                ledger_id=party["id"],
+                lines=lines,
+                doc_no=self.doc_no.text().strip() or None,
+                godown_id=godown_id,
+                created_by=user["id"] if user else None,
+            )
+        except Exception as exc:
+            toast(self, f"Save failed: {exc}")
+            return
+        D.reload()
+        self._party_balances = {p["name"]: p["balance"] for p in D.PARTIES}
+        toast(self, f"Saved {saved['doc_no']} ({kind}) · {self.lbl_net.text()}")
         if kind == "new":
             self._clear_form()
+            self.doc_no.setText(vouchers_svc.next_doc_no(vtype))
 
     def _cancel(self):
         self._clear_form()

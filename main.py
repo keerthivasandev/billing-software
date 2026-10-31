@@ -5,8 +5,7 @@ import sys
 
 from PySide6.QtGui import QFont, QPalette, QColor
 from PySide6.QtWidgets import QApplication, QDialog, QStyleFactory
-# from app.screens.license_dialog import LicenseActivationDialog
-# from app.screens.admin_setup import AdminSetupDialog
+
 from app.main_window import MainWindow
 from app.styles import tokens as T
 
@@ -28,15 +27,8 @@ def _apply_windows_like_palette(app: QApplication):
     pal.setColor(QPalette.ColorRole.Link, QColor(T.ACCENT))
     app.setPalette(pal)
 
-# This will show the license dialog first time the app is run
-# app = QApplication(sys.argv)
-# dlg = LicenseActivationDialog()
-# dlg.exec()
-# sys.exit(app.exec())
-
 
 def main():
-    # Qt6 handles High-DPI scaling natively.
     app = QApplication(sys.argv)
     app.setStyle(QStyleFactory.create("Fusion"))
     _apply_windows_like_palette(app)
@@ -52,16 +44,38 @@ def main():
     from app.widgets.icons import install_global_combo_arrows
     install_global_combo_arrows(app)
 
-    # When Admin Setup Dialog is opened, the app will be closed
-    # dlg = AdminSetupDialog()
-    # dlg.exec()
-    # sys.exit(app.exec())
-    
-    # Blocking sign-in gate (must be after QApplication exists)
-    # from app.screens.login_dialog import LoginDialog
-    # login = LoginDialog()
-    # if login.exec() != QDialog.Accepted:
+    # Ensure DB is reachable and UI store is loaded
+    from app.data import sample_data as D
+    from app.services import users as users_svc
+
+    D.reload()
+
+    # License gate — enable when license backend is ready
+    # from app.screens.license_dialog import LicenseActivationDialog
+    # lic = LicenseActivationDialog()
+    # if lic.exec() != QDialog.Accepted:
     #     sys.exit(0)
+
+    # First-run: create root admin when users table is empty
+    if users_svc.count_users() == 0:
+        from app.screens.admin_setup import AdminSetupDialog
+        admin = AdminSetupDialog()
+        if admin.exec() != QDialog.Accepted:
+            sys.exit(0)
+        D.reload()
+
+    # Login gate
+    from app.screens.login_dialog import LoginDialog
+    from app import session
+
+    login = LoginDialog()
+    if login.exec() != QDialog.Accepted:
+        sys.exit(0)
+
+    if getattr(login, "result_user", None):
+        session.set_user(login.result_user)
+    D.reload()
+
     window = MainWindow()
     window.show()
     sys.exit(app.exec())

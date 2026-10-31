@@ -1082,41 +1082,58 @@ class UsersScreen(QWidget):
         return None
 
     def _add_user(self):
+        from app.services import users as users_svc
+
         dlg = NewUserDialog(self.window())
         if dlg.exec() != NewUserDialog.Accepted or not dlg.result_user:
             return
-        self.users.append(dlg.result_user)
-        D.USERS[:] = [dict(u) for u in self.users]
-        self._selected = len(self.users) - 1
+        created = users_svc.create_user(dlg.result_user)
+        D.reload()
+        self.users = [dict(u) for u in D.USERS]
+        self._selected = next(
+            (i for i, u in enumerate(self.users) if u["id"] == created["id"]),
+            len(self.users) - 1,
+        )
         self._reload_directory()
         self._load_profile()
-        toast(self, f"Operator {dlg.result_user['username']} activated.")
+        toast(self, f"Operator {created['username']} activated.")
 
     def _reset_password(self):
+        from app.services import users as users_svc
+
         u = self._current()
         if not u:
             return
         dlg = ResetPasswordDialog(u, self.window())
-        if dlg.exec() == ResetPasswordDialog.Accepted:
+        if dlg.exec() == ResetPasswordDialog.Accepted and getattr(dlg, "password_value", None):
+            users_svc.set_password(u["id"], dlg.password_value)
             toast(self, f"Password updated for {u['username']}.")
 
     def _toggle_active(self):
+        from app.services import users as users_svc
+
         u = self._current()
         if not u:
             return
         u["active"] = not bool(u.get("active"))
+        users_svc.set_active(u["id"], u["active"])
+        D.reload()
+        self.users = [dict(x) for x in D.USERS]
         self._reload_directory()
         self._load_profile()
         state = "activated" if u["active"] else "deactivated"
         toast(self, f"{u['username']} {state}.")
 
     def _delete_user(self):
+        from app.services import users as users_svc
+
         u = self._current()
         if not u:
             return
         name = u["username"]
-        del self.users[self._selected]
-        D.USERS[:] = [dict(x) for x in self.users]
+        users_svc.delete_user(u["id"])
+        D.reload()
+        self.users = [dict(x) for x in D.USERS]
         self._selected = min(self._selected, max(0, len(self.users) - 1))
         self._reload_directory()
         if self.users:
@@ -1124,6 +1141,8 @@ class UsersScreen(QWidget):
         toast(self, f"{name} deleted.")
 
     def _save(self):
+        from app.services import users as users_svc
+
         u = self._current()
         if not u:
             return
@@ -1143,13 +1162,14 @@ class UsersScreen(QWidget):
         ).replace(" (Stationary)", "")
         u["active"] = self.f_status.currentIndex() == 0
         privs = [k for k, cb in self._priv_checks.items() if cb.isChecked() and cb.isEnabled()]
-        # Keep admin-locked keys if already admin
         if "Admin" in role_full:
             for locked_key in ("master", "fy", "delete"):
                 if locked_key not in privs:
                     privs.append(locked_key)
         u["privileges"] = privs
-        D.USERS[:] = [dict(x) for x in self.users]
+        users_svc.update_user(u["id"], u)
+        D.reload()
+        self.users = [dict(x) for x in D.USERS]
         self._reload_directory()
         self._load_profile()
         toast(self, "User permissions saved.")

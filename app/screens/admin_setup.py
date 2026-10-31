@@ -716,29 +716,19 @@ class AdminSetupDialog(QDialog):
             self.confirm.setFocus()
             return
 
-        parts = name.split()
-        initials = (
-            (parts[0][0] + parts[-1][0]).upper() if len(parts) >= 2 else name[:2].upper()
-        )
-        self.result_admin = {
-            "id": 1,
-            "initials": initials,
-            "username": user.lower(),
-            "name": name,
-            "role": "Admin",
-            "role_label": "Admin",
-            "role_full": "Admin (Full System Access)",
-            "terminal": "Terminal-01 (Main Counter)",
-            "terminal_short": "T-01 Main Counter",
-            "terminal_icon": "desktop_windows",
-            "mobile": self.mobile.text().strip() or "",
-            "email": self.email.text().strip() or "",
-            "last_login": "Login: —",
-            "active": True,
-            "privileges": ["sales", "purchase", "cash", "master", "fy", "delete"],
-        }
-        # Bootstrap sample users list with this root admin for demo
-        if not any(u.get("role") == "Admin" for u in D.USERS):
-            D.USERS.insert(0, dict(self.result_admin))
+        from app.services import users as users_svc
+
+        try:
+            self.result_admin = users_svc.create_admin(
+                full_name=name,
+                username=user.lower(),
+                password=p1,
+                mobile=self.mobile.text().strip() or "",
+                email=self.email.text().strip() or "",
+            )
+        except Exception as exc:
+            toast(self, f"Could not create admin: {exc}")
+            return
+        D.reload()
         toast(self, "Root administrator created successfully.")
         self.accept()

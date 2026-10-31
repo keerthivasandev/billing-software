@@ -381,7 +381,8 @@ class MainWindow(QMainWindow):
             f"padding: 0 6px; font-size: 8pt; font-weight: 600;"
         )
 
-        gst = QLabel("GST: Registered")
+        gstin = (D.COMPANY.get("gstin") or "").strip()
+        gst = QLabel(f"GST: {gstin}" if gstin else "GST: —")
         gst.setObjectName("gstBadge")
         gst.setFixedHeight(22)
         gst.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
@@ -390,6 +391,7 @@ class MainWindow(QMainWindow):
             f"border: 1px solid {T.BORDER}; border-radius: 4px; "
             f"padding: 0 6px; font-size: 8pt; font-weight: 600;"
         )
+        self._gst_badge = gst
 
         left.addWidget(company, 0, Qt.AlignVCenter)
         left.addWidget(self.fy_badge, 0, Qt.AlignVCenter)
