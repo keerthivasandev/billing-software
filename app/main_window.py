@@ -79,6 +79,7 @@ class MainWindow(QMainWindow):
         self._group_bodies = {}
         self._group_open = {k: True for k, _, _ in NAV_GROUPS}
         self._screen_keys = {}
+        self._screens = {}
         self._crumb_map = {
             "dashboard": "Operations / Sales & Distribution",
         }
@@ -663,14 +664,22 @@ class MainWindow(QMainWindow):
             return LicenseActivationScreen()
         raise KeyError(f"Unknown screen: {key}")
 
-    def _ensure_screen(self, key: str):
-        if key in self._screen_keys:
-            return
-        widget = self._create_screen(key)
-        idx = self.stack.addWidget(widget)
-        self._screen_keys[key] = idx
+    def _ensure_screen(self, key: str, *, refresh: bool = False):
+        """Create screen; when refresh=True rebuild so master data is current."""
+        if refresh and key in self._screens:
+            old = self._screens.pop(key)
+            self.stack.removeWidget(old)
+            old.deleteLater()
+            self._screen_keys.pop(key, None)
+        if key not in self._screens:
+            widget = self._create_screen(key)
+            self._screens[key] = widget
+            idx = self.stack.addWidget(widget)
+            self._screen_keys[key] = idx
 
     def navigate(self, key: str):
+        from app.data import sample_data as D
+
         for k, btn in self._nav_buttons.items():
             btn.setChecked(k == key)
 
@@ -681,8 +690,10 @@ class MainWindow(QMainWindow):
                 break
 
         self.breadcrumb.setText(self._crumb_map.get(key, key))
-        self._ensure_screen(key)
-        self.stack.setCurrentIndex(self._screen_keys[key])
+        # Reload DB + rebuild page so new groups/products/etc. appear immediately
+        D.reload()
+        self._ensure_screen(key, refresh=True)
+        self.stack.setCurrentWidget(self._screens[key])
         widget = self.stack.currentWidget()
         if hasattr(widget, "focus_entry"):
             widget.focus_entry()

@@ -9,7 +9,7 @@ from PySide6.QtWidgets import (
 
 from app.data import sample_data as D
 from app.styles import tokens as T
-from app.widgets.helpers import toast
+from app.widgets.helpers import confirm_save, toast
 from app.widgets.icons import icon_pixmap
 from app.widgets import stitch_ui as S
 
@@ -212,9 +212,12 @@ class CompanyDetailsScreen(QWidget):
 
     def _set_editing(self, enabled: bool):
         self._editing = enabled
+        fy_locked = bool((D.COMPANY.get("legal_name") or "").strip())
         for w in self._fields():
-            w.setReadOnly(not enabled)
-            if enabled:
+            # FY stays locked once company profile exists
+            field_enabled = enabled and not (w is self.fy and fy_locked)
+            w.setReadOnly(not field_enabled)
+            if field_enabled:
                 w.setFocusPolicy(Qt.StrongFocus)
                 w.setCursor(QCursor(Qt.IBeamCursor))
                 w.setAttribute(Qt.WA_TransparentForMouseEvents, False)
@@ -238,9 +241,10 @@ class CompanyDetailsScreen(QWidget):
                     w.setTextInteractionFlags(Qt.NoTextInteraction)
 
         # Visual: view = grey inputs; edit = white + primary ring
-        bg = T.SURFACE if enabled else _INPUT_BG
-        border = f"1px solid {_PRIMARY}" if enabled else "none"
         for w in self._fields():
+            field_enabled = enabled and not (w is self.fy and fy_locked)
+            bg = T.SURFACE if field_enabled else _INPUT_BG
+            border = f"1px solid {_PRIMARY}" if field_enabled else "none"
             if isinstance(w, QTextEdit):
                 w.setStyleSheet(
                     f"""
@@ -288,7 +292,11 @@ class CompanyDetailsScreen(QWidget):
     def _save_changes(self):
         if not self._editing:
             return
+        if not confirm_save(self, "company details"):
+            return
         from app.services import company as company_svc
+        from app.services import years as years_svc
+        import platform
 
         trade = self.trade_name.text().strip()
         city_raw = self.city.text().strip()
@@ -297,6 +305,23 @@ class CompanyDetailsScreen(QWidget):
             parts = [p.strip() for p in city_raw.split(",", 1)]
             city = parts[0]
             district = parts[1].replace("District", "").strip()
+
+        terminal_id = (D.COMPANY.get("terminal_id") or "").strip()
+        if not terminal_id:
+            host = (platform.node() or "LOCAL").split(".")[0].upper()[:12]
+            terminal_id = f"POS-{host}-01"
+
+        # Ensure a current FY exists and lock it for status display
+        if years_svc.get_current_year_id() is None:
+            from datetime import date
+            today = date.today()
+            start_year = today.year if today.month >= 4 else today.year - 1
+            years_svc.ensure_current_year(
+                f"FY {start_year}–{str(start_year + 1)[-2:]}",
+                f"{start_year}-04-01",
+                f"{start_year + 1}-03-31",
+                partition=f"DATA_{start_year}",
+            )
 
         payload = {
             "legal_name": trade or "My Company",
@@ -324,19 +349,27 @@ class CompanyDetailsScreen(QWidget):
             "branch": self.branch.text().strip(),
             "upi": self.upi.text().strip(),
             "invoice_note": self.invoice_note.toPlainText().strip(),
-            "gst_filing_status": D.COMPANY.get("gst_filing_status") or "",
-            "einvoice_status": D.COMPANY.get("einvoice_status") or "",
-            "terminal_id": D.COMPANY.get("terminal_id") or "",
+            "gst_filing_status": "Active",
+            "einvoice_status": "Ready",
+            "terminal_id": terminal_id,
         }
         company_svc.save_company(payload)
         D.reload()
         self._set_editing(False)
+        # FY field stays locked after first successful company save
+        self.fy.setReadOnly(True)
+        self.fy.setAttribute(Qt.WA_TransparentForMouseEvents, True)
+        active = years_svc.active_year()
+        if active:
+            self.fy.setText(active.get("period") or active.get("code") or D.FINANCIAL_YEAR)
+        self._refresh_status_strip()
         win = self.window()
         if hasattr(win, "_company_label"):
             win._company_label.setText(D.COMPANY_NAME)
+        if hasattr(win, "fy_badge"):
+            win.fy_badge.setText(D.FINANCIAL_YEAR if D.FINANCIAL_YEAR != "—" else D.FINANCIAL_YEAR)
         if hasattr(win, "_gst_badge"):
-            gstin = (D.COMPANY.get("gstin") or "").strip()
-            win._gst_badge.setText(f"GST: {gstin}" if gstin else "GST: —")
+            win._gst_badge.setText("GST: Active")
         toast(self, "Company details saved.")
 
     # ── Page header ──────────────────────────────────────────
@@ -439,26 +472,40 @@ class CompanyDetailsScreen(QWidget):
         return btn
 
     # ── Status overview ──────────────────────────────────────
+    def _status_items(self) -> list[tuple[str, str, str]]:
+        saved = bool((D.COMPANY.get("legal_name") or "").strip())
+        fy = D.FINANCIAL_YEAR if D.FINANCIAL_YEAR and D.FINANCIAL_YEAR != "—" else "—"
+        gst_status = D.COMPANY.get("gst_filing_status") or ("Active" if saved else "—")
+        terminal = D.COMPANY.get("terminal_id") or "—"
+        printer = "Connected" if saved else "Not checked"
+        return [
+            ("GST Filing Status", gst_status, "verified"),
+            ("Current FY Locked", fy if saved and fy != "—" else ("—" if not saved else fy), "schedule"),
+            ("Printer Connection", printer, "desktop_windows"),
+            ("Terminal ID", terminal, "terminal"),
+        ]
+
     def _status_strip(self) -> QWidget:
         wrap = QWidget()
         wrap.setStyleSheet("background: transparent;")
         grid = QGridLayout(wrap)
         grid.setContentsMargins(0, 0, 0, 0)
         grid.setSpacing(10)
-        # Icons match Stitch Material Symbols exactly
-        fy = D.FINANCIAL_YEAR if D.FINANCIAL_YEAR and D.FINANCIAL_YEAR != "—" else "—"
-        items = [
-            ("GST Filing Status", D.COMPANY.get("gst_filing_status") or "—", "verified"),
-            ("Current FY Locked", fy, "schedule"),
-            ("E-Invoice & E-Way Ready", D.COMPANY.get("einvoice_status") or "—", "qr_code_2"),
-            ("Terminal ID", D.COMPANY.get("terminal_id") or "—", "terminal"),
-        ]
-        for i, (title, value, icon) in enumerate(items):
-            grid.addWidget(self._status_card(title, value, icon), 0, i)
+        self._status_value_labels = []
+        for i, (title, value, icon) in enumerate(self._status_items()):
+            card, val_lbl = self._status_card(title, value, icon)
+            self._status_value_labels.append(val_lbl)
+            grid.addWidget(card, 0, i)
             grid.setColumnStretch(i, 1)
+        self._status_grid = grid
         return wrap
 
-    def _status_card(self, title: str, value: str, icon: str) -> QFrame:
+    def _refresh_status_strip(self):
+        items = self._status_items()
+        for lbl, (_, value, _) in zip(self._status_value_labels, items):
+            lbl.setText(value)
+
+    def _status_card(self, title: str, value: str, icon: str) -> tuple[QFrame, QLabel]:
         """Plain icon + text — no colored icon chip (Stitch)."""
         box = _card()
         lay = QHBoxLayout(box)
@@ -488,7 +535,7 @@ class CompanyDetailsScreen(QWidget):
         col.addWidget(val)
         lay.addWidget(ic)
         lay.addLayout(col, stretch=1)
-        return box
+        return box, val
 
     # ── Section shell with grey header band ──────────────────
     def _section_shell(

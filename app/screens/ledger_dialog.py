@@ -215,16 +215,9 @@ class LedgerEditDialog(QDialog):
         star.setStyleSheet(
             f"color: {S.ERROR}; font-weight: 700; border: none; background: transparent;"
         )
-        new_grp = QLabel("+ New Group [F2]")
-        new_grp.setCursor(QCursor(Qt.PointingHandCursor))
-        new_grp.setStyleSheet(
-            f"color: {S.PRIMARY}; font-size: 10px; font-weight: 700; "
-            f"border: none; background: transparent;"
-        )
         top.addWidget(cap)
         top.addWidget(star)
         top.addStretch()
-        top.addWidget(new_grp)
         gl.addLayout(top)
         from app.widgets.icons import combo_dropdown_qss
 
@@ -249,7 +242,7 @@ class LedgerEditDialog(QDialog):
         body.addWidget(
             self._row(
                 S.labeled_input("CONTACT PERSON / PROPRIETOR", self.contact),
-                S.labeled_input("MOBILE / WHATSAPP NUMBER", self.mobile, required=True),
+                S.labeled_input("MOBILE NUMBER", self.mobile, required=True),
             )
         )
         return box
@@ -454,6 +447,6 @@ class LedgerEditDialog(QDialog):
             "credit_limit": self.credit_limit.value(),
             "credit_days": self.credit_days.value(),
             "active": True,
-            "whatsapp": True,
+            "whatsapp": False,
         }
         self.accept()

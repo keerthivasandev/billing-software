@@ -11,7 +11,7 @@ from app.data import sample_data as D
 from app.screens.users_dialogs import NewUserDialog, ResetPasswordDialog
 from app.styles import tokens as T
 from app.widgets import stitch_ui as S
-from app.widgets.helpers import toast
+from app.widgets.helpers import confirm_delete, confirm_save, toast
 from app.widgets.icons import combo_dropdown_qss, icon_pixmap
 
 _SEC_CONTAINER = "#e2e5ed"
@@ -1131,6 +1131,8 @@ class UsersScreen(QWidget):
         if not u:
             return
         name = u["username"]
+        if not confirm_delete(self, f"user “{name}”"):
+            return
         users_svc.delete_user(u["id"])
         D.reload()
         self.users = [dict(x) for x in D.USERS]
@@ -1145,6 +1147,8 @@ class UsersScreen(QWidget):
 
         u = self._current()
         if not u:
+            return
+        if not confirm_save(self, f"user “{u.get('username', '')}”"):
             return
         u["name"] = self.f_name.text().strip() or u["name"]
         u["mobile"] = self.f_mobile.text().strip() or u["mobile"]

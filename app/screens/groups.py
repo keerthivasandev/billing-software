@@ -9,7 +9,7 @@ from PySide6.QtWidgets import (
 
 from app.data import sample_data as D
 from app.styles import tokens as T
-from app.widgets.helpers import format_inr_indian, toast
+from app.widgets.helpers import confirm_delete, confirm_save, format_inr_indian, toast
 from app.widgets.icons import icon_pixmap
 from app.widgets import stitch_ui as S
 
@@ -36,6 +36,8 @@ class GroupsScreen(QWidget):
         self._mode = "product"
         self._selected_id = self.product_groups[0]["id"] if self.product_groups else None
         self._page = 1
+        self._draft = None
+        self._editing = False
 
         self.setObjectName("groupRoot")
         self.setStyleSheet(f"QWidget#groupRoot {{ background: {T.BG_CANVAS}; }}")
@@ -55,6 +57,7 @@ class GroupsScreen(QWidget):
 
         self._rebuild_list()
         self._load_detail()
+        self._set_editing(False)
 
     # ── data helpers ─────────────────────────────────────────
     def _records(self) -> list:
@@ -78,6 +81,8 @@ class GroupsScreen(QWidget):
         }[key]
 
     def _current(self) -> dict | None:
+        if self._draft is not None and self._selected_id is None:
+            return self._draft
         for g in self._records():
             if g["id"] == self._selected_id:
                 return g
@@ -453,10 +458,12 @@ class GroupsScreen(QWidget):
         return card
 
     def _select(self, gid: int):
+        self._draft = None
         self._selected_id = gid
         self._page = 1
         self._rebuild_list()
         self._load_detail()
+        self._set_editing(False)
 
     # ── Right detail ─────────────────────────────────────────
     def _right_panel(self) -> QFrame:
@@ -509,6 +516,7 @@ class GroupsScreen(QWidget):
 
         actions = QHBoxLayout()
         actions.setSpacing(8)
+        actions.addWidget(self._btn("Edit", "edit", "secondary", self._enter_edit))
         actions.addWidget(self._btn("Delete", "delete", "danger", self._delete))
         actions.addWidget(self._btn("Save [Ctrl+S]", "save", "primary", self._save))
 
@@ -807,30 +815,57 @@ class GroupsScreen(QWidget):
         self.ledger_groups = [dict(g) for g in D.LEDGER_GROUP_RECORDS]
         self.godown_groups = [dict(g) for g in D.GODOWN_GROUP_RECORDS]
 
-    def _new_group(self):
-        from app.services import groups as groups_svc
+    def _form_fields(self):
+        return [self.name, self.gtype, self.parent, self.gst, self.notes]
 
-        _, _, type_label = self._mode_meta()
-        created = groups_svc.create_group(
-            {
-                "name": f"New Group {len(self._records()) + 1}",
-                "gst": 18 if self._mode == "product" else 0,
-                "kind": self._mode,
-                "active": True,
-                "notes": "",
-            }
-        )
-        self._reload_from_db()
-        self._selected_id = created["id"]
-        self._rebuild_list()
-        self._load_detail()
+    def _set_editing(self, enabled: bool):
+        self._editing = enabled
+        for w in self._form_fields():
+            if isinstance(w, QLineEdit):
+                w.setReadOnly(not enabled)
+            elif isinstance(w, QComboBox):
+                w.setEnabled(enabled)
+            w.setAttribute(Qt.WA_TransparentForMouseEvents, not enabled)
+            if not isinstance(w, QComboBox):
+                w.setFocusPolicy(Qt.StrongFocus if enabled else Qt.NoFocus)
+
+    def _enter_edit(self):
+        if not self._current():
+            return
+        self._set_editing(True)
         self.name.setFocus()
         self.name.selectAll()
-        toast(self, f"Created {type_label.lower()} — edit and Save.")
+
+    def _new_group(self):
+        _, _, type_label = self._mode_meta()
+        self._draft = {
+            "id": None,
+            "name": "",
+            "gst": 18 if self._mode == "product" else 0,
+            "parent": _PARENT_OPTIONS[0],
+            "kind": self._mode,
+            "active": True,
+            "notes": "",
+            "item_count": 0,
+            "_is_new": True,
+        }
+        self._selected_id = None
+        self._rebuild_list()
+        self.detail_title.setText(f"New {type_label}")
+        self.name.setText("")
+        self.notes.setText("")
+        self.gst.setCurrentIndex(3 if self._mode == "product" else 0)
+        self.parent.setCurrentIndex(0)
+        self._set_editing(True)
+        self.name.setFocus()
+        toast(self, f"New {type_label.lower()} — fill details and Save.")
 
     def _save(self):
         from app.services import groups as groups_svc
 
+        if not self._editing:
+            toast(self, "Click Edit before saving.")
+            return
         g = self._current()
         if not g:
             return
@@ -839,24 +874,31 @@ class GroupsScreen(QWidget):
             self.name.setFocus()
             toast(self, "Group name is required.")
             return
+        if not confirm_save(self, f"group “{name}”"):
+            return
         gst_txt = self.gst.currentText()
         try:
             gst = int(gst_txt.split("%")[0])
         except ValueError:
             gst = 18
-        groups_svc.update_group(
-            g["id"],
-            {
-                "name": name,
-                "notes": self.notes.text().strip(),
-                "gst": gst,
-                "active": g.get("active", True),
-                "parent_id": g.get("parent_id"),
-            },
-        )
+        payload = {
+            "name": name,
+            "notes": self.notes.text().strip(),
+            "gst": gst,
+            "kind": self._mode,
+            "active": g.get("active", True),
+            "parent_id": g.get("parent_id"),
+        }
+        if g.get("_is_new") or g.get("id") is None:
+            saved = groups_svc.create_group(payload)
+            self._draft = None
+        else:
+            saved = groups_svc.update_group(g["id"], payload)
         self._reload_from_db()
+        self._selected_id = saved["id"]
         self._rebuild_list()
         self._load_detail()
+        self._set_editing(False)
         toast(self, f"Saved group: {name}")
 
     def _delete(self):
@@ -865,13 +907,25 @@ class GroupsScreen(QWidget):
         g = self._current()
         if not g:
             return
+        if g.get("_is_new") or g.get("id") is None:
+            self._draft = None
+            rows = self._records()
+            self._selected_id = rows[0]["id"] if rows else None
+            self._rebuild_list()
+            self._load_detail()
+            self._set_editing(False)
+            toast(self, "Draft discarded.")
+            return
         name = g["name"]
+        if not confirm_delete(self, f"group “{name}”"):
+            return
         groups_svc.delete_group(g["id"])
         self._reload_from_db()
         rows = self._records()
         self._selected_id = rows[0]["id"] if rows else None
         self._rebuild_list()
         self._load_detail()
+        self._set_editing(False)
         toast(self, f"Deleted: {name}")
 
     def _footer(self) -> QFrame:

@@ -3,13 +3,13 @@
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QCursor, QKeySequence, QShortcut
 from PySide6.QtWidgets import (
-    QFrame, QHBoxLayout, QHeaderView, QLabel, QLineEdit, QScrollArea,
+    QComboBox, QFrame, QHBoxLayout, QHeaderView, QLabel, QLineEdit, QScrollArea,
     QSizePolicy, QTableWidget, QTableWidgetItem, QTextEdit, QVBoxLayout, QWidget,
 )
 
 from app.data import sample_data as D
 from app.styles import tokens as T
-from app.widgets.helpers import format_inr_indian, toast
+from app.widgets.helpers import confirm_delete, confirm_save, format_inr_indian, toast
 from app.widgets.icons import icon_pixmap
 from app.widgets import stitch_ui as S
 
@@ -20,6 +20,7 @@ class GodownsScreen(QWidget):
         self.rows = [dict(g) for g in D.GODOWNS]
         self._selected_id = self.rows[0]["id"] if self.rows else None
         self._editing = False
+        self._draft = None
 
         self.setObjectName("godownRoot")
         self.setStyleSheet(f"QWidget#godownRoot {{ background: {T.BG_CANVAS}; }}")
@@ -339,16 +340,11 @@ class GodownsScreen(QWidget):
         return card
 
     def _select(self, gid: int):
+        self._draft = None
         self._selected_id = gid
         self._rebuild_list()
         self._load_detail()
         self._set_editing(False)
-
-    def _current(self) -> dict | None:
-        for g in self.rows:
-            if g["id"] == self._selected_id:
-                return g
-        return None
 
     # ── Right detail ─────────────────────────────────────────
     def _right_panel(self) -> QWidget:
@@ -452,7 +448,7 @@ class GodownsScreen(QWidget):
         self.name.setFixedHeight(36)
         self.code.setFixedHeight(36)
 
-        # Status chip with toggle_on
+        # Status dropdown (Active / Inactive) — same pattern as Users
         status_wrap = QWidget()
         status_wrap.setStyleSheet("background: transparent;")
         sl = QVBoxLayout(status_wrap)
@@ -464,26 +460,24 @@ class GodownsScreen(QWidget):
             f"border: none; background: transparent;"
         )
         sl.addWidget(scap)
-        self.status_chip = QFrame()
-        self.status_chip.setFixedHeight(36)
-        self.status_chip.setStyleSheet(
-            f"QFrame {{ background: {S.INPUT_BG}; border: none; border-radius: 4px; }}"
+        from app.widgets.icons import combo_dropdown_qss
+        self.status = QComboBox()
+        self.status.addItems([
+            "Active (Available in sales/purchase)",
+            "Inactive (Hidden from vouchers)",
+        ])
+        self.status.setFixedHeight(36)
+        self.status.setStyleSheet(
+            f"""
+            QComboBox {{
+                background: {S.INPUT_BG}; border: none; border-radius: 4px;
+                padding: 6px 28px 6px 10px; font-size: 12px; font-weight: 600;
+                color: {S.PRIMARY};
+            }}
+            {combo_dropdown_qss(width=22, background=S.INPUT_BG)}
+            """
         )
-        scl = QHBoxLayout(self.status_chip)
-        scl.setContentsMargins(10, 0, 10, 0)
-        self.status_txt = QLabel("Active Depot")
-        self.status_txt.setStyleSheet(
-            f"color: {S.PRIMARY}; font-size: 12px; font-weight: 600; "
-            f"border: none; background: transparent;"
-        )
-        tog = QLabel()
-        tog.setFixedSize(22, 22)
-        tog.setStyleSheet("background: transparent; border: none;")
-        tog.setPixmap(icon_pixmap("toggle_on", size=20, color=S.PRIMARY))
-        scl.addWidget(self.status_txt)
-        scl.addStretch()
-        scl.addWidget(tog)
-        sl.addWidget(self.status_chip)
+        sl.addWidget(self.status)
         shint = QLabel("Available in sales/purchase dropdown")
         shint.setStyleSheet(
             f"color: {S.SECONDARY}; font-size: 10px; border: none; background: transparent;"
@@ -739,11 +733,11 @@ class GodownsScreen(QWidget):
         self.incharge.setText(g.get("incharge", ""))
         self.phone.setText(g.get("phone", ""))
         self.alt_phone.setText(g.get("alt_phone", ""))
-        self.status_txt.setText("Active Depot" if g.get("active", True) else "Inactive")
+        self.status.setCurrentIndex(0 if g.get("active", True) else 1)
         self.pin_zone.setText(g.get("pin_zone", ""))
         self.live_badge.setText(f"{g.get('code', '')} Live Inventory")
 
-        stock = D.GODOWN_STOCK.get(g["id"], [])
+        stock = D.GODOWN_STOCK.get(g["id"], []) if g.get("id") else []
         self.stock_table.setRowCount(len(stock))
         total_qty = 0.0
         total_val = 0.0
@@ -791,60 +785,112 @@ class GodownsScreen(QWidget):
     def _fields(self):
         return [
             self.name, self.code, self.address,
-            self.incharge, self.phone, self.alt_phone,
+            self.incharge, self.phone, self.alt_phone, self.status,
         ]
 
     def _set_editing(self, enabled: bool):
         self._editing = enabled
         for w in self._fields():
-            if hasattr(w, "setReadOnly"):
+            if isinstance(w, QComboBox):
+                w.setEnabled(enabled)
+            elif hasattr(w, "setReadOnly"):
                 w.setReadOnly(not enabled)
             w.setAttribute(Qt.WA_TransparentForMouseEvents, not enabled)
-            w.setFocusPolicy(Qt.StrongFocus if enabled else Qt.NoFocus)
+            if not isinstance(w, QComboBox):
+                w.setFocusPolicy(Qt.StrongFocus if enabled else Qt.NoFocus)
 
     def _enter_edit(self):
+        if not self._current():
+            return
         self._set_editing(True)
         self.name.setFocus()
 
-    def _new(self):
-        from app.services import godowns as godowns_svc
+    def _current(self) -> dict | None:
+        if self._draft is not None and self._selected_id is None:
+            return self._draft
+        for g in self.rows:
+            if g["id"] == self._selected_id:
+                return g
+        return None
 
-        created = godowns_svc.create_godown(
-            {
-                "name": f"New Godown {len(self.rows) + 1}",
-                "role_tag": "Storage",
-                "status": "Active",
-                "location_label": "New Location",
-                "active": True,
-                "is_default": len(self.rows) == 0,
-            }
-        )
-        D.reload()
-        self.rows = [dict(g) for g in D.GODOWNS]
-        self._selected_id = created["id"]
+    def _new(self):
+        n = len(self.rows) + 1
+        self._draft = {
+            "id": None,
+            "code": f"GDN-{n:02d}",
+            "name": "",
+            "ref_id": "",
+            "incharge": "",
+            "phone": "",
+            "alt_phone": "",
+            "address": "",
+            "location_label": "New Location",
+            "pin_zone": "",
+            "item_count": 0,
+            "status": "Active",
+            "role_tag": "Storage",
+            "active": True,
+            "is_default": len(self.rows) == 0,
+            "_is_new": True,
+        }
+        self._selected_id = None
         self._rebuild_list()
-        self._load_detail()
+        self.ref_lbl.setText("System Ref ID: (new)")
+        self.name.setText("")
+        self.code.setText(self._draft["code"])
+        self.address.setPlainText("")
+        self.incharge.setText("")
+        self.phone.setText("")
+        self.alt_phone.setText("")
+        self.status.setCurrentIndex(0)
+        self.pin_zone.setText("")
+        self.live_badge.setText("New Godown")
+        self.stock_table.setRowCount(0)
         self._set_editing(True)
-        toast(self, "New godown created — fill details and Save.")
+        self.name.setFocus()
+        toast(self, "New godown — fill details and Save.")
 
     def _save(self):
         from app.services import godowns as godowns_svc
 
+        if not self._editing:
+            toast(self, "Click Edit before saving.")
+            return
         g = self._current()
         if not g:
             return
+        name = self.name.text().strip()
+        if not name:
+            toast(self, "Godown name is required.")
+            self.name.setFocus()
+            return
+        if not confirm_save(self, f"godown “{name}”"):
+            return
+        active = self.status.currentIndex() == 0
         payload = {
             **g,
-            "name": self.name.text().strip() or g["name"],
-            "code": self.code.text().strip() or g["code"],
+            "name": name,
+            "code": self.code.text().strip() or g.get("code") or "GDN-01",
             "address": self.address.toPlainText().strip(),
             "incharge": self.incharge.text().strip(),
             "phone": self.phone.text().strip(),
             "alt_phone": self.alt_phone.text().strip(),
+            "active": active,
+            "status": "Active" if active else "Inactive",
+            "is_default": g.get("is_default", False),
         }
-        godowns_svc.update_godown(g["id"], payload)
+        try:
+            if g.get("_is_new") or g.get("id") is None:
+                saved = godowns_svc.create_godown(payload)
+                self._draft = None
+            else:
+                saved = godowns_svc.update_godown(g["id"], payload)
+        except Exception as exc:
+            toast(self, f"Save failed: {exc}")
+            return
         D.reload()
         self.rows = [dict(x) for x in D.GODOWNS]
+        self._selected_id = saved["id"] if saved else None
         self._set_editing(False)
         self._rebuild_list()
         self._load_detail()
@@ -856,13 +902,24 @@ class GodownsScreen(QWidget):
         g = self._current()
         if not g:
             return
+        if g.get("_is_new") or g.get("id") is None:
+            self._draft = None
+            self._selected_id = self.rows[0]["id"] if self.rows else None
+            self._rebuild_list()
+            self._load_detail()
+            self._set_editing(False)
+            toast(self, "Draft discarded.")
+            return
         name = g["name"]
+        if not confirm_delete(self, f"godown “{name}”"):
+            return
         godowns_svc.delete_godown(g["id"])
         D.reload()
         self.rows = [dict(x) for x in D.GODOWNS]
         self._selected_id = self.rows[0]["id"] if self.rows else None
         self._rebuild_list()
         self._load_detail()
+        self._set_editing(False)
         toast(self, f"Deleted: {name}")
 
     def _footer(self) -> QFrame:

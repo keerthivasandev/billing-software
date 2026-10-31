@@ -10,7 +10,7 @@ from PySide6.QtWidgets import (
 from app.data import sample_data as D
 from app.screens.ledger_dialog import LedgerEditDialog
 from app.styles import tokens as T
-from app.widgets.helpers import format_inr_indian, toast
+from app.widgets.helpers import confirm_delete, confirm_save, format_inr_indian, toast
 from app.widgets.icons import icon_pixmap
 from app.widgets import stitch_ui as S
 
@@ -48,7 +48,6 @@ class PartyMasterScreen(QWidget):
 
         QShortcut(QKeySequence("F3"), self, activated=self._new_ledger)
         QShortcut(QKeySequence("F4"), self, activated=self._edit_ledger)
-        QShortcut(QKeySequence("Ctrl+S"), self, activated=lambda: toast(self, "Ledger saved."))
         QShortcut(QKeySequence("Delete"), self, activated=self._delete_ledger)
         QShortcut(QKeySequence("F8"), self, activated=lambda: toast(self, "Opening ledger statement…"))
         QShortcut(QKeySequence("Ctrl+F"), self, activated=lambda: self.search.setFocus())
@@ -96,17 +95,13 @@ class PartyMasterScreen(QWidget):
         top.addLayout(stats)
         outer.addLayout(top)
 
-        # Action row — matches Stitch: New / Edit / Save / Delete | View Statement
+        # Action row — New / Edit / Delete | View Statement (save happens in popup)
         actions = QHBoxLayout()
         actions.setSpacing(6)
         actions.addWidget(
             S.action_btn("+ New Ledger", "F3", "person_add", "primary", self._new_ledger)
         )
         actions.addWidget(S.action_btn("Edit", "F4", "edit", "secondary", self._edit_ledger))
-        actions.addWidget(
-            S.action_btn("Save", "Ctrl+S", "save", "save",
-                         lambda: toast(self, "Ledger saved."))
-        )
         actions.addWidget(
             S.action_btn("Delete", "Del", "delete", "danger", self._delete_ledger)
         )
@@ -431,8 +426,6 @@ class PartyMasterScreen(QWidget):
             f"border: none; background: transparent; font-family: Consolas, monospace;"
         )
         ph.addWidget(pl)
-        if p.get("whatsapp"):
-            ph.addWidget(S.pill("WhatsApp Active", "success"))
         ph.addStretch()
 
         addr = p.get("address", "")
@@ -452,7 +445,7 @@ class PartyMasterScreen(QWidget):
             addr_line = base
 
         gl.addWidget(self._pair(
-            S.info_cell("Phone / WhatsApp", phone_val),
+            S.info_cell("Phone", phone_val),
             S.info_cell("Address & City", QLabel(addr_line)),
         ))
         lay.addWidget(grid)
@@ -714,6 +707,8 @@ class PartyMasterScreen(QWidget):
 
         dlg = LedgerEditDialog(self, party=None)
         if dlg.exec() == LedgerEditDialog.Accepted and dlg.result_data:
+            if not confirm_save(self, f"ledger “{dlg.result_data.get('name', '')}”"):
+                return
             created = parties_svc.create_party(dlg.result_data)
             D.reload()
             self.parties = [dict(p) for p in D.PARTIES]
@@ -731,6 +726,8 @@ class PartyMasterScreen(QWidget):
             return
         dlg = LedgerEditDialog(self, party=p)
         if dlg.exec() == LedgerEditDialog.Accepted and dlg.result_data:
+            if not confirm_save(self, f"ledger “{p.get('name', '')}”"):
+                return
             parties_svc.update_party(p["id"], {**p, **dlg.result_data})
             D.reload()
             self.parties = [dict(x) for x in D.PARTIES]
@@ -743,6 +740,8 @@ class PartyMasterScreen(QWidget):
 
         p = self._current()
         if not p:
+            return
+        if not confirm_delete(self, f"ledger “{p.get('name', '')}”"):
             return
         parties_svc.delete_party(p["id"])
         D.reload()

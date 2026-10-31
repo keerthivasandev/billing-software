@@ -9,7 +9,7 @@ from PySide6.QtWidgets import (
 
 from app.data import sample_data as D
 from app.styles import tokens as T
-from app.widgets.helpers import format_inr_indian, toast
+from app.widgets.helpers import confirm_delete, confirm_save, format_inr_indian, toast
 from app.widgets.icons import icon_pixmap
 from app.widgets import stitch_ui as S
 
@@ -97,12 +97,15 @@ class ProductMasterScreen(QWidget):
         root.addWidget(scroll)
 
         QShortcut(QKeySequence("F3"), self, activated=self._new_product)
+        QShortcut(QKeySequence("F4"), self, activated=self._enter_edit)
         QShortcut(QKeySequence("Ctrl+S"), self, activated=self._save)
+        QShortcut(QKeySequence("Delete"), self, activated=self._delete_product)
         QShortcut(QKeySequence("Ctrl+F"), self, activated=lambda: self.search.setFocus())
 
+        self._draft = None
         self._rebuild_list()
         self._load_detail()
-        self._set_editing(True)  # Stitch form fields stay editable; Save commits
+        self._set_editing(False)
 
     # ── Metrics ribbon ───────────────────────────────────────
     def _metrics_ribbon(self) -> QFrame:
@@ -183,7 +186,13 @@ class ProductMasterScreen(QWidget):
             S.action_btn("New Product", "F3", "add_circle", "primary", self._new_product)
         )
         actions.addWidget(
-            S.action_btn("Save", "Ctrl+S", "save", "secondary", self._save)
+            S.action_btn("Edit", "F4", "edit", "secondary", self._enter_edit)
+        )
+        actions.addWidget(
+            S.action_btn("Save", "Ctrl+S", "save", "save", self._save)
+        )
+        actions.addWidget(
+            S.action_btn("Delete", "Del", "delete", "danger", self._delete_product)
         )
 
         lay.addLayout(cat)
@@ -334,7 +343,7 @@ class ProductMasterScreen(QWidget):
 
     def _filtered(self):
         q = self.search.text().strip().lower()
-        rows = self.products
+        rows = [p for p in self.products if p.get("id") is not None]
         if self._filter != "all":
             rows = [p for p in rows if p.get("group") == self._filter]
         if q:
@@ -435,10 +444,11 @@ class ProductMasterScreen(QWidget):
         return card
 
     def _select(self, pid: int):
+        self._draft = None
         self._selected_id = pid
         self._rebuild_list()
         self._load_detail()
-        self._set_editing(True)
+        self._set_editing(False)
 
     def _current(self) -> dict | None:
         draft = getattr(self, "_draft", None)
@@ -448,6 +458,13 @@ class ProductMasterScreen(QWidget):
             if p["id"] == self._selected_id:
                 return p
         return None
+
+    def _enter_edit(self):
+        if not self._current():
+            return
+        self._set_editing(True)
+        self.name.setFocus()
+        self.name.selectAll()
 
     # ── Right detail ─────────────────────────────────────────
     def _right_panel(self) -> QFrame:
@@ -482,7 +499,8 @@ class ProductMasterScreen(QWidget):
         # Form fields
         self.name = QLineEdit()
         self.group = QComboBox()
-        self.group.addItems(list(D.ITEM_GROUPS))
+        groups = list(D.ITEM_GROUPS) or ["General"]
+        self.group.addItems(groups)
         self.unit = QComboBox()
         self.unit.setEditable(False)
         self.unit.addItems(_UNITS)
@@ -622,10 +640,13 @@ class ProductMasterScreen(QWidget):
         foot.addLayout(status)
         foot.addStretch()
         foot.addWidget(
-            S.action_btn("New Product", "F3", "add_circle", "secondary", self._new_product)
+            S.action_btn("Edit", "F4", "edit", "secondary", self._enter_edit)
         )
         foot.addWidget(
             S.action_btn("Save", "Ctrl+S", "save", "primary", self._save)
+        )
+        foot.addWidget(
+            S.action_btn("Delete", "Del", "delete", "danger", self._delete_product)
         )
         outer.addLayout(foot)
         outer.addStretch(1)
@@ -637,7 +658,9 @@ class ProductMasterScreen(QWidget):
             return
         self.sku_badge.setText(f"SKU #{p.get('sku', '—')}")
         self.name.setText(p.get("name", ""))
-        grp = p.get("group", D.ITEM_GROUPS[0])
+        grp = p.get("group") or (D.ITEM_GROUPS[0] if D.ITEM_GROUPS else "General")
+        if self.group.findText(grp) < 0:
+            self.group.addItem(grp)
         idx = self.group.findText(grp)
         self.group.setCurrentIndex(idx if idx >= 0 else 0)
         unit = p.get("unit", "Pcs")
@@ -749,11 +772,15 @@ class ProductMasterScreen(QWidget):
     def _save(self):
         from app.services import products as products_svc
 
+        if not getattr(self, "_editing", False):
+            toast(self, "Click Edit before saving.")
+            return
         p = self._current()
         draft = getattr(self, "_draft", None)
         if not p and draft:
             p = draft
         if not p:
+            toast(self, "Select or create a product first.")
             return
         name = self.name.text().strip()
         if not name:
@@ -761,10 +788,12 @@ class ProductMasterScreen(QWidget):
             self.name.setFocus()
             toast(self, "Product name is required.")
             return
+        if not confirm_save(self, f"product “{name}”"):
+            return
+        group_name = self.group.currentText().strip() or "General"
         payload = {
-            **p,
             "name": name,
-            "group": self.group.currentText() or "General",
+            "group": group_name,
             "unit": self.unit.currentText() or "Pcs",
             "hsn": self.hsn.text().strip(),
             "stock": self.stock.value(),
@@ -773,21 +802,60 @@ class ProductMasterScreen(QWidget):
             "sale_rate": self.sale_rate.value(),
             "rate": self.sale_rate.value(),
             "gst": p.get("gst", 18),
-            "sku": p.get("sku") if p.get("sku") and p.get("sku") != "NEW" else f"SKU-{name[:8].upper().replace(' ', '')}",
+            "min_stock": p.get("min_stock", 0),
+            "sku": (
+                p.get("sku")
+                if p.get("sku") and p.get("sku") != "NEW"
+                else f"SKU-{name[:8].upper().replace(' ', '')}"
+            ),
+            "default_godown_id": p.get("default_godown_id"),
+            "active": True,
         }
-        if p.get("_is_new") or p.get("id") is None:
-            saved = products_svc.create_product(payload)
-            self._draft = None
-        else:
-            saved = products_svc.update_product(p["id"], payload)
+        try:
+            if p.get("_is_new") or p.get("id") is None:
+                saved = products_svc.create_product(payload)
+                self._draft = None
+            else:
+                saved = products_svc.update_product(p["id"], payload)
+        except Exception as exc:
+            toast(self, f"Save failed: {exc}")
+            return
         D.reload()
         self.products = [dict(x) for x in D.PRODUCTS]
-        self._selected_id = saved["id"]
+        self._selected_id = saved["id"] if saved else None
         self._refresh_metrics()
         self._rebuild_list()
         self._load_detail()
-        self._set_editing(True)
+        self._set_editing(False)
         toast(self, f"Saved: {saved['name']}")
+
+    def _delete_product(self):
+        from app.services import products as products_svc
+
+        p = self._current()
+        if not p:
+            return
+        if p.get("_is_new") or p.get("id") is None:
+            self._draft = None
+            self.products = [x for x in self.products if not x.get("_is_new")]
+            self._selected_id = self.products[0]["id"] if self.products else None
+            self._refresh_metrics()
+            self._rebuild_list()
+            self._load_detail()
+            self._set_editing(False)
+            toast(self, "Draft discarded.")
+            return
+        if not confirm_delete(self, f"product “{p.get('name', '')}”"):
+            return
+        products_svc.delete_product(p["id"])
+        D.reload()
+        self.products = [dict(x) for x in D.PRODUCTS]
+        self._selected_id = self.products[0]["id"] if self.products else None
+        self._refresh_metrics()
+        self._rebuild_list()
+        self._load_detail()
+        self._set_editing(False)
+        toast(self, f"Deleted: {p['name']}")
 
     def _footer(self) -> QFrame:
         box = S.card()

@@ -72,7 +72,7 @@ ui_*.py
 *.bak
 *.sqlite
 *.sqlite3
-*.db
+data/*
 *.mdb
 
 # Test / coverage
@@ -92,3 +92,6 @@ htmlcov/
 
 # Workflows
 workflows/
+
+# Database
+data/*

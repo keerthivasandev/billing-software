@@ -1,12 +1,97 @@
 """Shared UI helpers — Zoho-style compact controls + lightweight toast."""
 
 from PySide6.QtCore import Qt, QTimer
-from PySide6.QtGui import QFont, QColor
+from PySide6.QtGui import QFont, QColor, QCursor
 from PySide6.QtWidgets import (
-    QFrame, QHBoxLayout, QLabel, QPushButton, QVBoxLayout, QWidget,
+    QDialog, QFrame, QHBoxLayout, QLabel, QPushButton, QVBoxLayout, QWidget,
 )
 
 from app.styles import tokens as T
+
+
+def confirm(
+    parent: QWidget | None,
+    message: str,
+    *,
+    title: str = "Confirm",
+    yes_text: str = "Yes",
+    no_text: str = "No",
+) -> bool:
+    """Modal Yes/No confirmation. Returns True only when Yes is chosen."""
+    dlg = QDialog(parent)
+    dlg.setWindowTitle(title)
+    dlg.setModal(True)
+    dlg.setFixedWidth(420)
+    dlg.setStyleSheet(
+        f"QDialog {{ background: {T.SURFACE}; }}"
+        f"QLabel {{ border: none; background: transparent; }}"
+    )
+    root = QVBoxLayout(dlg)
+    root.setContentsMargins(20, 18, 20, 16)
+    root.setSpacing(14)
+
+    ttl = QLabel(title)
+    ttl.setStyleSheet(
+        f"color: {T.TEXT_PRIMARY}; font-size: 15px; font-weight: 700;"
+    )
+    msg = QLabel(message)
+    msg.setWordWrap(True)
+    msg.setStyleSheet(
+        f"color: {T.TEXT_SECONDARY}; font-size: 13px;"
+    )
+    root.addWidget(ttl)
+    root.addWidget(msg)
+
+    row = QHBoxLayout()
+    row.setSpacing(8)
+    row.addStretch()
+
+    def _btn(text: str, primary: bool = False) -> QPushButton:
+        b = QPushButton(text)
+        b.setCursor(QCursor(Qt.PointingHandCursor))
+        b.setFixedHeight(34)
+        if primary:
+            b.setStyleSheet(
+                f"QPushButton {{ background: {T.ACCENT}; color: white; border: none; "
+                f"border-radius: 4px; padding: 0 16px; font-weight: 600; }}"
+                f"QPushButton:hover {{ background: {T.ACCENT_HOVER}; }}"
+            )
+        else:
+            b.setStyleSheet(
+                f"QPushButton {{ background: {T.SURFACE}; color: {T.TEXT_PRIMARY}; "
+                f"border: 1px solid {T.BORDER}; border-radius: 4px; padding: 0 16px; }}"
+                f"QPushButton:hover {{ background: {T.HEADER_BAND}; }}"
+            )
+        return b
+
+    no_btn = _btn(no_text)
+    yes_btn = _btn(yes_text, primary=True)
+    no_btn.clicked.connect(dlg.reject)
+    yes_btn.clicked.connect(dlg.accept)
+    row.addWidget(no_btn)
+    row.addWidget(yes_btn)
+    root.addLayout(row)
+    return dlg.exec() == QDialog.Accepted
+
+
+def confirm_save(parent: QWidget | None, what: str = "these changes") -> bool:
+    return confirm(
+        parent,
+        f"Are you sure you want to save {what}?",
+        title="Save confirmation",
+        yes_text="Yes, Save",
+        no_text="Cancel",
+    )
+
+
+def confirm_delete(parent: QWidget | None, what: str = "this item") -> bool:
+    return confirm(
+        parent,
+        f"Are you sure you want to delete {what}?",
+        title="Delete confirmation",
+        yes_text="Yes, Delete",
+        no_text="Cancel",
+    )
 
 
 def ui_font(size_pt=None, bold=False):
