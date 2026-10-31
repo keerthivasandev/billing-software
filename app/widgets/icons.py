@@ -28,7 +28,7 @@ NAV_ICON = {
     "audit_trail": "history",
     "users": "team",
     "ac_year": "calendar",
-    "license": "safety",
+    "license": "verified_user",
 }
 
 

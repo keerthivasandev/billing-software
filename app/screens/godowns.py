@@ -807,56 +807,63 @@ class GodownsScreen(QWidget):
         self.name.setFocus()
 
     def _new(self):
-        nid = max((g["id"] for g in self.rows), default=0) + 1
-        g = {
-            "id": nid,
-            "code": f"GDN-{nid:02d}",
-            "name": f"New Godown {nid}",
-            "ref_id": f"GDN-REC-{10000 + nid}",
-            "incharge": "",
-            "phone": "",
-            "alt_phone": "",
-            "address": "",
-            "location_label": "New Location",
-            "pin_zone": "",
-            "item_count": 0,
-            "status": "Active",
-            "role_tag": "Storage",
-            "active": True,
-            "is_default": False,
-            "icon": "warehouse",
-        }
-        self.rows.append(g)
-        self._selected_id = nid
+        from app.services import godowns as godowns_svc
+
+        created = godowns_svc.create_godown(
+            {
+                "name": f"New Godown {len(self.rows) + 1}",
+                "role_tag": "Storage",
+                "status": "Active",
+                "location_label": "New Location",
+                "active": True,
+                "is_default": len(self.rows) == 0,
+            }
+        )
+        D.reload()
+        self.rows = [dict(g) for g in D.GODOWNS]
+        self._selected_id = created["id"]
         self._rebuild_list()
         self._load_detail()
         self._set_editing(True)
         toast(self, "New godown created — fill details and Save.")
 
     def _save(self):
+        from app.services import godowns as godowns_svc
+
         g = self._current()
         if not g:
             return
-        g["name"] = self.name.text().strip() or g["name"]
-        g["code"] = self.code.text().strip() or g["code"]
-        g["address"] = self.address.toPlainText().strip()
-        g["incharge"] = self.incharge.text().strip()
-        g["phone"] = self.phone.text().strip()
-        g["alt_phone"] = self.alt_phone.text().strip()
+        payload = {
+            **g,
+            "name": self.name.text().strip() or g["name"],
+            "code": self.code.text().strip() or g["code"],
+            "address": self.address.toPlainText().strip(),
+            "incharge": self.incharge.text().strip(),
+            "phone": self.phone.text().strip(),
+            "alt_phone": self.alt_phone.text().strip(),
+        }
+        godowns_svc.update_godown(g["id"], payload)
+        D.reload()
+        self.rows = [dict(x) for x in D.GODOWNS]
         self._set_editing(False)
         self._rebuild_list()
         self._load_detail()
         toast(self, "Godown saved.")
 
     def _delete(self):
+        from app.services import godowns as godowns_svc
+
         g = self._current()
         if not g:
             return
-        self.rows = [x for x in self.rows if x["id"] != g["id"]]
+        name = g["name"]
+        godowns_svc.delete_godown(g["id"])
+        D.reload()
+        self.rows = [dict(x) for x in D.GODOWNS]
         self._selected_id = self.rows[0]["id"] if self.rows else None
         self._rebuild_list()
         self._load_detail()
-        toast(self, f"Deleted: {g['name']}")
+        toast(self, f"Deleted: {name}")
 
     def _footer(self) -> QFrame:
         box = S.card()

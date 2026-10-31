@@ -39,7 +39,7 @@ NAV_GROUPS = [
         ("audit_trail", "4.1 A/c Log Customer", "", "Settings / A/c Log"),
         ("users", "4.2 Users", "", "Settings / Users"),
         ("ac_year", "4.3 A/c Year Management", "", "Settings / A/c Year Management"),
-        ("license", "License & Activation", "", "Settings / License & Activation"),
+        ("license", "License & Activation", "", "Settings & Configuration / License & Security / License & Activation"),
     ]),
 ]
 
@@ -381,7 +381,8 @@ class MainWindow(QMainWindow):
             f"padding: 0 6px; font-size: 8pt; font-weight: 600;"
         )
 
-        gst = QLabel("GST: Registered")
+        gstin = (D.COMPANY.get("gstin") or "").strip()
+        gst = QLabel(f"GST: {gstin}" if gstin else "GST: —")
         gst.setObjectName("gstBadge")
         gst.setFixedHeight(22)
         gst.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
@@ -390,6 +391,7 @@ class MainWindow(QMainWindow):
             f"border: 1px solid {T.BORDER}; border-radius: 4px; "
             f"padding: 0 6px; font-size: 8pt; font-weight: 600;"
         )
+        self._gst_badge = gst
 
         left.addWidget(company, 0, Qt.AlignVCenter)
         left.addWidget(self.fy_badge, 0, Qt.AlignVCenter)
@@ -648,14 +650,17 @@ class MainWindow(QMainWindow):
             from app.screens.reports_suite import ExportToolsScreen
             return ExportToolsScreen()
         if key == "audit_trail":
-            from app.screens.settings_suite import AuditTrailScreen
+            from app.screens.ac_log_customer import AuditTrailScreen
             return AuditTrailScreen()
         if key == "users":
-            from app.screens.settings_suite import UsersScreen
+            from app.screens.users import UsersScreen
             return UsersScreen()
         if key == "ac_year":
-            from app.screens.settings_suite import AccountYearManagementScreen
+            from app.screens.ac_year import AccountYearManagementScreen
             return AccountYearManagementScreen(on_fy_change=self._on_fy_change)
+        if key == "license":
+            from app.screens.license import LicenseActivationScreen
+            return LicenseActivationScreen()
         raise KeyError(f"Unknown screen: {key}")
 
     def _ensure_screen(self, key: str):
@@ -666,12 +671,6 @@ class MainWindow(QMainWindow):
         self._screen_keys[key] = idx
 
     def navigate(self, key: str):
-        if key == "license":
-            from app.screens.license_dialog import LicenseActivationDialog
-            dlg = LicenseActivationDialog(self)
-            dlg.exec()
-            return
-
         for k, btn in self._nav_buttons.items():
             btn.setChecked(k == key)
 

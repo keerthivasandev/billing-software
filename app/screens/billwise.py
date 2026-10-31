@@ -15,9 +15,6 @@ from app.widgets import stitch_ui as S
 from app.widgets.helpers import format_inr_indian, toast
 from app.widgets.icons import combo_dropdown_qss, icon_pixmap
 
-_PARTY_RECEIPT = "Balaji Electricals & Hardware"
-_PARTY_PAYMENT = "Polycab India Ltd"
-
 _PAY_OPTIONS_RECEIPT = [
     "Online Payment (HDFC Current A/c - 4091)",
     "Cash Counter",
@@ -36,11 +33,14 @@ class BillwiseScreen(QWidget):
     def __init__(self, mode="receipt", parent=None):
         super().__init__(parent)
         self.mode = mode  # receipt | payment
-        self.party_name = _PARTY_RECEIPT if mode == "receipt" else _PARTY_PAYMENT
-        self.party_gstin = (
-            "36AABCU9603R1ZM" if mode == "receipt" else "27AAACP1234A1Z5"
+        want = "Customer" if mode == "receipt" else "Supplier"
+        parties = [p for p in D.PARTIES if p.get("type") == want] or list(D.PARTIES)
+        first = parties[0] if parties else None
+        self.party_name = first["name"] if first else "—"
+        self.party_gstin = (first.get("gstin") if first else "") or "—"
+        self.pay_option = (
+            _PAY_OPTIONS_RECEIPT[0] if mode == "receipt" else _PAY_OPTIONS_PAYMENT[0]
         )
-        self.pay_option = _PAY_OPTIONS_RECEIPT[0]
         self.rows = self._party_rows()
         self._settle = {r["bill"]: 0.0 for r in self.rows}
         self._checked = {r["bill"]: False for r in self.rows}
@@ -53,10 +53,12 @@ class BillwiseScreen(QWidget):
 
     def _party_rows(self):
         src = D.RECEIVABLES if self.mode == "receipt" else D.PAYABLES
-        return [
-            dict(r) for r in src
-            if r.get("party") == self.party_name and float(r.get("balance", 0)) > 0
-        ]
+        if self.party_name and self.party_name != "—":
+            return [
+                dict(r) for r in src
+                if r.get("party") == self.party_name and float(r.get("balance", 0)) > 0
+            ]
+        return []
 
     def _outstanding(self) -> float:
         return sum(float(r["balance"]) for r in self.rows)
@@ -863,15 +865,63 @@ class BillwiseScreen(QWidget):
         )
 
     def _save(self):
+        from app.services import settlements as settlements_svc
+        from app.services import vouchers as vouchers_svc
+        from app import session
+
         knocked = sum(self._settle.values())
         if knocked <= 0:
             toast(self, "Allocate amount against at least one bill.")
             return
+        party = next((p for p in D.PARTIES if p["name"] == self.party_name), None)
+        if party is None:
+            toast(self, "Select a party before settling.")
+            return
+
+        # Map bill nos → voucher ids from history
+        hist = (
+            vouchers_svc.sales_history()
+            if self.mode == "receipt"
+            else vouchers_svc.purchase_history()
+        )
+        by_doc = {h["doc"]: h for h in hist if h.get("party") == self.party_name}
+        allocations = []
         for row in self.rows:
-            apply = self._settle.get(row["bill"], 0.0)
-            row["balance"] = round(max(0.0, row["balance"] - apply), 2)
-            self._settle[row["bill"]] = 0.0
-            self._checked[row["bill"]] = False
+            apply = float(self._settle.get(row["bill"], 0.0) or 0)
+            if apply <= 0:
+                continue
+            h = by_doc.get(row["bill"])
+            if not h:
+                continue
+            allocations.append({"voucher_id": h["id"], "allocated_amount": apply})
+        if not allocations:
+            toast(self, "Could not match bills to vouchers.")
+            return
+
+        user = session.current_user()
+        mode = "Cash"
+        if "UPI" in self.pay_option or "NEFT" in self.pay_option or "RTGS" in self.pay_option:
+            mode = "UPI"
+        elif "Cheque" in self.pay_option:
+            mode = "Cheque"
+        elif "Online" in self.pay_option or "Bank" in self.pay_option or "HDFC" in self.pay_option:
+            mode = "Bank"
+        try:
+            settlements_svc.create_settlement(
+                kind="receipt" if self.mode == "receipt" else "payment",
+                ledger_id=party["id"],
+                mode=mode,
+                total_amount=knocked,
+                allocations=allocations,
+                created_by=user["id"] if user else None,
+            )
+        except Exception as exc:
+            toast(self, f"Settle failed: {exc}")
+            return
+        D.reload()
+        self.rows = self._party_rows()
+        self._settle = {r["bill"]: 0.0 for r in self.rows}
+        self._checked = {r["bill"]: False for r in self.rows}
         self.recv.setValue(0)
         self._reload()
         kind = "Receipt" if self.mode == "receipt" else "Payment"

@@ -710,37 +710,43 @@ class PartyMasterScreen(QWidget):
 
     # ── Actions ──────────────────────────────────────────────
     def _new_ledger(self):
+        from app.services import parties as parties_svc
+
         dlg = LedgerEditDialog(self, party=None)
         if dlg.exec() == LedgerEditDialog.Accepted and dlg.result_data:
-            data = dlg.result_data
-            data["id"] = max((p["id"] for p in self.parties), default=0) + 1
-            data["code"] = f"SLE-PTY-{data['id']:04d}"
-            self.parties.append(data)
-            self._selected_id = data["id"]
+            created = parties_svc.create_party(dlg.result_data)
+            D.reload()
+            self.parties = [dict(p) for p in D.PARTIES]
+            self._selected_id = created["id"]
             self._update_count()
             self._rebuild_list()
             self._show_detail()
-            toast(self, f"Created ledger: {data['name']}")
+            toast(self, f"Created ledger: {created['name']}")
 
     def _edit_ledger(self):
+        from app.services import parties as parties_svc
+
         p = self._current()
         if not p:
             return
         dlg = LedgerEditDialog(self, party=p)
         if dlg.exec() == LedgerEditDialog.Accepted and dlg.result_data:
-            for i, row in enumerate(self.parties):
-                if row["id"] == p["id"]:
-                    self.parties[i] = {**row, **dlg.result_data, "id": p["id"]}
-                    break
+            parties_svc.update_party(p["id"], {**p, **dlg.result_data})
+            D.reload()
+            self.parties = [dict(x) for x in D.PARTIES]
             self._rebuild_list()
             self._show_detail()
             toast(self, "Ledger updated.")
 
     def _delete_ledger(self):
+        from app.services import parties as parties_svc
+
         p = self._current()
         if not p:
             return
-        self.parties = [x for x in self.parties if x["id"] != p["id"]]
+        parties_svc.delete_party(p["id"])
+        D.reload()
+        self.parties = [dict(x) for x in D.PARTIES]
         self._selected_id = self.parties[0]["id"] if self.parties else None
         self._update_count()
         self._rebuild_list()

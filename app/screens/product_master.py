@@ -441,6 +441,9 @@ class ProductMasterScreen(QWidget):
         self._set_editing(True)
 
     def _current(self) -> dict | None:
+        draft = getattr(self, "_draft", None)
+        if draft is not None and self._selected_id is None:
+            return draft
         for p in self.products:
             if p["id"] == self._selected_id:
                 return p
@@ -691,12 +694,11 @@ class ProductMasterScreen(QWidget):
                 w.setFocusPolicy(Qt.StrongFocus if enabled else Qt.NoFocus)
 
     def _new_product(self):
-        nid = max((p["id"] for p in self.products), default=0) + 1
         p = {
-            "id": nid,
-            "sku": f"NEW-{nid:04d}",
+            "id": None,
+            "sku": "NEW",
             "name": "",
-            "group": D.ITEM_GROUPS[0],
+            "group": D.ITEM_GROUPS[0] if D.ITEM_GROUPS else "General",
             "hsn": "",
             "unit": "Pcs",
             "sale_rate": 0.0,
@@ -707,19 +709,50 @@ class ProductMasterScreen(QWidget):
             "warehouse": D.WAREHOUSES[0] if D.WAREHOUSES else "",
             "min_stock": 0,
             "opening_qty": 0,
+            "_is_new": True,
         }
         self.products.append(p)
-        self._selected_id = nid
+        self._selected_id = None
+        self._draft = p
         self._refresh_metrics()
         self._rebuild_list()
-        self._load_detail()
+        self._load_detail_draft(p)
         self._set_editing(True)
         self.name.setFocus()
         self.name.setPlaceholderText("Enter new product description...")
         toast(self, "New product — fill details and Save (Ctrl+S).")
 
+    def _load_detail_draft(self, p: dict):
+        """Load unsaved draft into the detail panel."""
+        self._selected_id = p.get("id")
+        if hasattr(self, "_load_detail"):
+            # temporarily inject so _current works
+            pass
+        self.name.setText(p.get("name") or "")
+        if hasattr(self, "group"):
+            idx = self.group.findText(p.get("group") or "")
+            if idx >= 0:
+                self.group.setCurrentIndex(idx)
+        if hasattr(self, "unit"):
+            idx = self.unit.findText(p.get("unit") or "Pcs")
+            if idx >= 0:
+                self.unit.setCurrentIndex(idx)
+        if hasattr(self, "hsn"):
+            self.hsn.setText(p.get("hsn") or "")
+        if hasattr(self, "stock"):
+            self.stock.setValue(float(p.get("stock") or 0))
+        if hasattr(self, "purchase_rate"):
+            self.purchase_rate.setValue(float(p.get("purchase_rate") or 0))
+        if hasattr(self, "sale_rate"):
+            self.sale_rate.setValue(float(p.get("sale_rate") or 0))
+
     def _save(self):
+        from app.services import products as products_svc
+
         p = self._current()
+        draft = getattr(self, "_draft", None)
+        if not p and draft:
+            p = draft
         if not p:
             return
         name = self.name.text().strip()
@@ -728,19 +761,33 @@ class ProductMasterScreen(QWidget):
             self.name.setFocus()
             toast(self, "Product name is required.")
             return
-        p["name"] = name
-        p["group"] = self.group.currentText()
-        p["unit"] = self.unit.currentText()
-        p["hsn"] = self.hsn.text().strip()
-        p["stock"] = self.stock.value()
-        p["purchase_rate"] = self.purchase_rate.value()
-        p["sale_rate"] = self.sale_rate.value()
-        p["rate"] = p["sale_rate"]
+        payload = {
+            **p,
+            "name": name,
+            "group": self.group.currentText() or "General",
+            "unit": self.unit.currentText() or "Pcs",
+            "hsn": self.hsn.text().strip(),
+            "stock": self.stock.value(),
+            "opening_qty": self.stock.value(),
+            "purchase_rate": self.purchase_rate.value(),
+            "sale_rate": self.sale_rate.value(),
+            "rate": self.sale_rate.value(),
+            "gst": p.get("gst", 18),
+            "sku": p.get("sku") if p.get("sku") and p.get("sku") != "NEW" else f"SKU-{name[:8].upper().replace(' ', '')}",
+        }
+        if p.get("_is_new") or p.get("id") is None:
+            saved = products_svc.create_product(payload)
+            self._draft = None
+        else:
+            saved = products_svc.update_product(p["id"], payload)
+        D.reload()
+        self.products = [dict(x) for x in D.PRODUCTS]
+        self._selected_id = saved["id"]
         self._refresh_metrics()
         self._rebuild_list()
         self._load_detail()
         self._set_editing(True)
-        toast(self, f"Saved: {p['name']}")
+        toast(self, f"Saved: {saved['name']}")
 
     def _footer(self) -> QFrame:
         box = S.card()

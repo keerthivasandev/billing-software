@@ -801,22 +801,27 @@ class GroupsScreen(QWidget):
         self._load_detail()
 
     # ── Actions ──────────────────────────────────────────────
+    def _reload_from_db(self):
+        D.reload()
+        self.product_groups = [dict(g) for g in D.PRODUCT_GROUP_RECORDS]
+        self.ledger_groups = [dict(g) for g in D.LEDGER_GROUP_RECORDS]
+        self.godown_groups = [dict(g) for g in D.GODOWN_GROUP_RECORDS]
+
     def _new_group(self):
-        rows = self._records()
-        base = max((g["id"] for g in rows), default=0) + 1
+        from app.services import groups as groups_svc
+
         _, _, type_label = self._mode_meta()
-        g = {
-            "id": base,
-            "name": f"New Group {base}",
-            "gst": 18 if self._mode == "product" else 0,
-            "parent": _PARENT_OPTIONS[0],
-            "kind": self._mode,
-            "active": True,
-            "notes": "",
-            "item_count": 0,
-        }
-        rows.append(g)
-        self._selected_id = g["id"]
+        created = groups_svc.create_group(
+            {
+                "name": f"New Group {len(self._records()) + 1}",
+                "gst": 18 if self._mode == "product" else 0,
+                "kind": self._mode,
+                "active": True,
+                "notes": "",
+            }
+        )
+        self._reload_from_db()
+        self._selected_id = created["id"]
         self._rebuild_list()
         self._load_detail()
         self.name.setFocus()
@@ -824,6 +829,8 @@ class GroupsScreen(QWidget):
         toast(self, f"Created {type_label.lower()} — edit and Save.")
 
     def _save(self):
+        from app.services import groups as groups_svc
+
         g = self._current()
         if not g:
             return
@@ -832,34 +839,40 @@ class GroupsScreen(QWidget):
             self.name.setFocus()
             toast(self, "Group name is required.")
             return
-        g["name"] = name
-        g["parent"] = self.parent.currentText()
-        g["notes"] = self.notes.text().strip()
         gst_txt = self.gst.currentText()
         try:
-            g["gst"] = int(gst_txt.split("%")[0])
+            gst = int(gst_txt.split("%")[0])
         except ValueError:
-            g["gst"] = 18
-        if self._mode == "product":
-            D.ITEM_GROUPS[:] = [x["name"] for x in self.product_groups]
-        elif self._mode == "ledger":
-            D.LEDGER_GROUPS[:] = [x["name"] for x in self.ledger_groups]
-        else:
-            D.GODOWN_GROUPS[:] = [x["name"] for x in self.godown_groups]
+            gst = 18
+        groups_svc.update_group(
+            g["id"],
+            {
+                "name": name,
+                "notes": self.notes.text().strip(),
+                "gst": gst,
+                "active": g.get("active", True),
+                "parent_id": g.get("parent_id"),
+            },
+        )
+        self._reload_from_db()
         self._rebuild_list()
         self._load_detail()
         toast(self, f"Saved group: {name}")
 
     def _delete(self):
+        from app.services import groups as groups_svc
+
         g = self._current()
         if not g:
             return
+        name = g["name"]
+        groups_svc.delete_group(g["id"])
+        self._reload_from_db()
         rows = self._records()
-        rows[:] = [x for x in rows if x["id"] != g["id"]]
         self._selected_id = rows[0]["id"] if rows else None
         self._rebuild_list()
         self._load_detail()
-        toast(self, f"Deleted: {g['name']}")
+        toast(self, f"Deleted: {name}")
 
     def _footer(self) -> QFrame:
         box = S.card()

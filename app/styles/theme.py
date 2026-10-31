@@ -316,6 +316,54 @@ QRadioButton {{
     spacing: 4px;
 }}
 
+/* Stitch — blue box + white tick when checked */
+QCheckBox {{
+    spacing: 8px;
+    color: {T.TEXT_PRIMARY};
+    background: transparent;
+    border: none;
+}}
+
+QCheckBox::indicator {{
+    width: 16px;
+    height: 16px;
+    border: 2px solid {T.PRIMARY};
+    border-radius: 3px;
+    background: {T.SURFACE};
+}}
+
+QCheckBox::indicator:hover {{
+    border-color: {T.ACCENT_HOVER};
+    background: {T.ACCENT_SOFT};
+}}
+
+QCheckBox::indicator:checked {{
+    background: {T.PRIMARY};
+    border: 2px solid {T.PRIMARY};
+    image: url("{_icon_url('check-white')}");
+}}
+
+QCheckBox::indicator:checked:hover {{
+    background: {T.ACCENT_HOVER};
+    border-color: {T.ACCENT_HOVER};
+}}
+
+QCheckBox::indicator:disabled {{
+    background: {T.SURFACE_CONTAINER};
+    border: 2px solid {T.BORDER_STRONG};
+}}
+
+QCheckBox::indicator:checked:disabled {{
+    background: #93c5fd;
+    border: 2px solid #93c5fd;
+    image: url("{_icon_url('check-white')}");
+}}
+
+QCheckBox:disabled {{
+    color: {T.TEXT_SECONDARY};
+}}
+
+
 QProgressBar {{
     border: none;
     background: {T.HEADER_BAND};

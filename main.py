@@ -4,7 +4,7 @@
 import sys
 
 from PySide6.QtGui import QFont, QPalette, QColor
-from PySide6.QtWidgets import QApplication, QStyleFactory
+from PySide6.QtWidgets import QApplication, QDialog, QStyleFactory
 
 from app.main_window import MainWindow
 from app.styles import tokens as T
@@ -29,7 +29,6 @@ def _apply_windows_like_palette(app: QApplication):
 
 
 def main():
-    # Qt6 handles High-DPI scaling natively.
     app = QApplication(sys.argv)
     app.setStyle(QStyleFactory.create("Fusion"))
     _apply_windows_like_palette(app)
@@ -44,6 +43,38 @@ def main():
 
     from app.widgets.icons import install_global_combo_arrows
     install_global_combo_arrows(app)
+
+    # Ensure DB is reachable and UI store is loaded
+    from app.data import sample_data as D
+    from app.services import users as users_svc
+
+    D.reload()
+
+    # License gate — enable when license backend is ready
+    # from app.screens.license_dialog import LicenseActivationDialog
+    # lic = LicenseActivationDialog()
+    # if lic.exec() != QDialog.Accepted:
+    #     sys.exit(0)
+
+    # First-run: create root admin when users table is empty
+    if users_svc.count_users() == 0:
+        from app.screens.admin_setup import AdminSetupDialog
+        admin = AdminSetupDialog()
+        if admin.exec() != QDialog.Accepted:
+            sys.exit(0)
+        D.reload()
+
+    # Login gate
+    from app.screens.login_dialog import LoginDialog
+    from app import session
+
+    login = LoginDialog()
+    if login.exec() != QDialog.Accepted:
+        sys.exit(0)
+
+    if getattr(login, "result_user", None):
+        session.set_user(login.result_user)
+    D.reload()
 
     window = MainWindow()
     window.show()
